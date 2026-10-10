@@ -4,262 +4,442 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quantum Chess 5×5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
+/* ==========================================================================
+   Quantum Chess 5×5 — design tokens
+   Neutrals are warm charcoal (chess-site familiar). Quantum state has its own
+   language: a cyan/magenta "chromatic split", used only where something is
+   genuinely in superposition. Green is reserved for primary actions.
+   ========================================================================== */
 :root {
-  --bg: #302e2b;
-  --panel: #262522;
-  --panel-2: #1f1e1b;
-  --line: #3c3a36;
-  --text: #f1f1ef;
-  --muted: #a9a7a2;
-  --green: #81b64c;
-  --green-dark: #5d8a32;
-  --quantum: #a970ff;
-  --quantum-soft: rgba(169, 112, 255, 0.35);
-  --last: rgba(255, 214, 79, 0.42);
-  --sq: min(14vh, 112px);
+  --bg: #1b1a18;
+  --surface: #232220;
+  --surface-2: #2a2926;
+  --raised: #33312d;
+  --hair: rgba(255, 255, 255, 0.07);
+  --hair-2: rgba(255, 255, 255, 0.13);
+  --text: #eeece6;
+  --text-2: #bdb9af;
+  --text-3: #8e8a80;
+
+  --go: #81b64c;
+  --go-press: #5f8a35;
+  --q-cyan: #5fd4e8;
+  --q-mag: #ff76b8;
+  --q-ink: #1f8fa6;
+  --select: rgba(255, 221, 87, 0.52);
+  --lastmove: rgba(255, 221, 87, 0.36);
+
+  --ui: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+
+  --sq: min(13.4vh, 106px);
+  --r: 10px;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 18px 40px -18px rgba(0, 0, 0, 0.7);
 }
-body[data-theme="blue"] { --light: #e8edf4; --dark: #7d9ac0; --coord-light: #7d9ac0; --coord-dark: #e8edf4; }
-body[data-theme="pink"] { --light: #fbeef2; --dark: #db8fa8; --coord-light: #c9718e; --coord-dark: #fbeef2; }
-body[data-theme="lavender"] { --light: #f1ecfb; --dark: #9b86c9; --coord-light: #8a74ba; --coord-dark: #f1ecfb; }
-body[data-theme="green"] { --light: #ebecd0; --dark: #779556; --coord-light: #779556; --coord-dark: #ebecd0; }
+body[data-theme="blue"]     { --light: #e9eef5; --dark: #7f9cc2; }
+body[data-theme="pink"]     { --light: #fcf0f3; --dark: #d98fa8; }
+body[data-theme="lavender"] { --light: #f2eefa; --dark: #9886c4; }
+body[data-theme="green"]    { --light: #ecedd1; --dark: #779657; }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+  font: 500 15px/1.5 var(--ui);
+  -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
-button { font: inherit; cursor: pointer; border: 0; }
-a { color: #c9b3ff; }
-code { font-family: Consolas, "Courier New", monospace; background: rgba(169, 112, 255, 0.14); color: #dccbff; padding: 1px 6px; border-radius: 4px; font-size: 0.92em; }
-kbd { font-family: Consolas, monospace; background: var(--line); border: 1px solid #55524c; border-bottom-width: 3px; border-radius: 5px; padding: 0 6px; font-size: 0.9em; }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+a { color: var(--q-cyan); }
 .hidden { display: none !important; }
-.muted { color: var(--muted); }
-.small { font-size: 13px; }
+.ic { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+code { font: 500 0.88em var(--mono); background: rgba(95, 212, 232, 0.1); color: #a9ecf6; padding: 1px 6px; border-radius: 5px; }
+kbd { font: 600 11px var(--mono); color: var(--text-3); border: 1px solid var(--hair-2); border-radius: 4px; padding: 0 5px; line-height: 16px; }
+:focus-visible { outline: 2px solid var(--q-cyan); outline-offset: 2px; }
+
+/* ---------- buttons ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 10px; font-weight: 700; font-size: 15px; transition: transform 0.08s, background 0.15s, box-shadow 0.15s; }
+.btn.primary { background: var(--go); color: #fff; box-shadow: 0 3px 0 var(--go-press); }
+.btn.primary:hover { background: #8cc256; }
+.btn.primary:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--go-press); }
+.btn.primary:disabled { opacity: 0.55; cursor: progress; }
+.btn.ghost { color: var(--text-2); box-shadow: inset 0 0 0 1px var(--hair-2); }
+.btn.ghost:hover { color: var(--text); background: var(--surface-2); }
+.icon-btn { width: 38px; height: 38px; display: inline-grid; place-items: center; border-radius: 9px; color: var(--text-2); }
+.icon-btn:hover { background: var(--surface-2); color: var(--text); }
+.icon-btn .ic { width: 20px; height: 20px; }
 
 /* ---------- top bar ---------- */
 .topbar {
-  position: sticky; top: 0; z-index: 10;
-  display: flex; align-items: center; gap: 24px;
-  padding: 10px 24px; background: var(--panel-2); border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; z-index: 20;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;
+  height: 60px; padding: 0 20px;
+  background: rgba(27, 26, 24, 0.86); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--hair);
 }
-.brand { font-weight: 700; font-size: 20px; display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; white-space: nowrap; }
-.logo { color: var(--quantum); font-family: Consolas, monospace; }
-.tag { font-size: 12px; background: var(--quantum); color: #fff; padding: 2px 8px; border-radius: 99px; }
-.nav { display: flex; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
-.top-actions { flex: none; }
-@media (max-width: 1000px) { .tag { display: none; } }
-.nav a { color: var(--muted); text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; white-space: nowrap; }
-.nav a:hover { color: var(--text); background: var(--line); }
-.nav a.active { color: var(--text); background: var(--line); box-shadow: inset 0 -3px 0 var(--green); }
-.top-actions { display: flex; align-items: center; gap: 10px; }
-.engine-pill { font-size: 13px; padding: 4px 10px; border-radius: 99px; background: #3a3836; color: var(--muted); white-space: nowrap; }
-.engine-pill.qiskit { background: #2b2140; color: #e6dcff; border: 1px solid var(--quantum); }
-.icon-btn { background: transparent; color: var(--muted); font-size: 20px; width: 38px; height: 38px; border-radius: 8px; }
-.icon-btn:hover { color: var(--text); background: var(--line); }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; justify-self: start; }
+.mark { display: inline-flex; align-items: center; height: 30px; }
+.mark img { width: 24px; height: 24px; margin: 0 1px; }
+.ket-l, .ket-r { display: block; height: 26px; }
+.ket-l { width: 2px; background: var(--text); border-radius: 1px; }
+.ket-r { width: 9px; position: relative; }
+.ket-r::before, .ket-r::after { content: ""; position: absolute; left: 0; width: 2px; height: 15px; background: var(--q-cyan); border-radius: 1px; }
+.ket-r::before { top: -1px; transform-origin: top left; transform: rotate(-28deg); }
+.ket-r::after { bottom: -1px; transform-origin: bottom left; transform: rotate(28deg); }
+.wordmark { font: 800 17px/1 var(--ui); letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 6px; }
+.wordmark small { font: 600 12px var(--mono); color: var(--text-3); }
+
+.nav { display: flex; gap: 2px; padding: 4px; background: var(--surface); border: 1px solid var(--hair); border-radius: 12px; }
+.nav a { display: flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 8px; color: var(--text-3); text-decoration: none; font-weight: 700; font-size: 14px; white-space: nowrap; transition: color 0.15s, background 0.15s; }
+.nav a:hover { color: var(--text); }
+.nav a.active { color: var(--text); background: var(--raised); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); }
+.nav .ic { width: 16px; height: 16px; }
+.nav .s { display: none; }
+.top-actions { display: flex; align-items: center; gap: 6px; justify-self: end; }
+.engine-status { display: inline-flex; align-items: center; gap: 8px; font: 600 12px var(--mono); color: var(--text-3); padding: 6px 10px; border-radius: 8px; }
+.engine-status .edot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-3); }
+.engine-status.qiskit { color: var(--text-2); }
+.engine-status.qiskit .edot { background: var(--q-cyan); box-shadow: 0 0 0 3px rgba(95, 212, 232, 0.18); }
 
 /* ---------- play layout ---------- */
-.layout { display: flex; gap: 28px; justify-content: center; align-items: flex-start; padding: 24px; flex-wrap: wrap; }
+.layout { display: flex; gap: 32px; justify-content: center; align-items: flex-start; padding: 28px 24px 48px; flex-wrap: wrap; }
 .board-col { display: flex; flex-direction: column; gap: 10px; }
-.player-bar { display: flex; align-items: center; gap: 10px; height: 44px; width: calc(var(--sq) * 5); }
-.avatar { width: 36px; height: 36px; border-radius: 4px; background-size: 80%; background-position: center; background-repeat: no-repeat; }
-.avatar.white { background-color: #d9d9d6; background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgdmlld0JveD0iMCAwIDQ1IDQ1Ij48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMTEuNjNWNk0yMCA4aDUiLz48cGF0aCBmaWxsPSIjZmZmIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMjVzNC41LTcuNSAzLTEwLjVjMCAwLTEtMi41LTMtMi41cy0zIDIuNS0zIDIuNWMtMS41IDMgMyAxMC41IDMgMTAuNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xMS41IDM3YzUuNSAzLjUgMTUuNSAzLjUgMjEgMHYtN3M5LTQuNSA2LTEwLjVjLTQtNi41LTEzLjUtMy41LTE2IDRWMjd2LTMuNWMtMy41LTcuNS0xMy0xMC41LTE2LTQtMyA2IDUgMTAgNSAxMHoiLz48cGF0aCBkPSJNMTEuNSAzMGM1LjUtMyAxNS41LTMgMjEgMG0tMjEgMy41YzUuNS0zIDE1LjUtMyAyMSAwbS0yMSAzLjVjNS41LTMgMTUuNS0zIDIxIDAiLz48L2c+PC9zdmc+); }
-.avatar.black { background-color: #4b4945; background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgdmlld0JveD0iMCAwIDQ1IDQ1Ij48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMTEuNlY2Ii8+PHBhdGggZmlsbD0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIGQ9Ik0yMi41IDI1czQuNS03LjUgMy0xMC41YzAgMC0xLTIuNS0zLTIuNXMtMyAyLjUtMyAyLjVjLTEuNSAzIDMgMTAuNSAzIDEwLjUiLz48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMTEuNSAzN2EyMi4zIDIyLjMgMCAwIDAgMjEgMHYtN3M5LTQuNSA2LTEwLjVjLTQtNi41LTEzLjUtMy41LTE2IDRWMjd2LTMuNWMtMy41LTcuNS0xMy0xMC41LTE2LTQtMyA2IDUgMTAgNSAxMHoiLz48cGF0aCBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBkPSJNMjAgOGg1Ii8+PHBhdGggc3Ryb2tlPSIjZWNlY2VjIiBkPSJNMzIgMjkuNXM4LjUtNCA2LTkuN0MzNC4xIDE0IDI1IDE4IDIyLjUgMjQuNnYyLjEtMi4xQzIwIDE4IDkuOSAxNCA3IDE5LjljLTIuNSA1LjYgNC44IDkgNC44IDkiLz48cGF0aCBzdHJva2U9IiNlY2VjZWMiIGQ9Ik0xMS41IDMwYzUuNS0zIDE1LjUtMyAyMSAwbS0yMSAzLjVjNS41LTMgMTUuNS0zIDIxIDBtLTIxIDMuNWM1LjUtMyAxNS41LTMgMjEgMCIvPjwvZz48L3N2Zz4=); }
-.pname { font-weight: 600; }
-.captured { display: flex; flex: 1; min-height: 22px; }
-.captured span { width: 22px; height: 22px; background-size: contain; margin-right: -6px; }
-.turn-dot { width: 12px; height: 12px; border-radius: 50%; }
-.turn-dot.on { background: var(--green); box-shadow: 0 0 10px var(--green); }
+
+.player-bar { display: flex; align-items: center; gap: 12px; width: calc(var(--sq) * 5); padding: 6px 8px 6px 6px; border-radius: 10px; transition: background 0.2s; }
+.player-bar.turn { background: var(--surface); box-shadow: inset 0 0 0 1px var(--hair); }
+.avatar { width: 38px; height: 38px; border-radius: 8px; background-size: 78%; background-position: center 60%; background-repeat: no-repeat; flex: none; }
+.avatar.white { background-color: #dedbd3; background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgdmlld0JveD0iMCAwIDQ1IDQ1Ij48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMTEuNjNWNk0yMCA4aDUiLz48cGF0aCBmaWxsPSIjZmZmIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMjVzNC41LTcuNSAzLTEwLjVjMCAwLTEtMi41LTMtMi41cy0zIDIuNS0zIDIuNWMtMS41IDMgMyAxMC41IDMgMTAuNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xMS41IDM3YzUuNSAzLjUgMTUuNSAzLjUgMjEgMHYtN3M5LTQuNSA2LTEwLjVjLTQtNi41LTEzLjUtMy41LTE2IDRWMjd2LTMuNWMtMy41LTcuNS0xMy0xMC41LTE2LTQtMyA2IDUgMTAgNSAxMHoiLz48cGF0aCBkPSJNMTEuNSAzMGM1LjUtMyAxNS41LTMgMjEgMG0tMjEgMy41YzUuNS0zIDE1LjUtMyAyMSAwbS0yMSAzLjVjNS41LTMgMTUuNS0zIDIxIDAiLz48L2c+PC9zdmc+); }
+.avatar.black { background-color: #45423d; background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgdmlld0JveD0iMCAwIDQ1IDQ1Ij48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMTEuNlY2Ii8+PHBhdGggZmlsbD0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIGQ9Ik0yMi41IDI1czQuNS03LjUgMy0xMC41YzAgMC0xLTIuNS0zLTIuNXMtMyAyLjUtMyAyLjVjLTEuNSAzIDMgMTAuNSAzIDEwLjUiLz48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMTEuNSAzN2EyMi4zIDIyLjMgMCAwIDAgMjEgMHYtN3M5LTQuNSA2LTEwLjVjLTQtNi41LTEzLjUtMy41LTE2IDRWMjd2LTMuNWMtMy41LTcuNS0xMy0xMC41LTE2LTQtMyA2IDUgMTAgNSAxMHoiLz48cGF0aCBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBkPSJNMjAgOGg1Ii8+PHBhdGggc3Ryb2tlPSIjZWNlY2VjIiBkPSJNMzIgMjkuNXM4LjUtNCA2LTkuN0MzNC4xIDE0IDI1IDE4IDIyLjUgMjQuNnYyLjEtMi4xQzIwIDE4IDkuOSAxNCA3IDE5LjljLTIuNSA1LjYgNC44IDkgNC44IDkiLz48cGF0aCBzdHJva2U9IiNlY2VjZWMiIGQ9Ik0xMS41IDMwYzUuNS0zIDE1LjUtMyAyMSAwbS0yMSAzLjVjNS41LTMgMTUuNS0zIDIxIDBtLTIxIDMuNWM1LjUtMyAxNS41LTMgMjEgMCIvPjwvZz48L3N2Zz4=); }
+.pinfo { flex: 1; min-width: 0; }
+.pname { font-weight: 800; font-size: 15px; }
+.captured { display: flex; height: 18px; margin-top: 1px; }
+.captured span { width: 18px; height: 18px; background-size: contain; margin-right: -5px; opacity: 0.9; }
+.turn-flag { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--go); opacity: 0; transition: opacity 0.2s; }
+.player-bar.turn .turn-flag { opacity: 1; }
 
 /* ---------- board ---------- */
 .board-wrap { position: relative; }
 .board {
   display: grid; grid-template-columns: repeat(5, var(--sq)); grid-template-rows: repeat(5, var(--sq));
-  border-radius: 6px; overflow: hidden; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45); user-select: none;
+  border-radius: 6px; overflow: hidden; user-select: none;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 24px 50px -20px rgba(0, 0, 0, 0.8);
 }
-.sq { position: relative; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.sq { position: relative; display: grid; place-items: center; cursor: pointer; }
 .sq.light { background: var(--light); }
 .sq.dark { background: var(--dark); }
-.sq.last::before, .sq.sel::before { content: ""; position: absolute; inset: 0; background: var(--last); }
-.sq.sel::before { background: rgba(255, 214, 79, 0.62); }
-.coord { position: absolute; font-size: 13px; font-weight: 700; pointer-events: none; }
+.sq.last::before, .sq.sel::before { content: ""; position: absolute; inset: 0; background: var(--lastmove); }
+.sq.sel::before { background: var(--select); }
+.coord { position: absolute; font: 700 12px var(--ui); pointer-events: none; }
 .coord.rank { top: 4px; left: 5px; }
-.coord.file { bottom: 3px; right: 6px; }
-.sq.light .coord { color: var(--coord-light); }
-.sq.dark .coord { color: var(--coord-dark); }
+.coord.file { bottom: 2px; right: 5px; }
+.sq.light .coord { color: var(--dark); }
+.sq.dark .coord { color: var(--light); }
 
 .piece {
-  position: relative; width: 88%; height: 88%;
-  background-size: contain; background-repeat: no-repeat; background-position: center;
-  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.35));
+  position: relative; width: 86%; height: 86%;
+  background: center / contain no-repeat;
+  filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.28));
   transition: opacity 0.35s ease, transform 0.15s ease; pointer-events: none;
 }
 .sq:hover .piece { transform: translateY(-2px); }
-.piece.maybe { filter: drop-shadow(0 0 6px var(--quantum)) drop-shadow(0 3px 2px rgba(0, 0, 0, 0.3)); animation: shimmer 2.4s ease-in-out infinite; }
-@keyframes shimmer { 50% { transform: translateY(-2px); } }
-.badge {
-  position: absolute; right: 4px; bottom: 4px; z-index: 2; font-size: 12px; font-weight: 700; color: #fff;
-  background: var(--quantum); padding: 1px 6px; border-radius: 99px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); pointer-events: none;
+/* superposition: a chromatic split, not a glow */
+.piece.maybe {
+  filter: drop-shadow(2.5px 0 0 rgba(255, 118, 184, 0.6)) drop-shadow(-2.5px 0 0 rgba(95, 212, 232, 0.7)) drop-shadow(0 3px 2px rgba(0, 0, 0, 0.22));
+  animation: qsplit 3.2s ease-in-out infinite;
 }
-.dot { position: absolute; width: 30%; height: 30%; border-radius: 50%; background: rgba(0, 0, 0, 0.18); pointer-events: none; }
-.ring { position: absolute; inset: 4%; border-radius: 50%; border: 7px solid rgba(0, 0, 0, 0.18); pointer-events: none; }
-.qdot { position: absolute; width: 34%; height: 34%; border-radius: 50%; background: var(--quantum-soft); border: 3px solid var(--quantum); pointer-events: none; }
-.picked { position: absolute; inset: 0; background: var(--quantum-soft); box-shadow: inset 0 0 0 4px var(--quantum); pointer-events: none; }
-.partner { position: absolute; inset: 0; box-shadow: inset 0 0 0 4px var(--quantum); pointer-events: none; }
-.flash { animation: flash 0.9s ease-out; }
-@keyframes flash { 0% { box-shadow: inset 0 0 0 999px rgba(169, 112, 255, 0.85); } 100% { box-shadow: inset 0 0 0 999px rgba(169, 112, 255, 0); } }
+@keyframes qsplit {
+  50% { filter: drop-shadow(1px 0 0 rgba(255, 118, 184, 0.5)) drop-shadow(-1px 0 0 rgba(95, 212, 232, 0.6)) drop-shadow(0 3px 2px rgba(0, 0, 0, 0.22)); }
+}
+.prob-num {
+  position: absolute; top: 5%; right: 5%; z-index: 2; pointer-events: none;
+  font: 700 11px/16px var(--mono); color: #0e3b45; background: rgba(255, 255, 255, 0.9);
+  padding: 0 5px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.prob-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(0, 0, 0, 0.14); pointer-events: none; }
+.prob-bar i { display: block; height: 100%; background: var(--q-ink); }
+
+.dot { position: absolute; width: 30%; height: 30%; border-radius: 50%; background: rgba(0, 0, 0, 0.16); pointer-events: none; }
+.ring { position: absolute; inset: 3%; border-radius: 50%; border: 6px solid rgba(0, 0, 0, 0.16); pointer-events: none; }
+.qdot { position: absolute; width: 32%; height: 32%; border-radius: 50%; border: 2.5px dashed var(--q-ink); background: rgba(95, 212, 232, 0.22); pointer-events: none; }
+.picked { position: absolute; inset: 0; background: rgba(95, 212, 232, 0.28); box-shadow: inset 0 0 0 3px var(--q-ink); pointer-events: none; }
+.partner { position: absolute; inset: 0; box-shadow: inset 0 0 0 3px var(--q-ink); pointer-events: none; }
+.flash::after { content: ""; position: absolute; inset: 0; pointer-events: none; animation: measure 0.9s ease-out forwards; }
+@keyframes measure {
+  0% { box-shadow: inset 0 0 0 0 rgba(95, 212, 232, 0.9); background: rgba(95, 212, 232, 0.45); }
+  100% { box-shadow: inset 0 0 0 calc(var(--sq) / 2) rgba(95, 212, 232, 0); background: transparent; }
+}
 body.no-anim .piece.maybe { animation: none; }
 body.no-anim .piece, body.no-anim .sq:hover .piece { transition: none; transform: none; }
+body.no-anim .flash::after { animation: none; }
 
-/* mini boards in the manual */
-.board.mini { --msq: min(13.5vw, 54px); grid-template-columns: repeat(5, var(--msq)); grid-template-rows: repeat(5, var(--msq)); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4); }
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(15, 14, 13, 0.55); backdrop-filter: blur(2px); border-radius: 6px; }
+.overlay-card { background: var(--surface); padding: 28px 36px 26px; border-radius: 14px; text-align: center; box-shadow: var(--shadow); border: 1px solid var(--hair); }
+.overlay-kicker { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-3); }
+.overlay-title { font: 400 44px/1.1 var(--display); margin: 6px 0 4px; }
+.overlay-sub { color: var(--text-2); margin-bottom: 20px; }
+
+/* mini boards (manual figures) */
+.board.mini { --msq: min(12.5vw, 50px); grid-template-columns: repeat(5, var(--msq)); grid-template-rows: repeat(5, var(--msq)); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 12px 30px -14px rgba(0, 0, 0, 0.8); }
 .board.mini .sq { cursor: default; }
-.board.mini .coord { font-size: 9px; }
-.board.mini .badge { font-size: 9px; padding: 0 4px; right: 2px; bottom: 2px; }
+.board.mini .coord { font-size: 8px; top: 2px; left: 3px; }
+.board.mini .coord.file { top: auto; left: auto; bottom: 1px; right: 3px; }
+.board.mini .prob-num { font-size: 8px; line-height: 12px; padding: 0 3px; }
+.board.mini .prob-bar { height: 3px; }
 .board.mini .ring { border-width: 4px; }
 .board.mini .qdot { border-width: 2px; }
-.board.mini .partner, .board.mini .picked { box-shadow: inset 0 0 0 3px var(--quantum); }
-
-.overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.45); border-radius: 6px; }
-.overlay-card { background: var(--panel); padding: 28px 36px; border-radius: 10px; text-align: center; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); }
-.overlay-title { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
-.overlay-sub { color: var(--muted); margin-bottom: 18px; }
+.board.mini .partner, .board.mini .picked { box-shadow: inset 0 0 0 2px var(--q-ink); }
+.board.mini .piece.maybe { animation: none; filter: drop-shadow(1.5px 0 0 rgba(255, 118, 184, 0.6)) drop-shadow(-1.5px 0 0 rgba(95, 212, 232, 0.7)); }
 
 /* ---------- side panel ---------- */
-.panel { width: 380px; background: var(--panel); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); }
-.panel-head { display: flex; justify-content: space-between; align-items: center; }
-.status { font-size: 18px; font-weight: 700; }
-.qubits { font-size: 13px; color: #fff; background: #3a3341; border: 1px solid var(--quantum); padding: 3px 10px; border-radius: 99px; }
-.modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--panel-2); padding: 5px; border-radius: 8px; }
-.mode { background: transparent; color: var(--muted); padding: 10px 0; border-radius: 6px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; }
-.mode:hover { color: var(--text); }
-.mode.active { background: var(--line); color: var(--text); }
-.mode[data-mode="split"].active, .mode[data-mode="merge"].active { background: var(--quantum); color: #fff; }
-.mi { font-size: 18px; }
-.hint { font-size: 14px; color: var(--muted); min-height: 20px; }
-.card { background: var(--panel-2); border-radius: 8px; padding: 12px 14px; }
-.card-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; font-weight: 700; }
-.moves { margin: 0; padding: 0 0 0 26px; max-height: 210px; overflow-y: auto; font-size: 14px; }
-.moves li { padding: 4px 0; border-bottom: 1px solid var(--line); }
-.moves li::marker { color: var(--muted); }
-.moves .ev { display: block; font-size: 12px; color: #c9b3ff; }
-.moves .fail { color: #f0a35e; }
-.circuit { overflow-x: auto; min-height: 60px; background: #f4f4f4; border-radius: 6px; padding: 6px; }
-.circuit img, .circuit svg { display: block; max-height: 220px; }
-.circuit .muted { color: #6f6f6f; font-size: 13px; display: block; padding: 10px; }
-.buttons { display: flex; gap: 8px; }
-.primary, .secondary { padding: 12px 16px; border-radius: 8px; font-weight: 800; font-size: 15px; }
-.buttons .primary, .buttons .secondary { flex: 1; }
-.primary { background: var(--green); color: #fff; box-shadow: 0 4px 0 var(--green-dark); }
-.primary:hover { filter: brightness(1.07); }
-.primary:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--green-dark); }
-.primary:disabled { opacity: 0.6; cursor: wait; }
-.secondary { background: var(--line); color: var(--text); box-shadow: 0 4px 0 #2a2926; }
+.panel {
+  width: 360px; display: flex; flex-direction: column; gap: 18px;
+  background: var(--surface); border: 1px solid var(--hair); border-radius: 16px; padding: 20px; box-shadow: var(--shadow);
+}
+.panel-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.kicker { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); }
+.status { font: 400 30px/1.1 var(--display); margin-top: 3px; }
+.qmeter { width: 116px; }
+.qm-row { display: flex; justify-content: space-between; font: 600 11px var(--mono); color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.qm-row b { color: var(--text); font-weight: 600; letter-spacing: 0; }
+.qm-bar { height: 5px; border-radius: 3px; background: var(--raised); margin-top: 6px; overflow: hidden; }
+.qm-bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--q-cyan), var(--q-mag)); transition: width 0.4s ease; }
 
-.toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: #1b1a18; color: var(--text); border: 1px solid var(--quantum); padding: 12px 18px; border-radius: 8px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); max-width: 90vw; z-index: 30; }
+.segmented { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; background: var(--bg); border-radius: 12px; border: 1px solid var(--hair); }
+.mode { display: flex; align-items: center; justify-content: center; gap: 7px; height: 40px; border-radius: 9px; color: var(--text-3); font-weight: 700; font-size: 14px; transition: color 0.15s, background 0.15s; }
+.mode:hover { color: var(--text); }
+.mode.active { background: var(--raised); color: var(--text); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); }
+.mode[data-mode="split"].active .ic, .mode[data-mode="merge"].active .ic { color: var(--q-cyan); }
+.mode kbd { margin-left: 2px; }
+.mode.active kbd { color: var(--text-2); }
+.hint { margin: -6px 2px 0; font-size: 13.5px; color: var(--text-2); min-height: 20px; }
+
+.psec h4 { margin: 0 0 8px; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); }
+.empty { margin: 0; color: var(--text-3); font-size: 13.5px; }
+.movelist { max-height: 200px; overflow-y: auto; border-top: 1px solid var(--hair); scrollbar-width: thin; }
+.mrow { display: grid; grid-template-columns: 30px 1fr 1fr; align-items: start; padding: 5px 0; border-bottom: 1px solid var(--hair); font: 500 13.5px var(--mono); }
+.mrow:nth-child(odd) { background: rgba(255, 255, 255, 0.015); }
+.mno { color: var(--text-3); padding-left: 4px; }
+.mv { padding-right: 6px; }
+.mv .q { color: var(--q-cyan); }
+.mv.fail .mt { color: #f0a35e; text-decoration: line-through; text-decoration-thickness: 1px; }
+.mv .ev { display: block; font: 500 11.5px/1.35 var(--ui); color: var(--text-3); margin-top: 2px; }
+.circuit { min-height: 64px; overflow-x: auto; background: #f6f5f2; border-radius: 10px; padding: 8px; display: flex; align-items: center; }
+.circuit img, .circuit svg { display: block; max-height: 200px; }
+.circuit .empty { color: #6f6c66; padding: 6px 8px; }
+.panel-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 50;
+  display: flex; align-items: center; gap: 10px; max-width: min(560px, 92vw);
+  background: #2d2b28; color: var(--text); padding: 11px 16px 11px 14px; border-radius: 12px;
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.7), inset 0 0 0 1px var(--hair-2); font-size: 14px;
+}
+.toast::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--q-cyan); flex: none; }
 
 /* ---------- manual & blog ---------- */
-.doc { display: flex; justify-content: center; padding: 32px 24px 80px; }
-.article { width: min(860px, 100%); line-height: 1.65; font-size: 17px; }
-.article h1 { font-size: 40px; line-height: 1.15; margin: 6px 0 12px; }
-.article h2 { font-size: 26px; margin: 44px 0 10px; padding-top: 8px; scroll-margin-top: 80px; }
-.article h3 { margin: 28px 0 8px; }
-.eyebrow { color: var(--quantum); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; font-size: 13px; margin: 0; }
-.lede { font-size: 20px; color: #d6d4cf; }
-.byline { color: var(--muted); font-size: 14px; margin: 0 0 18px; }
-.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 8px; }
-.toc a { background: var(--panel); color: var(--text); text-decoration: none; padding: 6px 12px; border-radius: 99px; font-size: 14px; border: 1px solid var(--line); }
-.toc a:hover { border-color: var(--quantum); }
-.qbox { background: #2b2537; border-left: 4px solid var(--quantum); padding: 12px 16px; border-radius: 0 8px 8px 0; }
-.ticks, .steps { padding-left: 22px; }
-.ticks li, .steps li { margin: 6px 0; }
-.rules-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 15px; background: var(--panel); border-radius: 8px; overflow: hidden; }
-.rules-table th, .rules-table td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-.rules-table th { background: var(--panel-2); color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
-.rules-table.compare td:first-child { color: var(--muted); }
-.rules-table.compact { max-width: 520px; }
-.inline-piece { width: 28px; height: 28px; vertical-align: middle; margin-right: 6px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4)); }
+.doc { display: grid; grid-template-columns: 220px minmax(0, 720px); gap: 56px; justify-content: center; padding: 48px 24px 96px; }
+.doc.single { grid-template-columns: minmax(0, 720px); }
+.toc-side { position: sticky; top: 92px; align-self: start; }
+.toc-side .toc-title { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); margin-bottom: 10px; }
+.toc { display: flex; flex-direction: column; border-left: 1px solid var(--hair-2); }
+.toc a { color: var(--text-3); text-decoration: none; font-size: 14px; font-weight: 600; padding: 6px 0 6px 14px; margin-left: -1px; border-left: 2px solid transparent; transition: color 0.15s; }
+.toc a:hover { color: var(--text); }
+.toc a.active { color: var(--text); border-left-color: var(--q-cyan); }
 
-.fig { margin: 18px 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.fig-row { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; }
-.fig-row .fig { margin: 8px 0; max-width: 300px; }
+.article { font-size: 16.5px; line-height: 1.72; color: var(--text-2); }
+.article p, .article li { color: var(--text-2); }
+.article b, .article strong { color: var(--text); font-weight: 700; }
+.article h1 { font: 400 clamp(38px, 5vw, 56px)/1.04 var(--display); color: var(--text); margin: 10px 0 18px; letter-spacing: -0.01em; }
+.article h1 em { color: var(--q-cyan); }
+.article h2 { font: 400 34px/1.15 var(--display); color: var(--text); margin: 64px 0 14px; scroll-margin-top: 90px; }
+.article h3 { font: 700 17px var(--ui); color: var(--text); margin: 28px 0 6px; }
+.eyebrow { font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: 0.12em; color: var(--q-cyan); margin: 0; }
+.lede { font-size: 20px; line-height: 1.6; color: var(--text); margin: 0 0 8px; }
+.secno { display: block; font: 600 12px var(--mono); letter-spacing: 0.1em; color: var(--text-3); margin-bottom: 6px; }
+.byline { display: flex; align-items: center; gap: 12px; margin: 22px 0 6px; padding: 16px 0; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); font-size: 14px; }
+.byline .av { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: var(--raised); color: var(--text); font: 800 13px var(--ui); }
+.byline b { display: block; color: var(--text); }
+.byline span { color: var(--text-3); }
+.qbox { background: var(--surface); border: 1px solid var(--hair); border-left: 3px solid var(--q-cyan); padding: 14px 18px; border-radius: 0 10px 10px 0; font-size: 15px; }
+.pull { font: italic 400 30px/1.3 var(--display); color: var(--text); border-left: 3px solid var(--q-mag); padding: 4px 0 4px 22px; margin: 34px 0; }
+.ticks { list-style: none; padding: 0; }
+.ticks li { position: relative; padding-left: 22px; margin: 8px 0; }
+.ticks li::before { content: ""; position: absolute; left: 2px; top: 0.72em; width: 8px; height: 2px; background: var(--q-cyan); border-radius: 1px; }
+.steps { padding-left: 22px; }
+.steps li { margin: 8px 0; padding-left: 4px; }
+.steps li::marker { font: 600 14px var(--mono); color: var(--q-cyan); }
+
+.rules-table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14.5px; line-height: 1.5; }
+.rules-table th, .rules-table td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--hair); vertical-align: middle; }
+.rules-table th { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); border-bottom-color: var(--hair-2); }
+.rules-table td { color: var(--text-2); }
+.rules-table td:first-child { color: var(--text); font-weight: 700; white-space: nowrap; }
+.rules-table.compact { max-width: 520px; }
+.inline-piece { width: 26px; height: 26px; vertical-align: -8px; margin-right: 8px; }
+
+.fig { margin: 26px 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.fig-row { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; margin: 26px 0; }
+.fig-row .fig { margin: 0; max-width: 260px; }
 .fig-board { position: relative; }
 .fig-arrows { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.fig figcaption { font-size: 14px; color: var(--muted); text-align: center; max-width: 290px; line-height: 1.45; }
-.fig figcaption b { color: var(--text); }
+.fig figcaption { font-size: 13.5px; line-height: 1.5; color: var(--text-3); text-align: center; max-width: 260px; }
+.fig figcaption b { color: var(--text-2); font: 600 12px var(--mono); margin-right: 4px; }
 
-.compare-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 14px 0; }
-.cc { background: var(--panel); border-radius: 8px; padding: 14px 16px; border-top: 3px solid var(--quantum); }
-.cc h3 { margin: 0 0 6px; font-size: 17px; }
-.cc p { margin: 0; font-size: 15px; color: #d6d4cf; line-height: 1.5; }
-.experiment { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; margin: 16px 0; }
-.exp-controls { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
-.bars { display: flex; flex-direction: column; gap: 10px; }
-.bar-row { display: grid; grid-template-columns: 190px 1fr 90px; align-items: center; gap: 12px; font-size: 15px; }
-.bar-track { background: var(--panel-2); border-radius: 6px; height: 26px; overflow: hidden; }
-.bar { height: 100%; border-radius: 6px; transition: width 0.6s ease; }
-.bar-value { font-weight: 700; font-variant-numeric: tabular-nums; }
-.chart { width: 100%; max-width: 620px; display: block; }
-.chart .grid { stroke: #45423d; stroke-width: 1; }
-.chart .tick { fill: var(--muted); font-size: 11px; }
-.chart .axis { fill: var(--muted); font-size: 12px; }
-.refs { font-size: 14px; color: var(--muted); }
+.compare-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; margin: 22px 0; background: var(--hair); border: 1px solid var(--hair); border-radius: 12px; overflow: hidden; }
+.cc { background: var(--bg); padding: 18px 20px; }
+.cc .cc-k { font: 600 11px var(--mono); color: var(--q-cyan); text-transform: uppercase; letter-spacing: 0.1em; }
+.cc h3 { margin: 4px 0 6px; }
+.cc p { margin: 0; font-size: 15px; line-height: 1.55; }
+.experiment { background: var(--surface); border: 1px solid var(--hair); border-radius: 14px; padding: 20px; margin: 22px 0; }
+.exp-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+.exp-title { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); }
+.exp-status { font-size: 13px; color: var(--text-3); }
+.experiment .btn { height: 38px; font-size: 14px; }
+.bars { display: flex; flex-direction: column; gap: 12px; }
+.bar-row { display: grid; grid-template-columns: 170px 1fr 112px; align-items: center; gap: 14px; font-size: 14px; color: var(--text-2); }
+.bar-track { background: var(--bg); border-radius: 6px; height: 24px; overflow: hidden; }
+.bar { height: 100%; border-radius: 6px; transition: width 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.bar-value { font: 600 14px var(--mono); color: var(--text); text-align: right; white-space: nowrap; }
+.chart { width: 100%; display: block; }
+.chart .grid { stroke: var(--hair-2); stroke-width: 1; }
+.chart .tick { fill: var(--text-3); font: 500 11px var(--mono); }
+.chart .axis { fill: var(--text-3); font: 500 12px var(--ui); }
+.note { font-size: 13px; color: var(--text-3); margin: 12px 0 0; }
+.refs { font-size: 14px; }
+.refs li { margin: 6px 0; }
 
-/* ---------- settings sheet ---------- */
-.sheet { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 12px; width: min(560px, 94vw); padding: 0; }
-.sheet::backdrop { background: rgba(0, 0, 0, 0.55); }
-.sheet-head, .sheet-foot { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; }
-.sheet-head { border-bottom: 1px solid var(--line); }
-.sheet-head h2 { margin: 0; font-size: 20px; }
-.sheet-foot { border-top: 1px solid var(--line); gap: 10px; }
-.sheet form { margin: 0; }
-.set-group { padding: 14px 22px 6px; }
-.set-group h3 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-.themes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-.theme-card { background: var(--panel-2); color: var(--text); border: 2px solid transparent; border-radius: 10px; padding: 10px 6px; display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; }
-.theme-card.active { border-color: var(--green); }
-.theme-preview { width: 52px; height: 52px; border-radius: 6px; }
-.toggle, .radio { display: flex; align-items: center; gap: 12px; padding: 8px 0; cursor: pointer; font-size: 15px; }
-.toggle input, .radio input { position: absolute; opacity: 0; pointer-events: none; }
-.toggle span { width: 40px; height: 22px; border-radius: 99px; background: #55524c; position: relative; flex: none; transition: background 0.2s; }
-.toggle span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left 0.2s; }
-.toggle input:checked + span { background: var(--green); }
-.toggle input:checked + span::after { left: 21px; }
-.radio span { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #77746d; flex: none; }
-.radio input:checked + span { border: 6px solid var(--green); }
-.toggle input:focus-visible + span, .radio input:focus-visible + span { outline: 2px solid var(--quantum); outline-offset: 2px; }
-.set-note { font-size: 13px; color: var(--muted); margin: 6px 0 10px; }
+/* ---------- settings drawer ---------- */
+.drawer {
+  margin: 0 0 0 auto; padding: 0; border: 0; height: 100vh; max-height: 100vh; width: min(440px, 100vw);
+  background: var(--surface); color: var(--text); box-shadow: -30px 0 60px -20px rgba(0, 0, 0, 0.7);
+  display: none; flex-direction: column;
+}
+.drawer[open] { display: flex; animation: slide-in 0.22s cubic-bezier(0.2, 0.7, 0.2, 1); }
+@keyframes slide-in { from { transform: translateX(30px); opacity: 0; } }
+.drawer::backdrop { background: rgba(10, 10, 9, 0.5); backdrop-filter: blur(2px); }
+.drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 14px 24px; border-bottom: 1px solid var(--hair); }
+.drawer-head h2 { margin: 0; font: 400 30px var(--display); outline: none; }
+.drawer form { margin: 0; }
+.drawer-body { flex: 1; overflow-y: auto; padding: 4px 0 12px; }
+.drawer-foot { display: flex; justify-content: space-between; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--hair); }
+.set-group { padding: 18px 24px 6px; }
+.set-group h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); }
+.set-group h3 .ic { width: 15px; height: 15px; }
+.themes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.theme-card { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--hair); text-align: left; transition: box-shadow 0.15s; }
+.theme-card:hover { box-shadow: inset 0 0 0 1px var(--hair-2); }
+.theme-card.active { box-shadow: inset 0 0 0 2px var(--go); }
+.theme-preview { display: grid; grid-template-columns: repeat(2, 18px); grid-template-rows: repeat(2, 18px); border-radius: 5px; overflow: hidden; flex: none; }
+.theme-preview i { display: block; }
+.theme-card .tname { font-weight: 700; font-size: 14px; line-height: 1.2; }
+.theme-card .tsub { font: 500 11px var(--mono); color: var(--text-3); }
+.theme-card .ic { margin-left: auto; color: var(--go); opacity: 0; }
+.theme-card.active .ic { opacity: 1; }
 
+.row, .engine-card { position: relative; display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--hair); cursor: pointer; }
+.row:last-child { border-bottom: 0; }
+.row > .ic, .engine-card > .ic { color: var(--text-3); width: 20px; height: 20px; }
+.row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.row-text b { font-weight: 700; font-size: 14.5px; }
+.row-text small { color: var(--text-3); font-size: 12.5px; line-height: 1.4; }
+.row input, .engine-card input { position: absolute; opacity: 0; pointer-events: none; }
+.switch { width: 40px; height: 24px; border-radius: 12px; background: var(--raised); position: relative; flex: none; transition: background 0.18s; box-shadow: inset 0 0 0 1px var(--hair-2); }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #d8d5ce; transition: transform 0.18s; }
+.row input:checked + .switch { background: var(--go); box-shadow: none; }
+.row input:checked + .switch::after { transform: translateX(16px); background: #fff; }
+.row input:focus-visible + .switch { outline: 2px solid var(--q-cyan); outline-offset: 2px; }
+.engines { display: flex; flex-direction: column; gap: 8px; }
+.engine-card { padding: 12px 14px; border: 0; border-radius: 12px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--hair); }
+.engine-card:has(input:checked) { box-shadow: inset 0 0 0 2px var(--go); }
+.engine-card:has(input:checked) > .ic { color: var(--text); }
+.radio { width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--text-3); flex: none; }
+.engine-card input:checked ~ .radio { box-shadow: inset 0 0 0 5px var(--go); }
+.engine-card input:focus-visible ~ .radio { outline: 2px solid var(--q-cyan); outline-offset: 2px; }
+.chip { align-self: flex-start; margin-top: 6px; font: 600 10.5px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 5px; background: var(--raised); color: var(--text-3); }
+.chip.ok { background: rgba(129, 182, 76, 0.16); color: #a9d57a; }
+.chip.off { background: rgba(240, 163, 94, 0.14); color: #f0b27a; }
+.set-note { font-size: 12.5px; color: var(--text-3); margin: 12px 0 8px; line-height: 1.5; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1100px) {
+  .doc { grid-template-columns: minmax(0, 720px); }
+  .toc-side { display: none; }
+}
+@media (max-width: 860px) {
+  .topbar { grid-template-columns: 1fr auto; height: auto; padding: 10px 14px; row-gap: 10px; }
+  .nav { grid-column: 1 / -1; grid-row: 2; justify-content: space-between; overflow-x: auto; scrollbar-width: none; }
+  .nav a { padding: 7px 10px; flex: 1; justify-content: center; }
+  .nav .l { display: none; }
+  .nav .s { display: inline; }
+  .engine-status span:last-child { display: none; }
+}
 @media (max-width: 760px) {
-  :root { --sq: calc((100vw - 48px) / 5); }
+  :root { --sq: calc((100vw - 40px) / 5); }
   body { overflow-x: hidden; }
-  .topbar { padding: 8px 12px; gap: 10px; flex-wrap: wrap; }
-  .brand { font-size: 16px; }
-  .tag, .engine-pill { display: none; }
-  .nav { order: 3; flex-basis: 100%; overflow-x: auto; }
-  .layout { padding: 16px; }
+  .layout { padding: 16px 20px 40px; }
   .panel { width: 100%; }
-  .article h1 { font-size: 30px; }
-  .bar-row { grid-template-columns: 120px 1fr 70px; font-size: 13px; }
-  .themes { grid-template-columns: repeat(2, 1fr); }
+  .status { font-size: 26px; }
+  .doc { padding: 28px 20px 72px; }
+  .article h2 { font-size: 29px; margin-top: 48px; }
+  .compare-cards { grid-template-columns: 1fr; }
+  .bar-row { grid-template-columns: 96px 1fr 92px; font-size: 13px; }
+  .themes { grid-template-columns: 1fr; }
+  .mode kbd { display: none; }
+  .rules-table { display: block; overflow-x: auto; font-size: 13.5px; }
+  .rules-table th, .rules-table td { padding: 9px 8px; }
+  .rules-table td:first-child { white-space: normal; min-width: 96px; }
 }
 
 </style>
 </head>
 <body data-theme="blue">
+
+<!-- icon sprite: one consistent 24px, 1.8-stroke set -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+    <symbol id="i-move" viewBox="0 0 24 24"><path d="M6 18L18 6M18 6h-8M18 6v8"/></symbol>
+    <symbol id="i-split" viewBox="0 0 24 24"><circle cx="12" cy="19" r="2"/><path d="M12 17v-4L6.5 5.5M12 13l5.5-7.5"/><path d="M6 5h3.5M6 5v3.5M18 5h-3.5M18 5v3.5"/></symbol>
+    <symbol id="i-merge" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2"/><circle cx="18" cy="5" r="2"/><path d="M7.3 6.6L12 12.5l4.7-5.9M12 12.5V20"/><path d="M9 17l3 3 3-3"/></symbol>
+    <symbol id="i-board" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2.5"/><path d="M4 12h16M12 4v16"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.5C10 5 7.5 4.5 4 4.5v13c3.5 0 6 .5 8 2 2-1.5 4.5-2 8-2v-13c-3.5 0-6 .5-8 2z"/><path d="M12 6.5v13"/></symbol>
+    <symbol id="i-article" viewBox="0 0 24 24"><rect x="4.5" y="3.5" width="15" height="17" rx="2.5"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+    <symbol id="i-atom" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="3.5"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(120 12 12)"/></symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="1.8"/><path d="M10 3.5V7M14 3.5V7M10 17v3.5M14 17v3.5M3.5 10H7M3.5 14H7M17 10h3.5M17 14h3.5"/></symbol>
+    <symbol id="i-auto" viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 0 1 13-5.1M19.5 12a7.5 7.5 0 0 1-13 5.1"/><path d="M18 3.5v4h-4M6 20.5v-4h4"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-flip" viewBox="0 0 24 24"><path d="M8 5v14M5 16l3 3 3-3M16 19V5M13 8l3-3 3 3"/></symbol>
+    <symbol id="i-coords" viewBox="0 0 24 24"><path d="M5 4v15h15"/><path d="M9 19v-2M13 19v-2M17 19v-2M5 7h2M5 11h2M5 15h2"/></symbol>
+    <symbol id="i-percent" viewBox="0 0 24 24"><path d="M18.5 5.5l-13 13"/><circle cx="7.5" cy="7.5" r="2.3"/><circle cx="16.5" cy="16.5" r="2.3"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-motion" viewBox="0 0 24 24"><path d="M4 8h6M3 12h8M4 16h6"/><circle cx="16" cy="12" r="4.5"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.1 0 1.7-.7 1.7-1.6 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.1 0-.9.7-1.6 1.6-1.6h1.9a4.8 4.8 0 0 0 4.8-4.8c0-3.7-3.8-6.7-9-6.7z"/><circle cx="7.6" cy="11.2" r="1.1" fill="currentColor" stroke="none"/><circle cx="10.4" cy="7.6" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.8" cy="7.9" r="1.1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-half" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></symbol>
+  </defs>
+</svg>
+
 <header class="topbar">
-  <a class="brand" href="#play"><span class="logo">⟨ψ|</span> Quantum Chess <span class="tag" id="modeTag">5×5</span></a>
+  <a class="brand" href="#play" aria-label="Quantum Chess home">
+    <span class="mark" aria-hidden="true"><span class="ket-l"></span><img src="pieces/wN.svg" alt=""><span class="ket-r"></span></span>
+    <span class="wordmark">Quantum&nbsp;Chess<small>5×5</small></span>
+  </a>
   <nav class="nav" aria-label="Sections">
-    <a href="#play" data-route="play">Play</a>
-    <a href="#manual" data-route="manual">How to play</a>
-    <a href="#blog" data-route="blog">Classical vs Quantum</a>
+    <a href="#play" data-route="play"><svg class="ic"><use href="#i-board"/></svg>Play</a>
+    <a href="#manual" data-route="manual"><svg class="ic"><use href="#i-book"/></svg><span class="l">How to play</span><span class="s">Manual</span></a>
+    <a href="#blog" data-route="blog"><svg class="ic"><use href="#i-article"/></svg><span class="l">Classical vs Quantum</span><span class="s">Blog</span></a>
   </nav>
   <div class="top-actions">
-    <span class="engine-pill" id="enginePill" title="Which engine computes the quantum state">…</span>
-    <button id="settingsBtn" class="icon-btn" aria-label="Settings" title="Settings">⚙</button>
+    <span class="engine-status" id="enginePill" title="Which engine computes the quantum state"></span>
+    <button id="settingsBtn" class="icon-btn" aria-label="Settings" title="Settings"><svg class="ic"><use href="#i-sliders"/></svg></button>
   </div>
 </header>
 
@@ -268,106 +448,116 @@ body.no-anim .piece, body.no-anim .sq:hover .piece { transition: none; transform
   <section class="board-col">
     <div class="player-bar" id="barTop">
       <div class="avatar black"></div>
-      <div class="pname" id="nameTop">Black</div>
-      <div class="captured" id="capTop"></div>
-      <div class="turn-dot" id="dotTop"></div>
+      <div class="pinfo"><div class="pname" id="nameTop">Black</div><div class="captured" id="capTop"></div></div>
+      <div class="turn-flag">to move</div>
     </div>
 
     <div class="board-wrap">
       <div id="board" class="board" aria-label="Chess board"></div>
       <div id="overlay" class="overlay hidden">
         <div class="overlay-card">
+          <div class="overlay-kicker">Game over</div>
           <div id="overlayTitle" class="overlay-title"></div>
           <div id="overlaySub" class="overlay-sub"></div>
-          <button class="primary" id="overlayNew">Play again</button>
+          <button class="btn primary" id="overlayNew"><svg class="ic"><use href="#i-play"/></svg>Play again</button>
         </div>
       </div>
     </div>
 
     <div class="player-bar" id="barBottom">
       <div class="avatar white"></div>
-      <div class="pname" id="nameBottom">White</div>
-      <div class="captured" id="capBottom"></div>
-      <div class="turn-dot" id="dotBottom"></div>
+      <div class="pinfo"><div class="pname" id="nameBottom">White</div><div class="captured" id="capBottom"></div></div>
+      <div class="turn-flag">to move</div>
     </div>
   </section>
 
   <aside class="panel">
-    <div class="panel-head">
-      <div class="status" id="status">White to move</div>
-      <div class="qubits" id="qubits" title="Qubits currently in the statevector">0 qubits</div>
-    </div>
+    <header class="panel-top">
+      <div>
+        <div class="kicker" id="modeTag">Quantum game</div>
+        <div class="status" id="status">White to move</div>
+      </div>
+      <div class="qmeter" id="qubits" title="Uncertain squares currently simulated as qubits (cap 16)">
+        <div class="qm-row"><span>Qubits</span><b class="qm-val">0 / 16</b></div>
+        <div class="qm-bar"><i></i></div>
+      </div>
+    </header>
 
-    <div class="modes" role="tablist" aria-label="Move type">
-      <button class="mode active" data-mode="move"><span class="mi">♞</span>Move</button>
-      <button class="mode" data-mode="split"><span class="mi">⑂</span>Split</button>
-      <button class="mode" data-mode="merge"><span class="mi">⧉</span>Merge</button>
+    <div class="segmented" role="tablist" aria-label="Move type">
+      <button class="mode active" data-mode="move"><svg class="ic"><use href="#i-move"/></svg>Move<kbd>1</kbd></button>
+      <button class="mode" data-mode="split"><svg class="ic"><use href="#i-split"/></svg>Split<kbd>2</kbd></button>
+      <button class="mode" data-mode="merge"><svg class="ic"><use href="#i-merge"/></svg>Merge<kbd>3</kbd></button>
     </div>
-    <div class="hint" id="hint">Select a piece to see where it can go.</div>
+    <p class="hint" id="hint">Select a piece to see where it can go.</p>
 
-    <div class="card">
-      <div class="card-title">Moves</div>
-      <ol id="moves" class="moves"></ol>
-    </div>
+    <section class="psec">
+      <h4>Moves</h4>
+      <div id="moves" class="movelist"><p class="empty">No moves yet. White starts.</p></div>
+    </section>
 
-    <div class="card circuit-card">
-      <div class="card-title" id="circuitTitle">Circuit · last move</div>
-      <div id="circuit" class="circuit"><span class="muted">Quantum moves show their circuit here.</span></div>
-    </div>
+    <section class="psec">
+      <h4 id="circuitTitle">Circuit of the last move</h4>
+      <div id="circuit" class="circuit"><span class="empty">Quantum moves draw their circuit here.</span></div>
+    </section>
 
-    <div class="buttons">
-      <button class="primary" id="newQuantum">New quantum game</button>
-      <button class="secondary" id="newClassical" title="Same engine with split and merge switched off">Classical baseline</button>
-    </div>
+    <footer class="panel-actions">
+      <button class="btn primary" id="newQuantum"><svg class="ic"><use href="#i-plus"/></svg>New game</button>
+      <button class="btn ghost" id="newClassical" title="Same engine with split and merge switched off"><svg class="ic"><use href="#i-half"/></svg>Classical</button>
+    </footer>
   </aside>
 </main>
 
 <!-- ============================================================ MANUAL -->
 <main id="view-manual" class="view doc hidden">
+  <aside class="toc-side" id="manualToc" aria-label="Manual contents"></aside>
   <article class="article" id="manualBody"></article>
 </main>
 
 <!-- ============================================================ BLOG -->
-<main id="view-blog" class="view doc hidden">
+<main id="view-blog" class="view doc single hidden">
   <article class="article" id="blogBody"></article>
 </main>
 
 <!-- ============================================================ SETTINGS -->
-<dialog id="settings" class="sheet">
-  <div class="sheet-head">
-    <h2>Settings</h2>
-    <form method="dialog"><button class="icon-btn" aria-label="Close">✕</button></form>
+<dialog id="settings" class="drawer" aria-labelledby="settingsTitle">
+  <div class="drawer-head">
+    <h2 id="settingsTitle" tabindex="-1" autofocus>Settings</h2>
+    <form method="dialog"><button class="icon-btn" aria-label="Close settings"><svg class="ic"><use href="#i-close"/></svg></button></form>
   </div>
 
-  <section class="set-group">
-    <h3>Board theme</h3>
-    <div class="themes" id="themes"></div>
-  </section>
+  <div class="drawer-body">
+    <section class="set-group">
+      <h3><svg class="ic"><use href="#i-palette"/></svg>Board theme</h3>
+      <div class="themes" id="themes"></div>
+    </section>
 
-  <section class="set-group">
-    <h3>Display</h3>
-    <label class="toggle"><input type="checkbox" data-setting="coords"><span></span>Show coordinates</label>
-    <label class="toggle"><input type="checkbox" data-setting="badges"><span></span>Show probability badges</label>
-    <label class="toggle"><input type="checkbox" data-setting="hints"><span></span>Highlight legal moves</label>
-    <label class="toggle"><input type="checkbox" data-setting="anim"><span></span>Animations (glow, measurement flash)</label>
-    <label class="toggle"><input type="checkbox" data-setting="flip"><span></span>Flip board (Black at the bottom)</label>
-  </section>
+    <section class="set-group">
+      <h3><svg class="ic"><use href="#i-board"/></svg>Board</h3>
+      <label class="row"><svg class="ic"><use href="#i-coords"/></svg><span class="row-text"><b>Coordinates</b><small>Files a–e and ranks 1–5 on the edge squares</small></span><input type="checkbox" data-setting="coords"><span class="switch"></span></label>
+      <label class="row"><svg class="ic"><use href="#i-percent"/></svg><span class="row-text"><b>Probability readout</b><small>Bar and percentage on pieces in superposition</small></span><input type="checkbox" data-setting="badges"><span class="switch"></span></label>
+      <label class="row"><svg class="ic"><use href="#i-target"/></svg><span class="row-text"><b>Legal move hints</b><small>Dots for moves, rings for captures</small></span><input type="checkbox" data-setting="hints"><span class="switch"></span></label>
+      <label class="row"><svg class="ic"><use href="#i-motion"/></svg><span class="row-text"><b>Motion</b><small>Superposition shimmer and measurement pulse</small></span><input type="checkbox" data-setting="anim"><span class="switch"></span></label>
+      <label class="row"><svg class="ic"><use href="#i-flip"/></svg><span class="row-text"><b>Flip board</b><small>Play from Black's side</small></span><input type="checkbox" data-setting="flip"><span class="switch"></span></label>
+    </section>
 
-  <section class="set-group">
-    <h3>Quantum engine</h3>
-    <label class="radio"><input type="radio" name="engine" value="auto"><span></span><b>Automatic</b> · Qiskit when the server is running, otherwise in-browser</label>
-    <label class="radio"><input type="radio" name="engine" value="qiskit"><span></span><b>Qiskit server</b> · real Qiskit Statevector (run <code>uvicorn src.api:app</code>)</label>
-    <label class="radio"><input type="radio" name="engine" value="local"><span></span><b>In-browser</b> · JavaScript port, verified against Qiskit, works offline</label>
-    <p class="set-note" id="engineNote"></p>
-  </section>
+    <section class="set-group">
+      <h3><svg class="ic"><use href="#i-atom"/></svg>Quantum engine</h3>
+      <div class="engines">
+        <label class="engine-card"><input type="radio" name="engine" value="auto"><svg class="ic"><use href="#i-auto"/></svg><span class="row-text"><b>Automatic</b><small>Qiskit when the server is running, otherwise in-browser</small></span><span class="radio"></span></label>
+        <label class="engine-card"><input type="radio" name="engine" value="qiskit"><svg class="ic"><use href="#i-atom"/></svg><span class="row-text"><b>Qiskit</b><small>Statevector.evolve and .measure on the server · <code>uvicorn src.api:app</code></small><span class="chip" id="qiskitChip">Checking…</span></span><span class="radio"></span></label>
+        <label class="engine-card"><input type="radio" name="engine" value="local"><svg class="ic"><use href="#i-chip"/></svg><span class="row-text"><b>In-browser</b><small>JavaScript port, verified against Qiskit, works offline</small><span class="chip ok">Always available</span></span><span class="radio"></span></label>
+      </div>
+      <p class="set-note" id="engineNote"></p>
+    </section>
+  </div>
 
-  <div class="sheet-foot">
-    <button class="secondary" id="resetSettings">Reset to defaults</button>
-    <form method="dialog"><button class="primary">Done</button></form>
+  <div class="drawer-foot">
+    <button class="btn ghost" id="resetSettings">Reset to defaults</button>
+    <form method="dialog"><button class="btn primary"><svg class="ic"><use href="#i-check"/></svg>Done</button></form>
   </div>
 </dialog>
 
-<div id="toast" class="toast hidden"></div>
+<div id="toast" class="toast hidden" role="status"></div>
 
 <script>window.PIECE_DATA = {"bB": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgd2lkdGg9IjQ1IiBoZWlnaHQ9IjQ1IiB2aWV3Qm94PSIwIDAgNDUgNDUiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS41Ij48ZyBmaWxsPSIjMDAwIiBzdHJva2UtbGluZWNhcD0iYnV0dCI+PHBhdGggZD0iTTkgMzZjMy40LTEgMTAuMS40IDEzLjUtMiAzLjQgMi40IDEwLjEgMSAxMy41IDIgMCAwIDEuNi41IDMgMi0uNyAxLTEuNiAxLTMgLjUtMy40LTEtMTAuMS41LTEzLjUtMS0zLjQgMS41LTEwLjEgMC0xMy41IDEtMS40LjUtMi4zLjUtMy0uNSAxLjQtMiAzLTIgMy0yeiIvPjxwYXRoIGQ9Ik0xNSAzMmMyLjUgMi41IDEyLjUgMi41IDE1IDAgLjUtMS41IDAtMiAwLTIgMC0yLjUtMi41LTQtMi41LTQgNS41LTEuNSA2LTExLjUtNS0xNS41LTExIDQtMTAuNSAxNC01IDE1LjUgMCAwLTIuNSAxLjUtMi41IDQgMCAwLS41LjUgMCAyeiIvPjxwYXRoIGQ9Ik0yNSA4YTIuNSAyLjUgMCAxIDEtNSAwIDIuNSAyLjUgMCAxIDEgNSAweiIvPjwvZz48cGF0aCBzdHJva2U9IiNlY2VjZWMiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIGQ9Ik0xNy41IDI2aDEwTTE1IDMwaDE1bS03LjUtMTQuNXY1TTIwIDE4aDUiLz48L2c+PC9zdmc+", "bK": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgdmlld0JveD0iMCAwIDQ1IDQ1Ij48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMTEuNlY2Ii8+PHBhdGggZmlsbD0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIGQ9Ik0yMi41IDI1czQuNS03LjUgMy0xMC41YzAgMC0xLTIuNS0zLTIuNXMtMyAyLjUtMyAyLjVjLTEuNSAzIDMgMTAuNSAzIDEwLjUiLz48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMTEuNSAzN2EyMi4zIDIyLjMgMCAwIDAgMjEgMHYtN3M5LTQuNSA2LTEwLjVjLTQtNi41LTEzLjUtMy41LTE2IDRWMjd2LTMuNWMtMy41LTcuNS0xMy0xMC41LTE2LTQtMyA2IDUgMTAgNSAxMHoiLz48cGF0aCBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBkPSJNMjAgOGg1Ii8+PHBhdGggc3Ryb2tlPSIjZWNlY2VjIiBkPSJNMzIgMjkuNXM4LjUtNCA2LTkuN0MzNC4xIDE0IDI1IDE4IDIyLjUgMjQuNnYyLjEtMi4xQzIwIDE4IDkuOSAxNCA3IDE5LjljLTIuNSA1LjYgNC44IDkgNC44IDkiLz48cGF0aCBzdHJva2U9IiNlY2VjZWMiIGQ9Ik0xMS41IDMwYzUuNS0zIDE1LjUtMyAyMSAwbS0yMSAzLjVjNS41LTMgMTUuNS0zIDIxIDBtLTIxIDMuNWM1LjUtMyAxNS41LTMgMjEgMCIvPjwvZz48L3N2Zz4=", "bN": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgd2lkdGg9IjQ1IiBoZWlnaHQ9IjQ1IiB2aWV3Qm94PSIwIDAgNDUgNDUiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS41Ij48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMjIgMTBjMTAuNSAxIDE2LjUgOCAxNiAyOUgxNWMwLTkgMTAtNi41IDgtMjEiLz48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMjQgMThjLjM4IDIuOTEtNS41NSA3LjM3LTggOS0zIDItMi44MiA0LjM0LTUgNC0xLjA0LS45NCAxLjQxLTMuMDQgMC0zLTEgMCAuMTkgMS4yMy0xIDItMSAwLTQgMS00LTQgMC0yIDYtMTIgNi0xMnMxLjg5LTEuOSAyLTMuNWMtLjczLTEtLjUtMi0uNS0zIDEtMSAzIDIuNSAzIDIuNWgycy43OC0yIDIuNS0zYzEgMCAxIDMgMSAzIi8+PHBhdGggZmlsbD0iI2VjZWNlYyIgc3Ryb2tlPSIjZWNlY2VjIiBkPSJNOS41IDI1LjVhLjUuNSAwIDEgMS0xIDAgLjUuNSAwIDEgMSAxIDBtNS40My05Ljc1YS41IDEuNSAzMCAxIDEtLjg2LS41LjUgMS41IDMwIDEgMSAuODYuNSIvPjxwYXRoIGZpbGw9IiNlY2VjZWMiIHN0cm9rZT0ibm9uZSIgZD0ibTI0LjU1IDEwLjQtLjQ1IDEuNDUuNS4xNWMzLjE1IDEgNS42NSAyLjQ5IDcuOSA2Ljc1UzM1Ljc1IDI5LjA2IDM1LjI1IDM5bC0uMDUuNWgyLjI1bC4wNS0uNWMuNS0xMC4wNi0uODgtMTYuODUtMy4yNS0yMS4zNHMtNS43OS02LjY0LTkuMTktNy4xNnoiLz48L2c+PC9zdmc+", "bP": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgd2lkdGg9IjQ1IiBoZWlnaHQ9IjQ1IiB2aWV3Qm94PSIwIDAgNDUgNDUiPjxwYXRoIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNSIgZD0iTTIyLjUgOWE0IDQgMCAwIDAtMy4yMiA2LjM4IDYuNDggNi40OCAwIDAgMC0uODcgMTAuNjVjLTMgMS4wNi03LjQxIDUuNTUtNy40MSAxMy40N2gyM2MwLTcuOTItNC40MS0xMi40MS03LjQxLTEzLjQ3YTYuNDYgNi40NiAwIDAgMC0uODctMTAuNjVBNC4wMSA0LjAxIDAgMCAwIDIyLjUgOXoiLz48L3N2Zz4=", "bQ": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgd2lkdGg9IjQ1IiBoZWlnaHQ9IjQ1IiB2aWV3Qm94PSIwIDAgNDUgNDUiPjxnIGZpbGwtcnVsZT0iZXZlbm9kZCIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS41Ij48ZyBzdHJva2U9Im5vbmUiPjxjaXJjbGUgY3g9IjYiIGN5PSIxMiIgcj0iMi43NSIvPjxjaXJjbGUgY3g9IjE0IiBjeT0iOSIgcj0iMi43NSIvPjxjaXJjbGUgY3g9IjIyLjUiIGN5PSI4IiByPSIyLjc1Ii8+PGNpcmNsZSBjeD0iMzEiIGN5PSI5IiByPSIyLjc1Ii8+PGNpcmNsZSBjeD0iMzkiIGN5PSIxMiIgcj0iMi43NSIvPjwvZz48cGF0aCBzdHJva2UtbGluZWNhcD0iYnV0dCIgZD0iTTkgMjZjOC41LTEuNSAyMS0xLjUgMjcgMGwyLjUtMTIuNUwzMSAyNWwtLjMtMTQuMS01LjIgMTMuNi0zLTE0LjUtMyAxNC41LTUuMi0xMy42TDE0IDI1IDYuNSAxMy41eiIvPjxwYXRoIHN0cm9rZS1saW5lY2FwPSJidXR0IiBkPSJNOSAyNmMwIDIgMS41IDIgMi41IDQgMSAxLjUgMSAxIC41IDMuNS0xLjUgMS0xLjUgMi41LTEuNSAyLjUtMS41IDEuNS41IDIuNS41IDIuNSA2LjUgMSAxNi41IDEgMjMgMCAwIDAgMS41LTEgMC0yLjUgMCAwIC41LTEuNS0xLTIuNS0uNS0yLjUtLjUtMiAuNS0zLjUgMS0yIDIuNS0yIDIuNS00LTguNS0xLjUtMTguNS0xLjUtMjcgMHoiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgZD0iTTExIDM4LjVhMzUgMzUgMSAwIDAgMjMgMCIvPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2VjZWNlYyIgZD0iTTExIDI5YTM1IDM1IDEgMCAxIDIzIDBtLTIxLjUgMi41aDIwbS0yMSAzYTM1IDM1IDEgMCAwIDIyIDBtLTIzIDNhMzUgMzUgMSAwIDAgMjQgMCIvPjwvZz48L3N2Zz4=", "bR": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgd2lkdGg9IjQ1IiBoZWlnaHQ9IjQ1IiB2aWV3Qm94PSIwIDAgNDUgNDUiPjxnIGZpbGwtcnVsZT0iZXZlbm9kZCIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS41Ij48cGF0aCBzdHJva2UtbGluZWNhcD0iYnV0dCIgZD0iTTkgMzloMjd2LTNIOXptMy41LTcgMS41LTIuNWgxN2wxLjUgMi41em0tLjUgNHYtNGgyMXY0eiIvPjxwYXRoIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBkPSJNMTQgMjkuNXYtMTNoMTd2MTN6Ii8+PHBhdGggc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIGQ9Ik0xNCAxNi41IDExIDE0aDIzbC0zIDIuNXpNMTEgMTRWOWg0djJoNVY5aDV2Mmg1VjloNHY1eiIvPjxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2VjZWNlYyIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgc3Ryb2tlLXdpZHRoPSIxIiBkPSJNMTIgMzUuNWgyMW0tMjAtNGgxOW0tMTgtMmgxN20tMTctMTNoMTdNMTEgMTRoMjMiLz48L2c+PC9zdmc+", "wB": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgd2lkdGg9IjQ1IiBoZWlnaHQ9IjQ1IiB2aWV3Qm94PSIwIDAgNDUgNDUiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS41Ij48ZyBmaWxsPSIjZmZmIiBzdHJva2UtbGluZWNhcD0iYnV0dCI+PHBhdGggZD0iTTkgMzZjMy4zOS0uOTcgMTAuMTEuNDMgMTMuNS0yIDMuMzkgMi40MyAxMC4xMSAxLjAzIDEzLjUgMiAwIDAgMS42NS41NCAzIDItLjY4Ljk3LTEuNjUuOTktMyAuNS0zLjM5LS45Ny0xMC4xMS40Ni0xMy41LTEtMy4zOSAxLjQ2LTEwLjExLjAzLTEzLjUgMS0xLjM1LjQ5LTIuMzIuNDctMy0uNSAxLjM1LTEuOTQgMy0yIDMtMnoiLz48cGF0aCBkPSJNMTUgMzJjMi41IDIuNSAxMi41IDIuNSAxNSAwIC41LTEuNSAwLTIgMC0yIDAtMi41LTIuNS00LTIuNS00IDUuNS0xLjUgNi0xMS41LTUtMTUuNS0xMSA0LTEwLjUgMTQtNSAxNS41IDAgMC0yLjUgMS41LTIuNSA0IDAgMC0uNS41IDAgMnoiLz48cGF0aCBkPSJNMjUgOGEyLjUgMi41IDAgMSAxLTUgMCAyLjUgMi41IDAgMSAxIDUgMHoiLz48L2c+PHBhdGggc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTE3LjUgMjZoMTBNMTUgMzBoMTVtLTcuNS0xNC41djVNMjAgMThoNSIvPjwvZz48L3N2Zz4=", "wK": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgdmlld0JveD0iMCAwIDQ1IDQ1Ij48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMTEuNjNWNk0yMCA4aDUiLz48cGF0aCBmaWxsPSIjZmZmIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMjVzNC41LTcuNSAzLTEwLjVjMCAwLTEtMi41LTMtMi41cy0zIDIuNS0zIDIuNWMtMS41IDMgMyAxMC41IDMgMTAuNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xMS41IDM3YzUuNSAzLjUgMTUuNSAzLjUgMjEgMHYtN3M5LTQuNSA2LTEwLjVjLTQtNi41LTEzLjUtMy41LTE2IDRWMjd2LTMuNWMtMy41LTcuNS0xMy0xMC41LTE2LTQtMyA2IDUgMTAgNSAxMHoiLz48cGF0aCBkPSJNMTEuNSAzMGM1LjUtMyAxNS41LTMgMjEgMG0tMjEgMy41YzUuNS0zIDE1LjUtMyAyMSAwbS0yMSAzLjVjNS41LTMgMTUuNS0zIDIxIDAiLz48L2c+PC9zdmc+", "wN": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgd2lkdGg9IjQ1IiBoZWlnaHQ9IjQ1IiB2aWV3Qm94PSIwIDAgNDUgNDUiPjxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS41Ij48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjIgMTBjMTAuNSAxIDE2LjUgOCAxNiAyOUgxNWMwLTkgMTAtNi41IDgtMjEiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjQgMThjLjM4IDIuOTEtNS41NSA3LjM3LTggOS0zIDItMi44MiA0LjM0LTUgNC0xLjA0Mi0uOTQgMS40MS0zLjA0IDAtMy0xIDAgLjE5IDEuMjMtMSAyLTEgMC00LjAwMyAxLTQtNCAwLTIgNi0xMiA2LTEyczEuODktMS45IDItMy41Yy0uNzMtLjk5NC0uNS0yLS41LTMgMS0xIDMgMi41IDMgMi41aDJzLjc4LTEuOTkyIDIuNS0zYzEgMCAxIDMgMSAzIi8+PHBhdGggZmlsbD0iIzAwMCIgZD0iTTkuNSAyNS41YS41LjUgMCAxIDEtMSAwIC41LjUgMCAxIDEgMSAwbTUuNDMzLTkuNzVhLjUgMS41IDMwIDEgMS0uODY2LS41LjUgMS41IDMwIDEgMSAuODY2LjUiLz48L2c+PC9zdmc+", "wP": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgd2lkdGg9IjQ1IiBoZWlnaHQ9IjQ1IiB2aWV3Qm94PSIwIDAgNDUgNDUiPjxwYXRoIGZpbGw9IiNmZmYiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNSIgZD0iTTIyLjUgOWMtMi4yMSAwLTQgMS43OS00IDQgMCAuODkuMjkgMS43MS43OCAyLjM4QzE3LjMzIDE2LjUgMTYgMTguNTkgMTYgMjFjMCAyLjAzLjk0IDMuODQgMi40MSA1LjAzLTMgMS4wNi03LjQxIDUuNTUtNy40MSAxMy40N2gyM2MwLTcuOTItNC40MS0xMi40MS03LjQxLTEzLjQ3IDEuNDctMS4xOSAyLjQxLTMgMi40MS01LjAzIDAtMi40MS0xLjMzLTQuNS0zLjI4LTUuNjIuNDktLjY3Ljc4LTEuNDkuNzgtMi4zOCAwLTIuMjEtMS43OS00LTQtNHoiLz48L3N2Zz4=", "wQ": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgd2lkdGg9IjQ1IiBoZWlnaHQ9IjQ1IiB2aWV3Qm94PSIwIDAgNDUgNDUiPjxnIGZpbGw9IiNmZmYiIGZpbGwtcnVsZT0iZXZlbm9kZCIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS41Ij48cGF0aCBkPSJNOCAxMmEyIDIgMCAxIDEtNCAwIDIgMiAwIDEgMSA0IDBtMTYuNS00LjVhMiAyIDAgMSAxLTQgMCAyIDIgMCAxIDEgNCAwTTQxIDEyYTIgMiAwIDEgMS00IDAgMiAyIDAgMSAxIDQgME0xNiA4LjVhMiAyIDAgMSAxLTQgMCAyIDIgMCAxIDEgNCAwTTMzIDlhMiAyIDAgMSAxLTQgMCAyIDIgMCAxIDEgNCAwIi8+PHBhdGggc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIGQ9Ik05IDI2YzguNS0xLjUgMjEtMS41IDI3IDBsMi0xMi03IDExVjExbC01LjUgMTMuNS0zLTE1LTMgMTUtNS41LTE0VjI1TDcgMTR6Ii8+PHBhdGggc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIGQ9Ik05IDI2YzAgMiAxLjUgMiAyLjUgNCAxIDEuNSAxIDEgLjUgMy41LTEuNSAxLTEuNSAyLjUtMS41IDIuNS0xLjUgMS41LjUgMi41LjUgMi41IDYuNSAxIDE2LjUgMSAyMyAwIDAgMCAxLjUtMSAwLTIuNSAwIDAgLjUtMS41LTEtMi41LS41LTIuNS0uNS0yIC41LTMuNSAxLTIgMi41LTIgMi41LTQtOC41LTEuNS0xOC41LTEuNS0yNyAweiIvPjxwYXRoIGZpbGw9Im5vbmUiIGQ9Ik0xMS41IDMwYzMuNS0xIDE4LjUtMSAyMiAwTTEyIDMzLjVjNi0xIDE1LTEgMjEgMCIvPjwvZz48L3N2Zz4=", "wR": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgd2lkdGg9IjQ1IiBoZWlnaHQ9IjQ1IiB2aWV3Qm94PSIwIDAgNDUgNDUiPjxnIGZpbGw9IiNmZmYiIGZpbGwtcnVsZT0iZXZlbm9kZCIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMS41Ij48cGF0aCBzdHJva2UtbGluZWNhcD0iYnV0dCIgZD0iTTkgMzloMjd2LTNIOXptMy0zdi00aDIxdjR6bS0xLTIyVjloNHYyaDVWOWg1djJoNVY5aDR2NSIvPjxwYXRoIGQ9Im0zNCAxNC0zIDNIMTRsLTMtMyIvPjxwYXRoIHN0cm9rZS1saW5lY2FwPSJidXR0IiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBkPSJNMzEgMTd2MTIuNUgxNFYxNyIvPjxwYXRoIGQ9Im0zMSAyOS41IDEuNSAyLjVoLTIwbDEuNS0yLjUiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBkPSJNMTEgMTRoMjMiLz48L2c+PC9zdmc+"};</script>
 <script>
@@ -879,19 +1069,21 @@ function buildManual(root) {
     <h1>How to play Quantum Chess 5×5</h1>
     <p class="lede">Chess on Martin Gardner's 5×5 board, where pieces can be in two places at once.
     Every square is a qubit, every quantum move is a gate, and every capture is a measurement.</p>
-    <nav class="toc">
-      <a href="#m-goal">1 · Goal & board</a><a href="#m-pieces">2 · Pieces</a><a href="#m-turn">3 · Your turn</a>
-      <a href="#m-split">4 · Split</a><a href="#m-merge">5 · Merge</a><a href="#m-entangle">6 · Entanglement</a>
-      <a href="#m-capture">7 · Captures</a><a href="#m-pawns">8 · Pawns</a><a href="#m-end">9 · Winning</a>
-      <a href="#m-controls">10 · Controls</a><a href="#m-fair">11 · Engines & fair play</a>
+`;
+  const toc = $("manualToc");
+  toc.innerHTML = `<div class="toc-title">Contents</div><nav class="toc">
+      <a href="#m-goal">Goal and board</a><a href="#m-pieces">The pieces</a><a href="#m-turn">Your turn</a>
+      <a href="#m-split">Split</a><a href="#m-merge">Merge</a><a href="#m-entangle">Entanglement</a>
+      <a href="#m-capture">Captures</a><a href="#m-pawns">Pawns</a><a href="#m-end">Winning</a>
+      <a href="#m-controls">Controls</a><a href="#m-fair">Engines and fair play</a>
     </nav>`;
-  root.querySelectorAll(".toc a").forEach((a) => a.addEventListener("click", (e) => {
+  toc.querySelectorAll("a").forEach((a) => a.addEventListener("click", (e) => {
     e.preventDefault();
     document.querySelector(a.getAttribute("href")).scrollIntoView({ behavior: "smooth" });
   }));
 
   let s = section(root, `
-    <h2 id="m-goal">1 · Goal and board</h2>
+    <h2 id="m-goal"><span class="secno">01</span>Goal and board</h2>
     <p><b>Capture the enemy king.</b> There is no check or checkmate: a king that might be in two places
     can't be "in check" in any meaningful way, so you simply have to take it, and a capture of a "maybe" king
     only succeeds if a measurement finds it there.</p>
@@ -900,7 +1092,7 @@ function buildManual(root) {
   s.appendChild(figure({ pieces: START, n: "Figure 1.", caption: "Starting position. White plays up the board." }));
 
   section(root, `
-    <h2 id="m-pieces">2 · The pieces</h2>
+    <h2 id="m-pieces"><span class="secno">02</span>The pieces</h2>
     <table class="rules-table">
       <tr><th>Piece</th><th>Moves like</th><th>Quantum abilities</th></tr>
       <tr><td>${img("wK")} King</td><td>One square in any direction</td><td>Split, merge. Must be found by a measurement to be captured.</td></tr>
@@ -910,11 +1102,11 @@ function buildManual(root) {
       <tr><td>${img("wN")} Knight</td><td>L-shape, jumps over pieces</td><td>Split, merge (jumps never entangle)</td></tr>
       <tr><td>${img("wP")} Pawn</td><td>One step forward; captures one step diagonally</td><td>None: pawns are always classical</td></tr>
     </table>
-    <p>A piece shown <b>translucent with a purple glow and a % badge</b> is in superposition: the badge is the
-    probability that it is really on that square. The two halves of a split piece always add up to 100%.</p>`);
+    <p>A piece shown <b>translucent, with a cyan and pink colour fringe and a % tag</b>, is in superposition: the tag
+    (and the thin bar along the bottom of its square) is the probability that it is really on that square. The two halves of a split piece always add up to 100%.</p>`);
 
   s = section(root, `
-    <h2 id="m-turn">3 · Your turn: one action</h2>
+    <h2 id="m-turn"><span class="secno">03</span>Your turn: one action</h2>
     <p>Each turn you do exactly one of these. Choose the type with the <b>Move / Split / Merge</b> buttons
     (or keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>).</p>
     <ul class="ticks">
@@ -928,9 +1120,9 @@ function buildManual(root) {
     n: "Figure 2.", caption: "Knight on c3 selected: dots are empty squares, rings are captures." }));
 
   s = section(root, `
-    <h2 id="m-split">4 · Split: superposition</h2>
+    <h2 id="m-split"><span class="secno">04</span>Split: superposition</h2>
     <p>Choose <b>Split</b>, click a non-pawn piece, then click <b>two empty squares</b> it could reach
-    (purple dots). The piece now stands on both squares with 50% probability each.</p>
+    (dashed cyan circles). The piece now stands on both squares with 50% probability each.</p>
     <p class="qbox"><b>Under the hood:</b> the piece's qubit is |1⟩. A <code>√iSWAP</code> with the first target
     sends half the amplitude there; an <code>iSWAP</code> with the second target sends the rest.
     The state is <code>i(|a3⟩ + |c3⟩)/√2</code>.</p>`);
@@ -940,7 +1132,7 @@ function buildManual(root) {
   ));
 
   s = section(root, `
-    <h2 id="m-merge">5 · Merge: interference</h2>
+    <h2 id="m-merge"><span class="secno">05</span>Merge: interference</h2>
     <p>Choose <b>Merge</b>, click one half of a split piece, click its other half (outlined), then click an
     empty square both halves can reach. The halves recombine there.</p>
     <p>If the two halves still have the phases a split gave them, the merge is <b>certain (100%)</b>: the
@@ -954,7 +1146,7 @@ function buildManual(root) {
   ));
 
   s = section(root, `
-    <h2 id="m-entangle">6 · Sliding past a "maybe" piece: entanglement</h2>
+    <h2 id="m-entangle"><span class="secno">06</span>Sliding past a "maybe" piece: entanglement</h2>
     <p>Rooks, bishops and queens may slide <b>through</b> a square that holds a piece in superposition. The
     move happens only in the branch where that square is empty, so your piece becomes <b>entangled</b> with it:
     if one is later measured, the other is decided too.</p>
@@ -966,7 +1158,7 @@ function buildManual(root) {
   ));
 
   s = section(root, `
-    <h2 id="m-capture">7 · Captures are measurements</h2>
+    <h2 id="m-capture"><span class="secno">07</span>Captures are measurements</h2>
     <p>When a capture involves anything uncertain, the engine measures in this order:</p>
     <ol class="steps">
       <li><b>The attacker's square.</b> If your piece isn't really there, the capture fizzles.</li>
@@ -974,7 +1166,7 @@ function buildManual(root) {
       <li><b>The target square.</b> If the enemy is there, it is captured; if not, your piece just moves onto the empty square.</li>
     </ol>
     <p>Each measurement collapses the state: probabilities snap to 0% or 100% everywhere they are linked.
-    Measured squares flash purple and the move list shows each result.</p>`);
+    Measured squares pulse cyan and the move list shows each result.</p>`);
   s.appendChild(figRow(
     figure({ pieces: { a1: "wR", e1: "wK", a2: ["bN", 0.5], b5: ["bN", 0.5], e5: "bK" }, marks: { a2: "ring" }, arrows: [["a1", "a2"]], n: "Figure 6a.", caption: "The rook attacks a 50% knight on a2." }),
     figure({ pieces: { a2: "wR", e1: "wK", e5: "bK" }, last: ["a1", "a2"], n: "Figure 6b.", caption: "Outcome 1 (50%): the knight was there and is captured." }),
@@ -982,7 +1174,7 @@ function buildManual(root) {
   ));
 
   s = section(root, `
-    <h2 id="m-pawns">8 · Pawns</h2>
+    <h2 id="m-pawns"><span class="secno">08</span>Pawns</h2>
     <ul class="ticks">
       <li>Pawns move one square forward (no double step) and capture one square diagonally forward.</li>
       <li>Pawns never split or merge.</li>
@@ -995,7 +1187,7 @@ function buildManual(root) {
   ));
 
   section(root, `
-    <h2 id="m-end">9 · Winning, draws and the qubit budget</h2>
+    <h2 id="m-end"><span class="secno">09</span>Winning, draws and the qubit budget</h2>
     <ul class="ticks">
       <li><b>Win</b> by capturing the enemy king.</li>
       <li><b>Draw</b> if the side to move has no legal action.</li>
@@ -1005,27 +1197,39 @@ function buildManual(root) {
     </ul>`);
 
   section(root, `
-    <h2 id="m-controls">10 · Controls</h2>
+    <h2 id="m-controls"><span class="secno">10</span>Controls</h2>
     <table class="rules-table">
       <tr><th>Action</th><th>How</th></tr>
       <tr><td>Move / capture</td><td>Move mode: click a piece, then a dot or ring</td></tr>
-      <tr><td>Split</td><td>Split mode (<kbd>2</kbd>): click a piece, then two purple dots</td></tr>
-      <tr><td>Merge</td><td>Merge mode (<kbd>3</kbd>): click one half, its outlined partner, then a purple dot</td></tr>
+      <tr><td>Split</td><td>Split mode (<kbd>2</kbd>): click a piece, then two dashed circles</td></tr>
+      <tr><td>Merge</td><td>Merge mode (<kbd>3</kbd>): click one half, its outlined partner, then a dashed circle</td></tr>
       <tr><td>Cancel a selection</td><td><kbd>Esc</kbd></td></tr>
-      <tr><td>Change theme, hints, coordinates, board flip, engine</td><td>⚙ Settings (top right)</td></tr>
-      <tr><td>Play without quantum moves</td><td>"Classical baseline" button</td></tr>
+      <tr><td>Change theme, hints, coordinates, board flip, engine</td><td>Settings (sliders icon, top right)</td></tr>
+      <tr><td>Play without quantum moves</td><td>"Classical" button under the move list</td></tr>
     </table>`);
 
   section(root, `
-    <h2 id="m-fair">11 · Engines and fair play</h2>
-    <p>The quantum state is a full statevector simulation. The badge at the top right shows which engine computes it:</p>
+    <h2 id="m-fair"><span class="secno">11</span>Engines and fair play</h2>
+    <p>The quantum state is a full statevector simulation. The label at the top right shows which engine computes it:</p>
     <ul class="ticks">
-      <li><b>⚛ Qiskit</b>: when the page is served by <code>uvicorn src.api:app</code>, every gate and measurement
+      <li><b>Qiskit</b> (cyan dot): when the page is served by <code>uvicorn src.api:app</code>, every gate and measurement
       runs in Qiskit (<code>Statevector.evolve</code> and <code>Statevector.measure</code>), and the circuit panel shows Qiskit's own drawing.</li>
-      <li><b>◐ In-browser</b>: when the page is opened as a file or offline, a JavaScript port of the same engine
+      <li><b>In-browser engine</b> (grey dot): when the page is opened as a file or offline, a JavaScript port of the same engine
       runs locally. The test <code>tests/test_js_engine.py</code> replays hundreds of moves through both engines and
       checks that every probability matches Qiskit's.</li>
     </ul>`);
+  watchManualSections();
+}
+
+function watchManualSections() {
+  const links = [...document.querySelectorAll("#manualToc a")];
+  const spy = new IntersectionObserver((entries) => {
+    for (const en of entries) {
+      if (!en.isIntersecting) continue;
+      links.forEach((a) => a.classList.toggle("active", a.getAttribute("href") === "#" + en.target.id));
+    }
+  }, { rootMargin: "-20% 0px -70% 0px" });
+  document.querySelectorAll("#manualBody h2[id]").forEach((h) => spy.observe(h));
 }
 
 // ------------------------------------------------------------------ blog
@@ -1033,12 +1237,11 @@ const NOISE = [[0, 1.0], [0.005, 0.847], [0.01, 0.724], [0.02, 0.531], [0.05, 0.
 
 function buildBlog(root) {
   root.innerHTML = `
-    <p class="eyebrow">Blog · Qiskit Fall Fest 2026</p>
-    <h1>Same board, different universe: classical vs quantum 5×5 chess</h1>
-    <p class="byline">Mohamed Thoufic · 8 min read · experiments run live in your browser</p>
-
+    <p class="eyebrow">Field notes · Qiskit Fall Fest 2026</p>
+    <h1>Same board, <em>different universe</em>: classical vs quantum 5×5 chess</h1>
     <p class="lede">Gardner's 5×5 minichess is small enough that computers have solved it. What happens to
     such a tidy game when pieces are allowed to be in two places at once?</p>
+    <div class="byline"><span class="av">MT</span><div><b>Mohamed Thoufic</b><span>11 October 2026 · 8 min read · experiments run in your browser</span></div></div>
 
     <h2>A small game with a big result</h2>
     <p>Martin Gardner introduced the 5×5 setup in 1969 as a pocket version of chess: one of each major piece
@@ -1050,10 +1253,10 @@ function buildBlog(root) {
     <h2>Four rules that change everything</h2>
     <p>Quantum 5×5 chess keeps the board and the pieces, and adds four mechanics, each one a real quantum effect:</p>
     <div class="compare-cards">
-      <div class="cc"><h3>Superposition</h3><p>A split puts one piece on two squares. Nobody, not even its owner, knows which is "real".</p></div>
-      <div class="cc"><h3>Interference</h3><p>A merge recombines the halves with certainty, something no coin-flip game can do.</p></div>
-      <div class="cc"><h3>Entanglement</h3><p>Sliding past a "maybe" piece ties two pieces' fates together.</p></div>
-      <div class="cc"><h3>Measurement</h3><p>Captures force the board to decide, and the decision is genuinely random.</p></div>
+      <div class="cc"><span class="cc-k">Split</span><h3>Superposition</h3><p>A split puts one piece on two squares. Nobody, not even its owner, knows which is "real".</p></div>
+      <div class="cc"><span class="cc-k">Merge</span><h3>Interference</h3><p>A merge recombines the halves with certainty, something no coin-flip game can do.</p></div>
+      <div class="cc"><span class="cc-k">Slide</span><h3>Entanglement</h3><p>Sliding past a "maybe" piece ties two pieces' fates together.</p></div>
+      <div class="cc"><span class="cc-k">Capture</span><h3>Measurement</h3><p>Captures force the board to decide, and the decision is genuinely random.</p></div>
     </div>
 
     <h2>Side by side</h2>
@@ -1071,8 +1274,9 @@ function buildBlog(root) {
     <p>The simplest measure of a game's complexity is its <b>branching factor</b>, the number of options a player
     has each turn. The button below plays random games with the in-browser engine in both modes and counts.</p>
     <div class="experiment" id="exp1">
-      <div class="exp-controls"><button class="primary" id="exp1Run">Run 60 random games per mode</button><span class="muted" id="exp1Status"></span></div>
+      <div class="exp-head"><span class="exp-title">Experiment 01 · branching factor</span><button class="btn primary" id="exp1Run"><svg class="ic"><use href="#i-play"/></svg>Run 60 games per mode</button></div>
       <div id="exp1Out"></div>
+      <p class="exp-status" id="exp1Status"></p>
     </div>
 
     <h2>Experiment 2: interference vs a coin flip</h2>
@@ -1081,9 +1285,12 @@ function buildBlog(root) {
     and run the very same merge gates: it only comes back half the time. The difference is
     <b>phase</b>, and it is the clearest proof that these moves are not dice in disguise.</p>
     <div class="experiment" id="exp2">
-      <div class="exp-controls"><button class="primary" id="exp2Run">Run 1000 split + merge trials</button><span class="muted" id="exp2Status"></span></div>
-      <div id="exp2Out"></div>
+      <div class="exp-head"><span class="exp-title">Experiment 02 · interference</span><button class="btn primary" id="exp2Run"><svg class="ic"><use href="#i-play"/></svg>Run 1000 trials</button></div>
+      <div id="exp2Out"><p class="note">Each trial splits a knight from b1 and merges it straight back, then looks.</p></div>
+      <p class="exp-status" id="exp2Status"></p>
     </div>
+
+    <blockquote class="pull">A coin flip hides where the knight is. A superposition remembers how it got there.</blockquote>
 
     <h2>How the strategy changes</h2>
     <ul class="ticks">
@@ -1098,8 +1305,8 @@ function buildBlog(root) {
     several CNOT gates, and errors leak probability onto squares where no piece should be. The chart shows the
     split-then-merge round trip from Experiment 2 run on Qiskit Aer with a depolarizing noise model
     (notebook section 7): already at 1% gate error, the "certain" merge only succeeds 72% of the time.</p>
-    <div class="experiment">${lineChart(NOISE, { xLabel: "1-qubit gate error rate (2-qubit error = 2×)", yLabel: "P(knight back on b1)" })}
-      <p class="muted small">P(knight back on b1) after split + merge, 4000 shots per point, transpiled to 8 CNOTs.</p></div>
+    <div class="experiment"><div class="exp-head"><span class="exp-title">From the notebook · Qiskit Aer noise study</span></div>${lineChart(NOISE, { xLabel: "1-qubit gate error rate (2-qubit error = 2×)", yLabel: "P(knight back on b1)" })}
+      <p class="note">P(knight back on b1) after split + merge, 4000 shots per point, transpiled to 8 CNOTs.</p></div>
     <p>Long games would also outlast qubit coherence times, and exact simulation doubles in cost with every
     extra uncertain square, which is why the engine caps the game at 16 uncertain squares.</p>
 
@@ -1124,10 +1331,10 @@ function buildBlog(root) {
 
 function exp1Chart(branch, extra, fromNotebook = false) {
   let html = barChart([
-    { label: "Classical 5×5", value: branch.classical, text: branch.classical.toFixed(1), color: "#8d8d8d" },
-    { label: "Quantum 5×5", value: branch.quantum, text: branch.quantum.toFixed(1), color: "#0f62fe" },
+    { label: "Classical 5×5", value: branch.classical, text: branch.classical.toFixed(1), color: "#6f6b63" },
+    { label: "Quantum 5×5", value: branch.quantum, text: branch.quantum.toFixed(1), color: "#5fd4e8" },
   ]);
-  html += `<p class="muted small">${fromNotebook ? "Average actions per turn from the Qiskit notebook (40 games per mode). Press the button to rerun it here." : "Average actions per turn (every move, capture, split pair and merge counts as one action)."}</p>`;
+  html += `<p class="note">${fromNotebook ? "Average actions per turn from the Qiskit notebook (40 games per mode). Press the button to rerun it here." : "Average actions per turn (every move, capture, split pair and merge counts as one action)."}</p>`;
   if (extra) {
     html += `<table class="rules-table compact"><tr><th></th><th>Classical</th><th>Quantum</th></tr>
       <tr><td>Average game length (plies)</td><td>${extra.len.classical.toFixed(1)}</td><td>${extra.len.quantum.toFixed(1)}</td></tr>
@@ -1202,9 +1409,9 @@ function runExperiment2() {
     classicalBack += c.measure(b1);
   }
   $("exp2Out").innerHTML = barChart([
-    { label: "Quantum split → merge", value: quantumBack, text: `${quantumBack} / ${T}`, color: "#a970ff" },
-    { label: "Coin flip → same merge", value: classicalBack, text: `${classicalBack} / ${T}`, color: "#8d8d8d" },
-  ], { max: T }) + `<p class="muted small">Knight found back on b1, out of ${T} trials each.</p>`;
+    { label: "Quantum split → merge", value: quantumBack, text: `${quantumBack} / ${T}`, color: "#5fd4e8" },
+    { label: "Coin flip → same merge", value: classicalBack, text: `${classicalBack} / ${T}`, color: "#6f6b63" },
+  ], { max: T }) + `<p class="note">Knight found back on b1, out of ${T} trials each.</p>`;
   $("exp2Status").textContent = "Done.";
 }
 
@@ -1221,10 +1428,10 @@ const $ = (id) => document.getElementById(id);
 
 // ================================================================== settings
 const THEMES = [
-  { id: "blue", label: "Ocean blue", light: "#e8edf4", dark: "#7d9ac0" },
-  { id: "pink", label: "Rose pink", light: "#fbeef2", dark: "#db8fa8" },
-  { id: "lavender", label: "Quantum lavender", light: "#f1ecfb", dark: "#9b86c9" },
-  { id: "green", label: "Classic green", light: "#ebecd0", dark: "#779556" },
+  { id: "blue", label: "Ocean blue", sub: "Default", light: "#e9eef5", dark: "#7f9cc2" },
+  { id: "pink", label: "Rose pink", sub: "Soft contrast", light: "#fcf0f3", dark: "#d98fa8" },
+  { id: "lavender", label: "Lavender", sub: "Low glare", light: "#f2eefa", dark: "#9886c4" },
+  { id: "green", label: "Tournament", sub: "Classic green", light: "#ecedd1", dark: "#779657" },
 ];
 const DEFAULTS = { theme: "blue", coords: true, badges: true, hints: true, anim: true, flip: false, engine: "auto" };
 let settings = { ...DEFAULTS };
@@ -1314,9 +1521,12 @@ async function chooseEngine() {
     if (settings.engine === "qiskit") toast("Qiskit server not found, so the in-browser engine is used. Start it with: uvicorn src.api:app");
   }
   const pill = $("enginePill");
-  pill.textContent = S.engine.kind === "qiskit" ? `⚛ ${S.engine.label}` : "◐ In-browser engine";
+  pill.innerHTML = `<span class="edot"></span><span>${S.engine.kind === "qiskit" ? S.engine.label : "In-browser engine"}</span>`;
   pill.classList.toggle("qiskit", S.engine.kind === "qiskit");
-  $("circuitTitle").textContent = S.engine.kind === "qiskit" ? "Qiskit circuit · last move" : "Circuit · last move (in-browser)";
+  const chip = $("qiskitChip");
+  chip.textContent = qiskitVersion ? `Connected · Qiskit ${qiskitVersion}` : "Server not running";
+  chip.className = "chip " + (qiskitVersion ? "ok" : "off");
+  $("circuitTitle").textContent = S.engine.kind === "qiskit" ? "Qiskit circuit of the last move" : "Circuit of the last move";
   $("engineNote").textContent = qiskitVersion
     ? `Qiskit server detected (Qiskit ${qiskitVersion}). Now using: ${S.engine.label}.`
     : "No Qiskit server detected: the in-browser engine is used. It is a line-for-line port of the Qiskit engine, checked against it by tests/test_js_engine.py.";
@@ -1342,7 +1552,7 @@ async function newGame(quantum) {
   }
   clearSelection();
   setMode("move");
-  $("circuit").innerHTML = `<span class="muted">Quantum moves show their circuit here.</span>`;
+  $("circuit").innerHTML = `<span class="empty">Quantum moves draw their circuit here.</span>`;
   render();
 }
 
@@ -1434,7 +1644,8 @@ function buildBoard(cells, { marks = {}, last = [], sel = null, coords = true, f
         if (c.prob < 0.9999) {
           p.classList.add("maybe");
           p.style.opacity = (0.3 + 0.7 * c.prob).toFixed(2);
-          if (badges) el.insertAdjacentHTML("beforeend", `<span class="badge">${Math.round(c.prob * 100)}%</span>`);
+          const pct = Math.round(c.prob * 100);
+          if (badges) el.insertAdjacentHTML("beforeend", `<span class="prob-num">${pct}%</span><span class="prob-bar"><i style="width:${pct}%"></i></span>`);
         }
         el.appendChild(p);
       }
@@ -1481,11 +1692,13 @@ function renderPanel() {
   const st = S.state;
   const winnerName = st.winner === "w" ? "White" : "Black";
   $("status").textContent = st.winner ? (st.winner === "draw" ? "Draw" : `${winnerName} wins`) : `${st.turn === "w" ? "White" : "Black"} to move`;
-  $("qubits").textContent = `${st.qubits} qubit${st.qubits === 1 ? "" : "s"}`;
+  const cap = QC.MAX_QUBITS;
+  $("qubits").querySelector(".qm-val").textContent = `${st.qubits} / ${cap}`;
+  $("qubits").querySelector(".qm-bar i").style.width = `${(100 * st.qubits) / cap}%`;
   const whiteBottom = !settings.flip;
-  $("dotBottom").classList.toggle("on", !st.winner && st.turn === (whiteBottom ? "w" : "b"));
-  $("dotTop").classList.toggle("on", !st.winner && st.turn === (whiteBottom ? "b" : "w"));
-  $("modeTag").textContent = st.quantum ? "5×5 · quantum" : "5×5 · classical";
+  $("barBottom").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "w" : "b"));
+  $("barTop").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "b" : "w"));
+  $("modeTag").textContent = `${st.quantum ? "Quantum game" : "Classical baseline"} · move ${Math.floor(st.ply / 2) + 1}`;
   $("hint").textContent = hintText();
   renderMoves();
   renderCaptured(whiteBottom);
@@ -1505,21 +1718,25 @@ function hintText() {
   return S.partner ? "Pick the square where both halves should interfere." : "Now click its other half (outlined).";
 }
 
+function moveText(e) {
+  const p = e.piece === "P" ? "" : e.piece;
+  if (e.kind === "split") return `${p}${e.from}<span class="q">→</span>${e.to}<span class="q">|</span>${e.extra}`;
+  if (e.kind === "merge") return `${p}${e.from}<span class="q">|</span>${e.extra}<span class="q">→</span>${e.to}`;
+  return `${p}${e.from}${e.kind === "capture" ? "×" : "–"}${e.to}`;
+}
+
 function renderMoves() {
-  const ol = $("moves");
-  ol.innerHTML = "";
-  for (const e of S.state.log) {
-    const g = GLYPH[e.piece];
-    let text;
-    if (e.kind === "split") text = `${g} ${e.from} → ${e.to} + ${e.extra} <i>split</i>`;
-    else if (e.kind === "merge") text = `${g} ${e.from} + ${e.extra} → ${e.to} <i>merge</i>`;
-    else text = `${g} ${e.from} ${e.kind === "capture" ? "×" : "→"} ${e.to}`;
-    const li = document.createElement("li");
-    li.innerHTML = `<span class="${e.ok ? "" : "fail"}">${e.color === "w" ? "White" : "Black"}: ${text}</span>`
-      + e.events.map((ev) => `<span class="ev">${ev}</span>`).join("");
-    ol.appendChild(li);
+  const box = $("moves");
+  const log = S.state.log;
+  if (!log.length) { box.innerHTML = `<p class="empty">No moves yet. ${S.state.turn === "w" ? "White" : "Black"} starts.</p>`; return; }
+  const cell = (e) => !e ? `<div class="mv"></div>` :
+    `<div class="mv${e.ok ? "" : " fail"}"><span class="mt">${moveText(e)}</span>${e.events.map((ev) => `<span class="ev">${ev}</span>`).join("")}</div>`;
+  let html = "";
+  for (let i = 0; i < log.length; i += 2) {
+    html += `<div class="mrow"><span class="mno">${i / 2 + 1}.</span>${cell(log[i])}${cell(log[i + 1])}</div>`;
   }
-  ol.scrollTop = ol.scrollHeight;
+  box.innerHTML = html;
+  box.scrollTop = box.scrollHeight;
 }
 
 function renderCaptured(whiteBottom) {
@@ -1549,13 +1766,13 @@ function flashMeasured(entry) {
 function showCircuit() {
   const box = $("circuit");
   const node = S.engine.circuit(S.state);
-  if (!node) { box.innerHTML = `<span class="muted">Classical move: no qubits were needed.</span>`; return; }
+  if (!node) { box.innerHTML = `<span class="empty">Classical move: no qubits were needed.</span>`; return; }
   box.innerHTML = "";
   if (typeof node === "string") box.innerHTML = node;
   else {
-    box.innerHTML = `<span class="muted">Drawing circuit…</span>`;
+    box.innerHTML = `<span class="empty">Drawing circuit…</span>`;
     node.onload = () => { box.innerHTML = ""; box.appendChild(node); };
-    node.onerror = () => { box.innerHTML = `<span class="muted">Circuit drawing unavailable.</span>`; };
+    node.onerror = () => { box.innerHTML = `<span class="empty">Circuit drawing unavailable.</span>`; };
   }
 }
 
@@ -1619,7 +1836,7 @@ function circuitSVG(trace) {
 }
 
 // ================================================================== charts (blog)
-function barChart(rows, { max = null, unit = "", color = "#0f62fe" } = {}) {
+function barChart(rows, { max = null, unit = "", color = "#5fd4e8" } = {}) {
   const top = max ?? Math.max(...rows.map((r) => r.value)) * 1.15;
   return `<div class="bars">${rows.map((r) => `
     <div class="bar-row"><div class="bar-label">${r.label}</div>
@@ -1627,7 +1844,7 @@ function barChart(rows, { max = null, unit = "", color = "#0f62fe" } = {}) {
       <div class="bar-value">${r.text ?? r.value + unit}</div></div>`).join("")}</div>`;
 }
 
-function lineChart(points, { xLabel = "", yLabel = "", color = "#a970ff" } = {}) {
+function lineChart(points, { xLabel = "", yLabel = "", color = "#5fd4e8" } = {}) {
   const W = 560, H = 240, L = 48, B = 36, T = 12, R = 16;
   const xs = points.map((p) => p[0]), xmax = Math.max(...xs);
   const px = (x) => L + (x / xmax) * (W - L - R), py = (y) => T + (1 - y) * (H - T - B);
@@ -1663,9 +1880,10 @@ function wire() {
   $("settingsBtn").addEventListener("click", () => $("settings").showModal());
 
   $("themes").innerHTML = THEMES.map((t) => `
-    <button class="theme-card" data-theme="${t.id}">
-      <span class="theme-preview" style="background:conic-gradient(${t.dark} 0 25%, ${t.light} 0 50%, ${t.dark} 0 75%, ${t.light} 0)"></span>
-      <span>${t.label}</span></button>`).join("");
+    <button class="theme-card" data-theme="${t.id}" aria-label="${t.label} board theme">
+      <span class="theme-preview"><i style="background:${t.light}"></i><i style="background:${t.dark}"></i><i style="background:${t.dark}"></i><i style="background:${t.light}"></i></span>
+      <span><span class="tname">${t.label}</span><br><span class="tsub">${t.sub}</span></span>
+      <svg class="ic"><use href="#i-check"/></svg></button>`).join("");
   document.querySelectorAll(".theme-card").forEach((b) => b.addEventListener("click", () => {
     settings.theme = b.dataset.theme; saveSettings(); applySettings();
   }));

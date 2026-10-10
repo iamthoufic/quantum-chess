@@ -62,19 +62,21 @@ function buildManual(root) {
     <h1>How to play Quantum Chess 5×5</h1>
     <p class="lede">Chess on Martin Gardner's 5×5 board, where pieces can be in two places at once.
     Every square is a qubit, every quantum move is a gate, and every capture is a measurement.</p>
-    <nav class="toc">
-      <a href="#m-goal">1 · Goal & board</a><a href="#m-pieces">2 · Pieces</a><a href="#m-turn">3 · Your turn</a>
-      <a href="#m-split">4 · Split</a><a href="#m-merge">5 · Merge</a><a href="#m-entangle">6 · Entanglement</a>
-      <a href="#m-capture">7 · Captures</a><a href="#m-pawns">8 · Pawns</a><a href="#m-end">9 · Winning</a>
-      <a href="#m-controls">10 · Controls</a><a href="#m-fair">11 · Engines & fair play</a>
+`;
+  const toc = $("manualToc");
+  toc.innerHTML = `<div class="toc-title">Contents</div><nav class="toc">
+      <a href="#m-goal">Goal and board</a><a href="#m-pieces">The pieces</a><a href="#m-turn">Your turn</a>
+      <a href="#m-split">Split</a><a href="#m-merge">Merge</a><a href="#m-entangle">Entanglement</a>
+      <a href="#m-capture">Captures</a><a href="#m-pawns">Pawns</a><a href="#m-end">Winning</a>
+      <a href="#m-controls">Controls</a><a href="#m-fair">Engines and fair play</a>
     </nav>`;
-  root.querySelectorAll(".toc a").forEach((a) => a.addEventListener("click", (e) => {
+  toc.querySelectorAll("a").forEach((a) => a.addEventListener("click", (e) => {
     e.preventDefault();
     document.querySelector(a.getAttribute("href")).scrollIntoView({ behavior: "smooth" });
   }));
 
   let s = section(root, `
-    <h2 id="m-goal">1 · Goal and board</h2>
+    <h2 id="m-goal"><span class="secno">01</span>Goal and board</h2>
     <p><b>Capture the enemy king.</b> There is no check or checkmate: a king that might be in two places
     can't be "in check" in any meaningful way, so you simply have to take it, and a capture of a "maybe" king
     only succeeds if a measurement finds it there.</p>
@@ -83,7 +85,7 @@ function buildManual(root) {
   s.appendChild(figure({ pieces: START, n: "Figure 1.", caption: "Starting position. White plays up the board." }));
 
   section(root, `
-    <h2 id="m-pieces">2 · The pieces</h2>
+    <h2 id="m-pieces"><span class="secno">02</span>The pieces</h2>
     <table class="rules-table">
       <tr><th>Piece</th><th>Moves like</th><th>Quantum abilities</th></tr>
       <tr><td>${img("wK")} King</td><td>One square in any direction</td><td>Split, merge. Must be found by a measurement to be captured.</td></tr>
@@ -93,11 +95,11 @@ function buildManual(root) {
       <tr><td>${img("wN")} Knight</td><td>L-shape, jumps over pieces</td><td>Split, merge (jumps never entangle)</td></tr>
       <tr><td>${img("wP")} Pawn</td><td>One step forward; captures one step diagonally</td><td>None: pawns are always classical</td></tr>
     </table>
-    <p>A piece shown <b>translucent with a purple glow and a % badge</b> is in superposition: the badge is the
-    probability that it is really on that square. The two halves of a split piece always add up to 100%.</p>`);
+    <p>A piece shown <b>translucent, with a cyan and pink colour fringe and a % tag</b>, is in superposition: the tag
+    (and the thin bar along the bottom of its square) is the probability that it is really on that square. The two halves of a split piece always add up to 100%.</p>`);
 
   s = section(root, `
-    <h2 id="m-turn">3 · Your turn: one action</h2>
+    <h2 id="m-turn"><span class="secno">03</span>Your turn: one action</h2>
     <p>Each turn you do exactly one of these. Choose the type with the <b>Move / Split / Merge</b> buttons
     (or keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>).</p>
     <ul class="ticks">
@@ -111,9 +113,9 @@ function buildManual(root) {
     n: "Figure 2.", caption: "Knight on c3 selected: dots are empty squares, rings are captures." }));
 
   s = section(root, `
-    <h2 id="m-split">4 · Split: superposition</h2>
+    <h2 id="m-split"><span class="secno">04</span>Split: superposition</h2>
     <p>Choose <b>Split</b>, click a non-pawn piece, then click <b>two empty squares</b> it could reach
-    (purple dots). The piece now stands on both squares with 50% probability each.</p>
+    (dashed cyan circles). The piece now stands on both squares with 50% probability each.</p>
     <p class="qbox"><b>Under the hood:</b> the piece's qubit is |1⟩. A <code>√iSWAP</code> with the first target
     sends half the amplitude there; an <code>iSWAP</code> with the second target sends the rest.
     The state is <code>i(|a3⟩ + |c3⟩)/√2</code>.</p>`);
@@ -123,7 +125,7 @@ function buildManual(root) {
   ));
 
   s = section(root, `
-    <h2 id="m-merge">5 · Merge: interference</h2>
+    <h2 id="m-merge"><span class="secno">05</span>Merge: interference</h2>
     <p>Choose <b>Merge</b>, click one half of a split piece, click its other half (outlined), then click an
     empty square both halves can reach. The halves recombine there.</p>
     <p>If the two halves still have the phases a split gave them, the merge is <b>certain (100%)</b>: the
@@ -137,7 +139,7 @@ function buildManual(root) {
   ));
 
   s = section(root, `
-    <h2 id="m-entangle">6 · Sliding past a "maybe" piece: entanglement</h2>
+    <h2 id="m-entangle"><span class="secno">06</span>Sliding past a "maybe" piece: entanglement</h2>
     <p>Rooks, bishops and queens may slide <b>through</b> a square that holds a piece in superposition. The
     move happens only in the branch where that square is empty, so your piece becomes <b>entangled</b> with it:
     if one is later measured, the other is decided too.</p>
@@ -149,7 +151,7 @@ function buildManual(root) {
   ));
 
   s = section(root, `
-    <h2 id="m-capture">7 · Captures are measurements</h2>
+    <h2 id="m-capture"><span class="secno">07</span>Captures are measurements</h2>
     <p>When a capture involves anything uncertain, the engine measures in this order:</p>
     <ol class="steps">
       <li><b>The attacker's square.</b> If your piece isn't really there, the capture fizzles.</li>
@@ -157,7 +159,7 @@ function buildManual(root) {
       <li><b>The target square.</b> If the enemy is there, it is captured; if not, your piece just moves onto the empty square.</li>
     </ol>
     <p>Each measurement collapses the state: probabilities snap to 0% or 100% everywhere they are linked.
-    Measured squares flash purple and the move list shows each result.</p>`);
+    Measured squares pulse cyan and the move list shows each result.</p>`);
   s.appendChild(figRow(
     figure({ pieces: { a1: "wR", e1: "wK", a2: ["bN", 0.5], b5: ["bN", 0.5], e5: "bK" }, marks: { a2: "ring" }, arrows: [["a1", "a2"]], n: "Figure 6a.", caption: "The rook attacks a 50% knight on a2." }),
     figure({ pieces: { a2: "wR", e1: "wK", e5: "bK" }, last: ["a1", "a2"], n: "Figure 6b.", caption: "Outcome 1 (50%): the knight was there and is captured." }),
@@ -165,7 +167,7 @@ function buildManual(root) {
   ));
 
   s = section(root, `
-    <h2 id="m-pawns">8 · Pawns</h2>
+    <h2 id="m-pawns"><span class="secno">08</span>Pawns</h2>
     <ul class="ticks">
       <li>Pawns move one square forward (no double step) and capture one square diagonally forward.</li>
       <li>Pawns never split or merge.</li>
@@ -178,7 +180,7 @@ function buildManual(root) {
   ));
 
   section(root, `
-    <h2 id="m-end">9 · Winning, draws and the qubit budget</h2>
+    <h2 id="m-end"><span class="secno">09</span>Winning, draws and the qubit budget</h2>
     <ul class="ticks">
       <li><b>Win</b> by capturing the enemy king.</li>
       <li><b>Draw</b> if the side to move has no legal action.</li>
@@ -188,27 +190,39 @@ function buildManual(root) {
     </ul>`);
 
   section(root, `
-    <h2 id="m-controls">10 · Controls</h2>
+    <h2 id="m-controls"><span class="secno">10</span>Controls</h2>
     <table class="rules-table">
       <tr><th>Action</th><th>How</th></tr>
       <tr><td>Move / capture</td><td>Move mode: click a piece, then a dot or ring</td></tr>
-      <tr><td>Split</td><td>Split mode (<kbd>2</kbd>): click a piece, then two purple dots</td></tr>
-      <tr><td>Merge</td><td>Merge mode (<kbd>3</kbd>): click one half, its outlined partner, then a purple dot</td></tr>
+      <tr><td>Split</td><td>Split mode (<kbd>2</kbd>): click a piece, then two dashed circles</td></tr>
+      <tr><td>Merge</td><td>Merge mode (<kbd>3</kbd>): click one half, its outlined partner, then a dashed circle</td></tr>
       <tr><td>Cancel a selection</td><td><kbd>Esc</kbd></td></tr>
-      <tr><td>Change theme, hints, coordinates, board flip, engine</td><td>⚙ Settings (top right)</td></tr>
-      <tr><td>Play without quantum moves</td><td>"Classical baseline" button</td></tr>
+      <tr><td>Change theme, hints, coordinates, board flip, engine</td><td>Settings (sliders icon, top right)</td></tr>
+      <tr><td>Play without quantum moves</td><td>"Classical" button under the move list</td></tr>
     </table>`);
 
   section(root, `
-    <h2 id="m-fair">11 · Engines and fair play</h2>
-    <p>The quantum state is a full statevector simulation. The badge at the top right shows which engine computes it:</p>
+    <h2 id="m-fair"><span class="secno">11</span>Engines and fair play</h2>
+    <p>The quantum state is a full statevector simulation. The label at the top right shows which engine computes it:</p>
     <ul class="ticks">
-      <li><b>⚛ Qiskit</b>: when the page is served by <code>uvicorn src.api:app</code>, every gate and measurement
+      <li><b>Qiskit</b> (cyan dot): when the page is served by <code>uvicorn src.api:app</code>, every gate and measurement
       runs in Qiskit (<code>Statevector.evolve</code> and <code>Statevector.measure</code>), and the circuit panel shows Qiskit's own drawing.</li>
-      <li><b>◐ In-browser</b>: when the page is opened as a file or offline, a JavaScript port of the same engine
+      <li><b>In-browser engine</b> (grey dot): when the page is opened as a file or offline, a JavaScript port of the same engine
       runs locally. The test <code>tests/test_js_engine.py</code> replays hundreds of moves through both engines and
       checks that every probability matches Qiskit's.</li>
     </ul>`);
+  watchManualSections();
+}
+
+function watchManualSections() {
+  const links = [...document.querySelectorAll("#manualToc a")];
+  const spy = new IntersectionObserver((entries) => {
+    for (const en of entries) {
+      if (!en.isIntersecting) continue;
+      links.forEach((a) => a.classList.toggle("active", a.getAttribute("href") === "#" + en.target.id));
+    }
+  }, { rootMargin: "-20% 0px -70% 0px" });
+  document.querySelectorAll("#manualBody h2[id]").forEach((h) => spy.observe(h));
 }
 
 // ------------------------------------------------------------------ blog
@@ -216,12 +230,11 @@ const NOISE = [[0, 1.0], [0.005, 0.847], [0.01, 0.724], [0.02, 0.531], [0.05, 0.
 
 function buildBlog(root) {
   root.innerHTML = `
-    <p class="eyebrow">Blog · Qiskit Fall Fest 2026</p>
-    <h1>Same board, different universe: classical vs quantum 5×5 chess</h1>
-    <p class="byline">Mohamed Thoufic · 8 min read · experiments run live in your browser</p>
-
+    <p class="eyebrow">Field notes · Qiskit Fall Fest 2026</p>
+    <h1>Same board, <em>different universe</em>: classical vs quantum 5×5 chess</h1>
     <p class="lede">Gardner's 5×5 minichess is small enough that computers have solved it. What happens to
     such a tidy game when pieces are allowed to be in two places at once?</p>
+    <div class="byline"><span class="av">MT</span><div><b>Mohamed Thoufic</b><span>11 October 2026 · 8 min read · experiments run in your browser</span></div></div>
 
     <h2>A small game with a big result</h2>
     <p>Martin Gardner introduced the 5×5 setup in 1969 as a pocket version of chess: one of each major piece
@@ -233,10 +246,10 @@ function buildBlog(root) {
     <h2>Four rules that change everything</h2>
     <p>Quantum 5×5 chess keeps the board and the pieces, and adds four mechanics, each one a real quantum effect:</p>
     <div class="compare-cards">
-      <div class="cc"><h3>Superposition</h3><p>A split puts one piece on two squares. Nobody, not even its owner, knows which is "real".</p></div>
-      <div class="cc"><h3>Interference</h3><p>A merge recombines the halves with certainty, something no coin-flip game can do.</p></div>
-      <div class="cc"><h3>Entanglement</h3><p>Sliding past a "maybe" piece ties two pieces' fates together.</p></div>
-      <div class="cc"><h3>Measurement</h3><p>Captures force the board to decide, and the decision is genuinely random.</p></div>
+      <div class="cc"><span class="cc-k">Split</span><h3>Superposition</h3><p>A split puts one piece on two squares. Nobody, not even its owner, knows which is "real".</p></div>
+      <div class="cc"><span class="cc-k">Merge</span><h3>Interference</h3><p>A merge recombines the halves with certainty, something no coin-flip game can do.</p></div>
+      <div class="cc"><span class="cc-k">Slide</span><h3>Entanglement</h3><p>Sliding past a "maybe" piece ties two pieces' fates together.</p></div>
+      <div class="cc"><span class="cc-k">Capture</span><h3>Measurement</h3><p>Captures force the board to decide, and the decision is genuinely random.</p></div>
     </div>
 
     <h2>Side by side</h2>
@@ -254,8 +267,9 @@ function buildBlog(root) {
     <p>The simplest measure of a game's complexity is its <b>branching factor</b>, the number of options a player
     has each turn. The button below plays random games with the in-browser engine in both modes and counts.</p>
     <div class="experiment" id="exp1">
-      <div class="exp-controls"><button class="primary" id="exp1Run">Run 60 random games per mode</button><span class="muted" id="exp1Status"></span></div>
+      <div class="exp-head"><span class="exp-title">Experiment 01 · branching factor</span><button class="btn primary" id="exp1Run"><svg class="ic"><use href="#i-play"/></svg>Run 60 games per mode</button></div>
       <div id="exp1Out"></div>
+      <p class="exp-status" id="exp1Status"></p>
     </div>
 
     <h2>Experiment 2: interference vs a coin flip</h2>
@@ -264,9 +278,12 @@ function buildBlog(root) {
     and run the very same merge gates: it only comes back half the time. The difference is
     <b>phase</b>, and it is the clearest proof that these moves are not dice in disguise.</p>
     <div class="experiment" id="exp2">
-      <div class="exp-controls"><button class="primary" id="exp2Run">Run 1000 split + merge trials</button><span class="muted" id="exp2Status"></span></div>
-      <div id="exp2Out"></div>
+      <div class="exp-head"><span class="exp-title">Experiment 02 · interference</span><button class="btn primary" id="exp2Run"><svg class="ic"><use href="#i-play"/></svg>Run 1000 trials</button></div>
+      <div id="exp2Out"><p class="note">Each trial splits a knight from b1 and merges it straight back, then looks.</p></div>
+      <p class="exp-status" id="exp2Status"></p>
     </div>
+
+    <blockquote class="pull">A coin flip hides where the knight is. A superposition remembers how it got there.</blockquote>
 
     <h2>How the strategy changes</h2>
     <ul class="ticks">
@@ -281,8 +298,8 @@ function buildBlog(root) {
     several CNOT gates, and errors leak probability onto squares where no piece should be. The chart shows the
     split-then-merge round trip from Experiment 2 run on Qiskit Aer with a depolarizing noise model
     (notebook section 7): already at 1% gate error, the "certain" merge only succeeds 72% of the time.</p>
-    <div class="experiment">${lineChart(NOISE, { xLabel: "1-qubit gate error rate (2-qubit error = 2×)", yLabel: "P(knight back on b1)" })}
-      <p class="muted small">P(knight back on b1) after split + merge, 4000 shots per point, transpiled to 8 CNOTs.</p></div>
+    <div class="experiment"><div class="exp-head"><span class="exp-title">From the notebook · Qiskit Aer noise study</span></div>${lineChart(NOISE, { xLabel: "1-qubit gate error rate (2-qubit error = 2×)", yLabel: "P(knight back on b1)" })}
+      <p class="note">P(knight back on b1) after split + merge, 4000 shots per point, transpiled to 8 CNOTs.</p></div>
     <p>Long games would also outlast qubit coherence times, and exact simulation doubles in cost with every
     extra uncertain square, which is why the engine caps the game at 16 uncertain squares.</p>
 
@@ -307,10 +324,10 @@ function buildBlog(root) {
 
 function exp1Chart(branch, extra, fromNotebook = false) {
   let html = barChart([
-    { label: "Classical 5×5", value: branch.classical, text: branch.classical.toFixed(1), color: "#8d8d8d" },
-    { label: "Quantum 5×5", value: branch.quantum, text: branch.quantum.toFixed(1), color: "#0f62fe" },
+    { label: "Classical 5×5", value: branch.classical, text: branch.classical.toFixed(1), color: "#6f6b63" },
+    { label: "Quantum 5×5", value: branch.quantum, text: branch.quantum.toFixed(1), color: "#5fd4e8" },
   ]);
-  html += `<p class="muted small">${fromNotebook ? "Average actions per turn from the Qiskit notebook (40 games per mode). Press the button to rerun it here." : "Average actions per turn (every move, capture, split pair and merge counts as one action)."}</p>`;
+  html += `<p class="note">${fromNotebook ? "Average actions per turn from the Qiskit notebook (40 games per mode). Press the button to rerun it here." : "Average actions per turn (every move, capture, split pair and merge counts as one action)."}</p>`;
   if (extra) {
     html += `<table class="rules-table compact"><tr><th></th><th>Classical</th><th>Quantum</th></tr>
       <tr><td>Average game length (plies)</td><td>${extra.len.classical.toFixed(1)}</td><td>${extra.len.quantum.toFixed(1)}</td></tr>
@@ -385,8 +402,8 @@ function runExperiment2() {
     classicalBack += c.measure(b1);
   }
   $("exp2Out").innerHTML = barChart([
-    { label: "Quantum split → merge", value: quantumBack, text: `${quantumBack} / ${T}`, color: "#a970ff" },
-    { label: "Coin flip → same merge", value: classicalBack, text: `${classicalBack} / ${T}`, color: "#8d8d8d" },
-  ], { max: T }) + `<p class="muted small">Knight found back on b1, out of ${T} trials each.</p>`;
+    { label: "Quantum split → merge", value: quantumBack, text: `${quantumBack} / ${T}`, color: "#5fd4e8" },
+    { label: "Coin flip → same merge", value: classicalBack, text: `${classicalBack} / ${T}`, color: "#6f6b63" },
+  ], { max: T }) + `<p class="note">Knight found back on b1, out of ${T} trials each.</p>`;
   $("exp2Status").textContent = "Done.";
 }

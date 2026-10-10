@@ -9,10 +9,10 @@ const $ = (id) => document.getElementById(id);
 
 // ================================================================== settings
 const THEMES = [
-  { id: "blue", label: "Ocean blue", light: "#e8edf4", dark: "#7d9ac0" },
-  { id: "pink", label: "Rose pink", light: "#fbeef2", dark: "#db8fa8" },
-  { id: "lavender", label: "Quantum lavender", light: "#f1ecfb", dark: "#9b86c9" },
-  { id: "green", label: "Classic green", light: "#ebecd0", dark: "#779556" },
+  { id: "blue", label: "Ocean blue", sub: "Default", light: "#e9eef5", dark: "#7f9cc2" },
+  { id: "pink", label: "Rose pink", sub: "Soft contrast", light: "#fcf0f3", dark: "#d98fa8" },
+  { id: "lavender", label: "Lavender", sub: "Low glare", light: "#f2eefa", dark: "#9886c4" },
+  { id: "green", label: "Tournament", sub: "Classic green", light: "#ecedd1", dark: "#779657" },
 ];
 const DEFAULTS = { theme: "blue", coords: true, badges: true, hints: true, anim: true, flip: false, engine: "auto" };
 let settings = { ...DEFAULTS };
@@ -102,9 +102,12 @@ async function chooseEngine() {
     if (settings.engine === "qiskit") toast("Qiskit server not found, so the in-browser engine is used. Start it with: uvicorn src.api:app");
   }
   const pill = $("enginePill");
-  pill.textContent = S.engine.kind === "qiskit" ? `⚛ ${S.engine.label}` : "◐ In-browser engine";
+  pill.innerHTML = `<span class="edot"></span><span>${S.engine.kind === "qiskit" ? S.engine.label : "In-browser engine"}</span>`;
   pill.classList.toggle("qiskit", S.engine.kind === "qiskit");
-  $("circuitTitle").textContent = S.engine.kind === "qiskit" ? "Qiskit circuit · last move" : "Circuit · last move (in-browser)";
+  const chip = $("qiskitChip");
+  chip.textContent = qiskitVersion ? `Connected · Qiskit ${qiskitVersion}` : "Server not running";
+  chip.className = "chip " + (qiskitVersion ? "ok" : "off");
+  $("circuitTitle").textContent = S.engine.kind === "qiskit" ? "Qiskit circuit of the last move" : "Circuit of the last move";
   $("engineNote").textContent = qiskitVersion
     ? `Qiskit server detected (Qiskit ${qiskitVersion}). Now using: ${S.engine.label}.`
     : "No Qiskit server detected: the in-browser engine is used. It is a line-for-line port of the Qiskit engine, checked against it by tests/test_js_engine.py.";
@@ -130,7 +133,7 @@ async function newGame(quantum) {
   }
   clearSelection();
   setMode("move");
-  $("circuit").innerHTML = `<span class="muted">Quantum moves show their circuit here.</span>`;
+  $("circuit").innerHTML = `<span class="empty">Quantum moves draw their circuit here.</span>`;
   render();
 }
 
@@ -222,7 +225,8 @@ function buildBoard(cells, { marks = {}, last = [], sel = null, coords = true, f
         if (c.prob < 0.9999) {
           p.classList.add("maybe");
           p.style.opacity = (0.3 + 0.7 * c.prob).toFixed(2);
-          if (badges) el.insertAdjacentHTML("beforeend", `<span class="badge">${Math.round(c.prob * 100)}%</span>`);
+          const pct = Math.round(c.prob * 100);
+          if (badges) el.insertAdjacentHTML("beforeend", `<span class="prob-num">${pct}%</span><span class="prob-bar"><i style="width:${pct}%"></i></span>`);
         }
         el.appendChild(p);
       }
@@ -269,11 +273,13 @@ function renderPanel() {
   const st = S.state;
   const winnerName = st.winner === "w" ? "White" : "Black";
   $("status").textContent = st.winner ? (st.winner === "draw" ? "Draw" : `${winnerName} wins`) : `${st.turn === "w" ? "White" : "Black"} to move`;
-  $("qubits").textContent = `${st.qubits} qubit${st.qubits === 1 ? "" : "s"}`;
+  const cap = QC.MAX_QUBITS;
+  $("qubits").querySelector(".qm-val").textContent = `${st.qubits} / ${cap}`;
+  $("qubits").querySelector(".qm-bar i").style.width = `${(100 * st.qubits) / cap}%`;
   const whiteBottom = !settings.flip;
-  $("dotBottom").classList.toggle("on", !st.winner && st.turn === (whiteBottom ? "w" : "b"));
-  $("dotTop").classList.toggle("on", !st.winner && st.turn === (whiteBottom ? "b" : "w"));
-  $("modeTag").textContent = st.quantum ? "5×5 · quantum" : "5×5 · classical";
+  $("barBottom").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "w" : "b"));
+  $("barTop").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "b" : "w"));
+  $("modeTag").textContent = `${st.quantum ? "Quantum game" : "Classical baseline"} · move ${Math.floor(st.ply / 2) + 1}`;
   $("hint").textContent = hintText();
   renderMoves();
   renderCaptured(whiteBottom);
@@ -293,21 +299,25 @@ function hintText() {
   return S.partner ? "Pick the square where both halves should interfere." : "Now click its other half (outlined).";
 }
 
+function moveText(e) {
+  const p = e.piece === "P" ? "" : e.piece;
+  if (e.kind === "split") return `${p}${e.from}<span class="q">→</span>${e.to}<span class="q">|</span>${e.extra}`;
+  if (e.kind === "merge") return `${p}${e.from}<span class="q">|</span>${e.extra}<span class="q">→</span>${e.to}`;
+  return `${p}${e.from}${e.kind === "capture" ? "×" : "–"}${e.to}`;
+}
+
 function renderMoves() {
-  const ol = $("moves");
-  ol.innerHTML = "";
-  for (const e of S.state.log) {
-    const g = GLYPH[e.piece];
-    let text;
-    if (e.kind === "split") text = `${g} ${e.from} → ${e.to} + ${e.extra} <i>split</i>`;
-    else if (e.kind === "merge") text = `${g} ${e.from} + ${e.extra} → ${e.to} <i>merge</i>`;
-    else text = `${g} ${e.from} ${e.kind === "capture" ? "×" : "→"} ${e.to}`;
-    const li = document.createElement("li");
-    li.innerHTML = `<span class="${e.ok ? "" : "fail"}">${e.color === "w" ? "White" : "Black"}: ${text}</span>`
-      + e.events.map((ev) => `<span class="ev">${ev}</span>`).join("");
-    ol.appendChild(li);
+  const box = $("moves");
+  const log = S.state.log;
+  if (!log.length) { box.innerHTML = `<p class="empty">No moves yet. ${S.state.turn === "w" ? "White" : "Black"} starts.</p>`; return; }
+  const cell = (e) => !e ? `<div class="mv"></div>` :
+    `<div class="mv${e.ok ? "" : " fail"}"><span class="mt">${moveText(e)}</span>${e.events.map((ev) => `<span class="ev">${ev}</span>`).join("")}</div>`;
+  let html = "";
+  for (let i = 0; i < log.length; i += 2) {
+    html += `<div class="mrow"><span class="mno">${i / 2 + 1}.</span>${cell(log[i])}${cell(log[i + 1])}</div>`;
   }
-  ol.scrollTop = ol.scrollHeight;
+  box.innerHTML = html;
+  box.scrollTop = box.scrollHeight;
 }
 
 function renderCaptured(whiteBottom) {
@@ -337,13 +347,13 @@ function flashMeasured(entry) {
 function showCircuit() {
   const box = $("circuit");
   const node = S.engine.circuit(S.state);
-  if (!node) { box.innerHTML = `<span class="muted">Classical move: no qubits were needed.</span>`; return; }
+  if (!node) { box.innerHTML = `<span class="empty">Classical move: no qubits were needed.</span>`; return; }
   box.innerHTML = "";
   if (typeof node === "string") box.innerHTML = node;
   else {
-    box.innerHTML = `<span class="muted">Drawing circuit…</span>`;
+    box.innerHTML = `<span class="empty">Drawing circuit…</span>`;
     node.onload = () => { box.innerHTML = ""; box.appendChild(node); };
-    node.onerror = () => { box.innerHTML = `<span class="muted">Circuit drawing unavailable.</span>`; };
+    node.onerror = () => { box.innerHTML = `<span class="empty">Circuit drawing unavailable.</span>`; };
   }
 }
 
@@ -407,7 +417,7 @@ function circuitSVG(trace) {
 }
 
 // ================================================================== charts (blog)
-function barChart(rows, { max = null, unit = "", color = "#0f62fe" } = {}) {
+function barChart(rows, { max = null, unit = "", color = "#5fd4e8" } = {}) {
   const top = max ?? Math.max(...rows.map((r) => r.value)) * 1.15;
   return `<div class="bars">${rows.map((r) => `
     <div class="bar-row"><div class="bar-label">${r.label}</div>
@@ -415,7 +425,7 @@ function barChart(rows, { max = null, unit = "", color = "#0f62fe" } = {}) {
       <div class="bar-value">${r.text ?? r.value + unit}</div></div>`).join("")}</div>`;
 }
 
-function lineChart(points, { xLabel = "", yLabel = "", color = "#a970ff" } = {}) {
+function lineChart(points, { xLabel = "", yLabel = "", color = "#5fd4e8" } = {}) {
   const W = 560, H = 240, L = 48, B = 36, T = 12, R = 16;
   const xs = points.map((p) => p[0]), xmax = Math.max(...xs);
   const px = (x) => L + (x / xmax) * (W - L - R), py = (y) => T + (1 - y) * (H - T - B);
@@ -451,9 +461,10 @@ function wire() {
   $("settingsBtn").addEventListener("click", () => $("settings").showModal());
 
   $("themes").innerHTML = THEMES.map((t) => `
-    <button class="theme-card" data-theme="${t.id}">
-      <span class="theme-preview" style="background:conic-gradient(${t.dark} 0 25%, ${t.light} 0 50%, ${t.dark} 0 75%, ${t.light} 0)"></span>
-      <span>${t.label}</span></button>`).join("");
+    <button class="theme-card" data-theme="${t.id}" aria-label="${t.label} board theme">
+      <span class="theme-preview"><i style="background:${t.light}"></i><i style="background:${t.dark}"></i><i style="background:${t.dark}"></i><i style="background:${t.light}"></i></span>
+      <span><span class="tname">${t.label}</span><br><span class="tsub">${t.sub}</span></span>
+      <svg class="ic"><use href="#i-check"/></svg></button>`).join("");
   document.querySelectorAll(".theme-card").forEach((b) => b.addEventListener("click", () => {
     settings.theme = b.dataset.theme; saveSettings(); applySettings();
   }));
