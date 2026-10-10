@@ -28,7 +28,7 @@ def _labelled(gate, label):
     return UnitaryGate(Operator(gate), label=label)
 
 
-ISWAP = iSwapGate()
+ISWAP = iSwapGate(label="iSWAP")
 ISWAP_DG = _labelled(iSwapGate().inverse(), "iSWAP†")
 SQRT_ISWAP = _labelled(iSwapGate().power(0.5), "√iSWAP")
 SQRT_ISWAP_DG = _labelled(iSwapGate().power(-0.5), "√iSWAP†")
@@ -38,7 +38,7 @@ def controlled_iswap(n_controls: int):
     """iSWAP that fires only when all `n_controls` control squares are EMPTY (|0>)."""
     if n_controls == 0:
         return ISWAP
-    return iSwapGate().control(n_controls, ctrl_state="0" * n_controls)
+    return iSwapGate(label="iSWAP").control(n_controls, ctrl_state="0" * n_controls)
 
 
 class QuantumState:
