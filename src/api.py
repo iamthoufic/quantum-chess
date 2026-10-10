@@ -16,7 +16,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -66,6 +66,12 @@ def snapshot(gid: str, game: Game) -> dict:
         "log": game.log, "has_circuit": game.last_circuit is not None,
         "circuit_text": str(game.last_circuit.draw("text", fold=-1)) if game.last_circuit else "",
     }
+
+
+@app.get("/api/info")
+def info():
+    import qiskit
+    return {"engine": "qiskit", "qiskit": qiskit.__version__}
 
 
 @app.post("/api/new")
@@ -124,9 +130,5 @@ def circuit_svg(gid: str):
     return Response(buf.getvalue(), media_type="image/svg+xml")
 
 
-app.mount("/static", StaticFiles(directory=WEB), name="static")
-
-
-@app.get("/")
-def index():
-    return FileResponse(WEB / "index.html")
+# the web UI (index.html, app.js, engine.js, ...) is served from the site root
+app.mount("/", StaticFiles(directory=WEB, html=True), name="web")

@@ -1,70 +1,156 @@
-// Quantum Chess 5x5 frontend: renders the board and talks to the FastAPI engine.
+// Quantum Chess 5x5: single-page app (Play, How to play, Classical vs Quantum, Settings).
+// The quantum state is computed by the Qiskit server when it is running, otherwise
+// by the in-browser port in engine.js (window.QC).
+"use strict";
+
 const FILES = "abcde";
 const GLYPH = { K: "♔", Q: "♕", R: "♖", B: "♗", N: "♘", P: "♙" };
-
-const S = {
-  gid: null,
-  state: null,
-  mode: "move",      // move | split | merge
-  sel: null,         // selected square name
-  opts: null,        // options for the selected square
-  picks: [],         // split: chosen targets
-  partner: null,     // merge: the other half
-  busy: false,
-};
-
 const $ = (id) => document.getElementById(id);
 
-async function api(path, body) {
-  const res = await fetch(path, body === undefined ? {} : {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.detail || res.statusText);
-  return data;
+// ================================================================== settings
+const THEMES = [
+  { id: "blue", label: "Ocean blue", light: "#e8edf4", dark: "#7d9ac0" },
+  { id: "pink", label: "Rose pink", light: "#fbeef2", dark: "#db8fa8" },
+  { id: "lavender", label: "Quantum lavender", light: "#f1ecfb", dark: "#9b86c9" },
+  { id: "green", label: "Classic green", light: "#ebecd0", dark: "#779556" },
+];
+const DEFAULTS = { theme: "blue", coords: true, badges: true, hints: true, anim: true, flip: false, engine: "auto" };
+let settings = { ...DEFAULTS };
+
+function loadSettings() {
+  try { settings = { ...DEFAULTS, ...JSON.parse(localStorage.getItem("qc-settings") || "{}") }; } catch (e) { /* storage unavailable */ }
 }
+function saveSettings() {
+  try { localStorage.setItem("qc-settings", JSON.stringify(settings)); } catch (e) { /* storage unavailable */ }
+}
+function applySettings() {
+  document.body.dataset.theme = settings.theme;
+  document.body.classList.toggle("no-anim", !settings.anim);
+  document.querySelectorAll("[data-setting]").forEach((el) => (el.checked = !!settings[el.dataset.setting]));
+  document.querySelectorAll("input[name=engine]").forEach((el) => (el.checked = el.value === settings.engine));
+  document.querySelectorAll(".theme-card").forEach((el) => el.classList.toggle("active", el.dataset.theme === settings.theme));
+  $("nameTop").textContent = settings.flip ? "White" : "Black";
+  $("nameBottom").textContent = settings.flip ? "Black" : "White";
+  document.querySelector("#barTop .avatar").className = "avatar " + (settings.flip ? "white" : "black");
+  document.querySelector("#barBottom .avatar").className = "avatar " + (settings.flip ? "black" : "white");
+  if (S.state) render();
+}
+
+// ================================================================== engines
+class LocalEngine {
+  constructor() { this.kind = "local"; this.label = "In-browser engine"; }
+  async newGame(quantum) { this.g = new QC.Game({ quantum }); return this.g.snapshot(); }
+  async options(sq) {
+    const o = this.g.options(QC.parse(sq));
+    return {
+      move: o.move.map(QC.name), capture: o.capture.map(QC.name), split: o.split.map(QC.name),
+      merge: Object.fromEntries([...o.merge].map(([k, v]) => [QC.name(k), v.map(QC.name)])),
+    };
+  }
+  async play(kind, src, dst, extra) {
+    const [a, b] = [QC.parse(src), QC.parse(dst)];
+    if (kind === "move") this.g.move(a, b);
+    else if (kind === "split") this.g.split(a, b, QC.parse(extra));
+    else this.g.merge(a, QC.parse(extra), b);
+    return this.g.snapshot();
+  }
+  circuit(state) { return state.trace && state.trace.length ? circuitSVG(state.trace) : null; }
+}
+
+class ServerEngine {
+  constructor(version) { this.kind = "qiskit"; this.label = `Qiskit ${version}`; }
+  async call(path, body) {
+    const res = await fetch(path, body === undefined ? {} : {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || res.statusText);
+    return data;
+  }
+  async newGame(quantum) { const s = await this.call("api/new", { quantum }); this.gid = s.id; return s; }
+  async options(sq) { return this.call(`api/${this.gid}/options/${sq}`); }
+  async play(kind, src, dst, extra) { return this.call(`api/${this.gid}/play`, { kind, src, dst, extra }); }
+  circuit(state) {
+    if (!state.has_circuit) return null;
+    const img = new Image();
+    img.alt = "Qiskit circuit of the last move";
+    img.src = `api/${this.gid}/circuit.svg?ply=${state.ply}`;
+    return img;
+  }
+}
+
+async function probeServer() {
+  if (location.protocol === "file:") return null;
+  try {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 1500);
+    const res = await fetch("api/info", { signal: ctl.signal });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const info = await res.json();
+    return info.engine === "qiskit" ? info.qiskit : null;
+  } catch (e) { return null; }
+}
+
+let qiskitVersion = null;
+async function chooseEngine() {
+  qiskitVersion = await probeServer();
+  const wantQiskit = settings.engine === "qiskit" || (settings.engine === "auto" && qiskitVersion);
+  if (wantQiskit && qiskitVersion) S.engine = new ServerEngine(qiskitVersion);
+  else {
+    S.engine = new LocalEngine();
+    if (settings.engine === "qiskit") toast("Qiskit server not found, so the in-browser engine is used. Start it with: uvicorn src.api:app");
+  }
+  const pill = $("enginePill");
+  pill.textContent = S.engine.kind === "qiskit" ? `⚛ ${S.engine.label}` : "◐ In-browser engine";
+  pill.classList.toggle("qiskit", S.engine.kind === "qiskit");
+  $("circuitTitle").textContent = S.engine.kind === "qiskit" ? "Qiskit circuit · last move" : "Circuit · last move (in-browser)";
+  $("engineNote").textContent = qiskitVersion
+    ? `Qiskit server detected (Qiskit ${qiskitVersion}). Now using: ${S.engine.label}.`
+    : "No Qiskit server detected: the in-browser engine is used. It is a line-for-line port of the Qiskit engine, checked against it by tests/test_js_engine.py.";
+}
+
+// ================================================================== game state
+const S = { engine: null, state: null, mode: "move", sel: null, opts: null, picks: [], partner: null, busy: false };
 
 function toast(msg) {
   const t = $("toast");
   t.textContent = msg;
   t.classList.remove("hidden");
   clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => t.classList.add("hidden"), 3200);
+  toast.timer = setTimeout(() => t.classList.add("hidden"), 3400);
 }
 
-// ------------------------------------------------------------------ game flow
 async function newGame(quantum) {
-  S.state = await api("/api/new", { quantum });
-  S.gid = S.state.id;
+  try {
+    S.state = await S.engine.newGame(quantum);
+  } catch (e) {
+    toast("Engine error: " + e.message);
+    return;
+  }
   clearSelection();
   setMode("move");
+  $("circuit").innerHTML = `<span class="muted">Quantum moves show their circuit here.</span>`;
   render();
 }
 
-function clearSelection() {
-  S.sel = null; S.opts = null; S.picks = []; S.partner = null;
-}
+function clearSelection() { S.sel = null; S.opts = null; S.picks = []; S.partner = null; }
 
 function setMode(mode) {
-  if (mode !== "move" && S.state && !S.state.quantum) {
-    toast("Classical baseline: split and merge are switched off.");
-    return;
-  }
+  if (mode !== "move" && S.state && !S.state.quantum) { toast("Classical baseline: split and merge are switched off."); return; }
   S.mode = mode;
   clearSelection();
   document.querySelectorAll(".mode").forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
   render();
 }
 
-function squareInfo(sq) {
-  return S.state.squares.find((s) => s.sq === sq);
-}
+const squareInfo = (sq) => S.state.squares.find((s) => s.sq === sq);
 
 async function select(sq) {
   const info = squareInfo(sq);
   if (!info.piece || info.piece.color !== S.state.turn) { clearSelection(); render(); return; }
   S.sel = sq; S.picks = []; S.partner = null;
-  S.opts = await api(`/api/${S.gid}/options/${sq}`);
+  S.opts = await S.engine.options(sq);
   if (S.mode === "split" && S.opts.split.length < 2) toast("This piece has no two empty squares to split onto.");
   if (S.mode === "merge" && Object.keys(S.opts.merge).length === 0) toast("Merge needs a piece that is split across two squares.");
   render();
@@ -72,9 +158,8 @@ async function select(sq) {
 
 async function play(kind, src, dst, extra = null) {
   S.busy = true;
-  const before = S.state;
   try {
-    S.state = await api(`/api/${S.gid}/play`, { kind, src, dst, extra });
+    S.state = await S.engine.play(kind, src, dst, extra);
   } catch (e) {
     toast(e.message);
     S.busy = false;
@@ -86,7 +171,7 @@ async function play(kind, src, dst, extra = null) {
   const last = S.state.log[S.state.log.length - 1];
   flashMeasured(last);
   if (last && last.events.length) toast(last.events[last.events.length - 1]);
-  if (before.ply !== S.state.ply) loadCircuit();
+  showCircuit();
 }
 
 async function onSquare(sq) {
@@ -104,60 +189,67 @@ async function onSquare(sq) {
     }
     return select(sq);
   }
-  // merge
   if (S.sel && o && !S.partner && o.merge[sq]) { S.partner = sq; return render(); }
   if (S.sel && S.partner && o.merge[S.partner].includes(sq)) return play("merge", S.sel, sq, S.partner);
   return select(sq);
 }
 
-// ------------------------------------------------------------------ rendering
-function render() {
-  if (!S.state) return;
-  renderBoard();
-  renderPanel();
-}
+// ================================================================== board rendering (shared)
+// the one-file build (tools/build_single_page.py) inlines the images as window.PIECE_DATA
+const pieceUrl = (color, kind) => (window.PIECE_DATA ? window.PIECE_DATA[color + kind] : `pieces/${color}${kind}.svg`);
 
-function renderBoard() {
-  const board = $("board");
-  board.innerHTML = "";
-  const last = S.state.log[S.state.log.length - 1];
-  const lastSquares = last ? [last.from, last.to, last.extra].filter(Boolean) : [];
-  const hints = hintMap();
-
-  for (let r = 4; r >= 0; r--) {
-    for (let f = 0; f < 5; f++) {
+/** Build a 5x5 board element. `cells` maps square -> {color, kind, prob}; `marks` maps square -> css class. */
+function buildBoard(cells, { marks = {}, last = [], sel = null, coords = true, flip = false, badges = true, onClick = null, mini = false } = {}) {
+  const board = document.createElement("div");
+  board.className = "board" + (mini ? " mini" : "");
+  const ranks = flip ? [0, 1, 2, 3, 4] : [4, 3, 2, 1, 0];
+  const files = flip ? [4, 3, 2, 1, 0] : [0, 1, 2, 3, 4];
+  for (const r of ranks) {
+    for (const f of files) {
       const sq = FILES[f] + (r + 1);
-      const info = squareInfo(sq);
       const el = document.createElement("div");
       el.className = "sq " + ((f + r) % 2 === 0 ? "dark" : "light");
       el.dataset.sq = sq;
-      if (lastSquares.includes(sq)) el.classList.add("last");
-      if (S.sel === sq) el.classList.add("sel");
-      if (f === 0) el.insertAdjacentHTML("beforeend", `<span class="coord rank">${r + 1}</span>`);
-      if (r === 0) el.insertAdjacentHTML("beforeend", `<span class="coord file">${FILES[f]}</span>`);
-
-      if (info.piece) {
+      if (last.includes(sq)) el.classList.add("last");
+      if (sel === sq) el.classList.add("sel");
+      if (coords && f === files[0]) el.insertAdjacentHTML("beforeend", `<span class="coord rank">${r + 1}</span>`);
+      if (coords && r === ranks[4]) el.insertAdjacentHTML("beforeend", `<span class="coord file">${FILES[f]}</span>`);
+      const c = cells[sq];
+      if (c) {
         const p = document.createElement("div");
         p.className = "piece";
-        p.style.backgroundImage = `url(/static/pieces/${info.piece.color}${info.piece.kind}.svg)`;
-        if (info.prob < 0.9999) {
+        p.style.backgroundImage = `url(${pieceUrl(c.color, c.kind)})`;
+        if (c.prob < 0.9999) {
           p.classList.add("maybe");
-          p.style.opacity = (0.3 + 0.7 * info.prob).toFixed(2);
-          el.insertAdjacentHTML("beforeend", `<span class="badge">${Math.round(info.prob * 100)}%</span>`);
+          p.style.opacity = (0.3 + 0.7 * c.prob).toFixed(2);
+          if (badges) el.insertAdjacentHTML("beforeend", `<span class="badge">${Math.round(c.prob * 100)}%</span>`);
         }
         el.appendChild(p);
       }
-      const h = hints[sq];
-      if (h) el.insertAdjacentHTML("beforeend", `<span class="${h}"></span>`);
-      el.addEventListener("click", () => onSquare(sq));
+      if (marks[sq]) el.insertAdjacentHTML("beforeend", `<span class="${marks[sq]}"></span>`);
+      if (onClick) el.addEventListener("click", () => onClick(sq));
       board.appendChild(el);
     }
   }
+  return board;
+}
+
+function render() {
+  if (!S.state) return;
+  const cells = {};
+  for (const s of S.state.squares) if (s.piece) cells[s.sq] = { ...s.piece, prob: s.prob };
+  const last = S.state.log[S.state.log.length - 1];
+  const board = buildBoard(cells, {
+    marks: settings.hints ? hintMap() : {}, sel: S.sel, coords: settings.coords, flip: settings.flip,
+    badges: settings.badges, last: last ? [last.from, last.to, last.extra].filter(Boolean) : [], onClick: onSquare,
+  });
+  board.id = "board";
+  $("board").replaceWith(board);
+  renderPanel();
 }
 
 function hintMap() {
-  const m = {};
-  const o = S.opts;
+  const m = {}, o = S.opts;
   if (!S.sel || !o) return m;
   if (S.mode === "move") {
     o.move.forEach((s) => (m[s] = "dot"));
@@ -175,51 +267,42 @@ function hintMap() {
 
 function renderPanel() {
   const st = S.state;
-  const side = st.turn === "w" ? "White" : "Black";
-  $("status").textContent = st.winner
-    ? (st.winner === "draw" ? "Draw" : `${st.winner === "w" ? "White" : "Black"} wins`)
-    : `${side} to move`;
+  const winnerName = st.winner === "w" ? "White" : "Black";
+  $("status").textContent = st.winner ? (st.winner === "draw" ? "Draw" : `${winnerName} wins`) : `${st.turn === "w" ? "White" : "Black"} to move`;
   $("qubits").textContent = `${st.qubits} qubit${st.qubits === 1 ? "" : "s"}`;
-  $("dotBottom").classList.toggle("on", !st.winner && st.turn === "w");
-  $("dotTop").classList.toggle("on", !st.winner && st.turn === "b");
-  document.querySelector(".brand .tag").textContent = st.quantum ? "5×5 · quantum" : "5×5 · classical";
-
+  const whiteBottom = !settings.flip;
+  $("dotBottom").classList.toggle("on", !st.winner && st.turn === (whiteBottom ? "w" : "b"));
+  $("dotTop").classList.toggle("on", !st.winner && st.turn === (whiteBottom ? "b" : "w"));
+  $("modeTag").textContent = st.quantum ? "5×5 · quantum" : "5×5 · classical";
   $("hint").textContent = hintText();
   renderMoves();
-  renderCaptured();
-
+  renderCaptured(whiteBottom);
   const ov = $("overlay");
   if (st.winner) {
-    $("overlayTitle").textContent = st.winner === "draw" ? "Draw" : `${st.winner === "w" ? "White" : "Black"} wins`;
+    $("overlayTitle").textContent = st.winner === "draw" ? "Draw" : `${winnerName} wins`;
     $("overlaySub").textContent = st.winner === "draw" ? "No legal moves left." : "The king was captured.";
     ov.classList.remove("hidden");
-  } else {
-    ov.classList.add("hidden");
-  }
+  } else ov.classList.add("hidden");
 }
 
 function hintText() {
   if (S.state.winner) return "Game over.";
   if (S.mode === "move") return S.sel ? "Click a dot to move, a ring to capture (captures measure the board)." : "Select a piece to see where it can go.";
-  if (S.mode === "split") {
-    if (!S.sel) return "Select a non-pawn piece to split it across two squares.";
-    return `Pick two empty squares (${S.picks.length}/2). The piece ends up on both, 50% each.`;
-  }
+  if (S.mode === "split") return S.sel ? `Pick two empty squares (${S.picks.length}/2). The piece ends up on both, 50% each.` : "Select a non-pawn piece to split it across two squares.";
   if (!S.sel) return "Select one half of a split piece.";
-  if (!S.partner) return "Now click its other half (outlined).";
-  return "Pick the square where both halves should interfere.";
+  return S.partner ? "Pick the square where both halves should interfere." : "Now click its other half (outlined).";
 }
 
 function renderMoves() {
   const ol = $("moves");
   ol.innerHTML = "";
   for (const e of S.state.log) {
-    const li = document.createElement("li");
     const g = GLYPH[e.piece];
     let text;
     if (e.kind === "split") text = `${g} ${e.from} → ${e.to} + ${e.extra} <i>split</i>`;
     else if (e.kind === "merge") text = `${g} ${e.from} + ${e.extra} → ${e.to} <i>merge</i>`;
     else text = `${g} ${e.from} ${e.kind === "capture" ? "×" : "→"} ${e.to}`;
+    const li = document.createElement("li");
     li.innerHTML = `<span class="${e.ok ? "" : "fail"}">${e.color === "w" ? "White" : "Black"}: ${text}</span>`
       + e.events.map((ev) => `<span class="ev">${ev}</span>`).join("");
     ol.appendChild(li);
@@ -227,71 +310,179 @@ function renderMoves() {
   ol.scrollTop = ol.scrollHeight;
 }
 
-function renderCaptured() {
-  // pieces whose pid no longer appears anywhere were captured
+function renderCaptured(whiteBottom) {
   const alive = new Set(S.state.squares.filter((s) => s.piece).map((s) => s.piece.pid));
-  const all = startingPids();
   const lost = { w: [], b: [] };
-  for (const [pid, sym] of Object.entries(all)) if (!alive.has(pid)) lost[sym[0]].push(sym);
-  // white's captures are black pieces lost, shown on white's bar
-  $("capBottom").innerHTML = lost.b.map((s) => `<span style="background-image:url(/static/pieces/${s}.svg)"></span>`).join("");
-  $("capTop").innerHTML = lost.w.map((s) => `<span style="background-image:url(/static/pieces/${s}.svg)"></span>`).join("");
-}
-
-function startingPids() {
-  const out = {};
-  const back = ["R", "N", "B", "Q", "K"];
-  back.forEach((k, f) => {
-    out[`w${k}${FILES[f]}`] = `w${k}`; out[`b${k}${FILES[f]}`] = `b${k}`;
-    out[`wP${FILES[f]}`] = "wP"; out[`bP${FILES[f]}`] = "bP";
+  ["R", "N", "B", "Q", "K"].forEach((k, f) => {
+    for (const c of ["w", "b"]) {
+      if (!alive.has(`${c}${k}${FILES[f]}`)) lost[c].push(c + k);
+      if (!alive.has(`${c}P${FILES[f]}`)) lost[c].push(c + "P");
+    }
   });
-  return out;
+  const icons = (list) => list.map((s) => `<span style="background-image:url(${pieceUrl(s[0], s[1])})"></span>`).join("");
+  // each bar shows what that player has captured
+  $(whiteBottom ? "capBottom" : "capTop").innerHTML = icons(lost.b);
+  $(whiteBottom ? "capTop" : "capBottom").innerHTML = icons(lost.w);
 }
 
 function flashMeasured(entry) {
-  if (!entry) return;
+  if (!entry || !settings.anim) return;
   for (const ev of entry.events) {
     const m = ev.match(/measured ([a-e][1-5])/);
-    if (!m) continue;
-    const el = document.querySelector(`.sq[data-sq="${m[1]}"]`);
+    const el = m && document.querySelector(`#board .sq[data-sq="${m[1]}"]`);
     if (el) { el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); }
   }
 }
 
-async function loadCircuit() {
+function showCircuit() {
   const box = $("circuit");
-  if (!S.state.has_circuit) {
-    box.innerHTML = `<span class="muted">Classical move: no qubits were needed.</span>`;
-    return;
+  const node = S.engine.circuit(S.state);
+  if (!node) { box.innerHTML = `<span class="muted">Classical move: no qubits were needed.</span>`; return; }
+  box.innerHTML = "";
+  if (typeof node === "string") box.innerHTML = node;
+  else {
+    box.innerHTML = `<span class="muted">Drawing circuit…</span>`;
+    node.onload = () => { box.innerHTML = ""; box.appendChild(node); };
+    node.onerror = () => { box.innerHTML = `<span class="muted">Circuit drawing unavailable.</span>`; };
   }
-  box.innerHTML = `<span class="muted">Drawing circuit…</span>`;
-  const img = new Image();
-  img.alt = "Qiskit circuit of the last move";
-  img.onload = () => { box.innerHTML = ""; box.appendChild(img); };
-  img.onerror = () => { box.innerHTML = `<pre>${S.state.circuit_text}</pre>`; };
-  img.src = `/api/${S.gid}/circuit.svg?ply=${S.state.ply}`;
 }
 
-// ------------------------------------------------------------------ wiring
-document.querySelectorAll(".mode").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
-$("newQuantum").addEventListener("click", () => newGame(true));
-$("newClassical").addEventListener("click", () => newGame(false));
-$("overlayNew").addEventListener("click", () => newGame(S.state ? S.state.quantum : true));
-$("rulesBtn").addEventListener("click", () => $("rules").showModal());
-document.querySelectorAll("[data-theme-btn]").forEach((b) => b.addEventListener("click", () => {
-  document.body.dataset.theme = b.dataset.themeBtn;
-  try { localStorage.setItem("qc-theme", b.dataset.themeBtn); } catch (e) { /* storage unavailable */ }
-}));
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") { clearSelection(); render(); }
-  if (e.key === "1") setMode("move");
-  if (e.key === "2") setMode("split");
-  if (e.key === "3") setMode("merge");
-});
+// ================================================================== circuit drawing (in-browser engine)
+function circuitSVG(trace) {
+  const wires = [];
+  const touch = (s) => { if (!wires.includes(s)) wires.push(s); };
+  trace.forEach((t) => (t.op === "gate" ? [...t.controls, ...t.squares] : [t.sq]).forEach(touch));
+  const inited = new Set(trace.filter((t) => t.op === "init").map((t) => t.sq));
+  const cols = [];
+  wires.filter((w) => !inited.has(w)).forEach((w) => cols.push({ kind: "psi", wire: w }));
+  trace.forEach((t) => {
+    if (t.op === "init") { if (t.occupied) cols.push({ kind: "x", wire: t.sq }); }
+    else cols.push(t);
+  });
+  // pack single-qubit boxes on different wires into the same column
+  const layout = [];
+  for (const c of cols) {
+    const rows = c.op === "gate" ? [...c.controls, ...c.squares].map((s) => wires.indexOf(s)) : [wires.indexOf(c.wire ?? c.sq)];
+    const lo = Math.min(...rows), hi = Math.max(...rows);
+    const prev = layout[layout.length - 1];
+    const single = c.kind === "psi" || c.kind === "x";
+    if (prev && single && prev.single && !prev.rows.has(lo)) { prev.items.push({ c, lo, hi }); prev.rows.add(lo); }
+    else layout.push({ single, rows: new Set([lo]), items: [{ c, lo, hi }] });
+  }
+  const W = 46, X0 = 56, ROW = 44, Y0 = 26, colW = 76;
+  const width = X0 + layout.length * colW + 20, height = Y0 + wires.length * ROW;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" font-family="Segoe UI, Arial, sans-serif">`;
+  wires.forEach((w, i) => {
+    const y = Y0 + i * ROW;
+    svg += `<text x="8" y="${y + 5}" font-size="15" font-style="italic" fill="#161616">${w}</text>`;
+    svg += `<line x1="${X0 - 10}" y1="${y}" x2="${width - 8}" y2="${y}" stroke="#161616" stroke-width="1.2"/>`;
+  });
+  layout.forEach((col, ci) => {
+    const cx = X0 + ci * colW + colW / 2;
+    for (const { c, lo, hi } of col.items) {
+      const ylo = Y0 + lo * ROW, yhi = Y0 + hi * ROW;
+      if (c.kind === "psi" || c.kind === "x") {
+        const fill = c.kind === "x" ? "#002d9c" : "#8d8d8d";
+        svg += `<rect x="${cx - 16}" y="${ylo - 16}" width="32" height="32" fill="${fill}"/>`;
+        svg += `<text x="${cx}" y="${ylo + 5}" font-size="14" fill="#fff" text-anchor="middle">${c.kind === "x" ? "X" : "ψ"}</text>`;
+      } else if (c.op === "measure") {
+        svg += `<rect x="${cx - 18}" y="${ylo - 16}" width="36" height="32" fill="#8d8d8d"/>`;
+        svg += `<path d="M ${cx - 11} ${ylo + 7} A 11 11 0 0 1 ${cx + 11} ${ylo + 7}" stroke="#fff" fill="none" stroke-width="1.6"/>`;
+        svg += `<line x1="${cx}" y1="${ylo + 7}" x2="${cx + 8}" y2="${ylo - 8}" stroke="#fff" stroke-width="1.6"/>`;
+        svg += `<text x="${cx}" y="${ylo + 30}" font-size="12" fill="#6f6f6f" text-anchor="middle">= ${c.result}</text>`;
+      } else {
+        const tg = c.squares.map((s) => Y0 + wires.indexOf(s) * ROW);
+        const top = Math.min(...tg), bot = Math.max(...tg);
+        svg += `<line x1="${cx}" y1="${ylo}" x2="${cx}" y2="${yhi}" stroke="#9f1853" stroke-width="2"/>`;
+        c.controls.forEach((s) => {
+          const y = Y0 + wires.indexOf(s) * ROW;
+          svg += `<circle cx="${cx}" cy="${y}" r="7" fill="#fff" stroke="#9f1853" stroke-width="2"/>`;
+        });
+        svg += `<rect x="${cx - W / 2 - 8}" y="${top - 17}" width="${W + 16}" height="${bot - top + 34}" fill="#9f1853"/>`;
+        svg += `<text x="${cx}" y="${(top + bot) / 2 + 5}" font-size="13" fill="#fff" text-anchor="middle">${c.gate}</text>`;
+      }
+    }
+  });
+  return svg + "</svg>";
+}
 
-try {
-  const saved = localStorage.getItem("qc-theme");
-  if (saved) document.body.dataset.theme = saved;
-} catch (e) { /* storage unavailable */ }
+// ================================================================== charts (blog)
+function barChart(rows, { max = null, unit = "", color = "#0f62fe" } = {}) {
+  const top = max ?? Math.max(...rows.map((r) => r.value)) * 1.15;
+  return `<div class="bars">${rows.map((r) => `
+    <div class="bar-row"><div class="bar-label">${r.label}</div>
+      <div class="bar-track"><div class="bar" style="width:${(100 * r.value) / top}%;background:${r.color || color}"></div></div>
+      <div class="bar-value">${r.text ?? r.value + unit}</div></div>`).join("")}</div>`;
+}
 
-newGame(true).catch((e) => toast("Could not reach the engine: " + e.message));
+function lineChart(points, { xLabel = "", yLabel = "", color = "#a970ff" } = {}) {
+  const W = 560, H = 240, L = 48, B = 36, T = 12, R = 16;
+  const xs = points.map((p) => p[0]), xmax = Math.max(...xs);
+  const px = (x) => L + (x / xmax) * (W - L - R), py = (y) => T + (1 - y) * (H - T - B);
+  let s = `<svg viewBox="0 0 ${W} ${H}" class="chart" role="img" aria-label="${yLabel} vs ${xLabel}">`;
+  for (const y of [0, 0.25, 0.5, 0.75, 1]) {
+    s += `<line x1="${L}" x2="${W - R}" y1="${py(y)}" y2="${py(y)}" class="grid"/>`;
+    s += `<text x="${L - 8}" y="${py(y) + 4}" text-anchor="end" class="tick">${y.toFixed(2)}</text>`;
+  }
+  for (const x of xs) s += `<text x="${px(x)}" y="${H - B + 18}" text-anchor="middle" class="tick">${x * 100}%</text>`;
+  s += `<polyline fill="none" stroke="${color}" stroke-width="2.5" points="${points.map((p) => `${px(p[0])},${py(p[1])}`).join(" ")}"/>`;
+  for (const p of points) s += `<circle cx="${px(p[0])}" cy="${py(p[1])}" r="4.5" fill="${color}"><title>${p[0] * 100}% error: ${p[1].toFixed(3)}</title></circle>`;
+  s += `<text x="${(W + L) / 2}" y="${H - 4}" text-anchor="middle" class="axis">${xLabel}</text>`;
+  return s + "</svg>";
+}
+
+// ================================================================== routing
+function route() {
+  const r = (location.hash || "#play").slice(1);
+  const view = ["play", "manual", "blog"].includes(r) ? r : "play";
+  for (const v of ["play", "manual", "blog"]) $("view-" + v).classList.toggle("hidden", v !== view);
+  document.querySelectorAll(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.route === view));
+  if (view === "manual" && !$("manualBody").dataset.built) { buildManual($("manualBody")); $("manualBody").dataset.built = 1; }
+  if (view === "blog" && !$("blogBody").dataset.built) { buildBlog($("blogBody")); $("blogBody").dataset.built = 1; }
+  window.scrollTo(0, 0);
+}
+
+// ================================================================== wiring
+function wire() {
+  document.querySelectorAll(".mode").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
+  $("newQuantum").addEventListener("click", () => newGame(true));
+  $("newClassical").addEventListener("click", () => newGame(false));
+  $("overlayNew").addEventListener("click", () => newGame(S.state ? S.state.quantum : true));
+  $("settingsBtn").addEventListener("click", () => $("settings").showModal());
+
+  $("themes").innerHTML = THEMES.map((t) => `
+    <button class="theme-card" data-theme="${t.id}">
+      <span class="theme-preview" style="background:conic-gradient(${t.dark} 0 25%, ${t.light} 0 50%, ${t.dark} 0 75%, ${t.light} 0)"></span>
+      <span>${t.label}</span></button>`).join("");
+  document.querySelectorAll(".theme-card").forEach((b) => b.addEventListener("click", () => {
+    settings.theme = b.dataset.theme; saveSettings(); applySettings();
+  }));
+  document.querySelectorAll("[data-setting]").forEach((el) => el.addEventListener("change", () => {
+    settings[el.dataset.setting] = el.checked; saveSettings(); applySettings();
+  }));
+  document.querySelectorAll("input[name=engine]").forEach((el) => el.addEventListener("change", async () => {
+    settings.engine = el.value; saveSettings();
+    await chooseEngine();
+    await newGame(true);
+    toast(`Engine: ${S.engine.label}. A new game was started.`);
+  }));
+  $("resetSettings").addEventListener("click", () => { settings = { ...DEFAULTS }; saveSettings(); applySettings(); });
+
+  document.addEventListener("keydown", (e) => {
+    if ($("settings").open || (location.hash && location.hash !== "#play")) return;
+    if (e.key === "Escape") { clearSelection(); render(); }
+    if (e.key === "1") setMode("move");
+    if (e.key === "2") setMode("split");
+    if (e.key === "3") setMode("merge");
+  });
+  window.addEventListener("hashchange", route);
+}
+
+(async function main() {
+  loadSettings();
+  wire();
+  applySettings();
+  route();
+  await chooseEngine();
+  await newGame(true);
+})();

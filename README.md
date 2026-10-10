@@ -70,7 +70,11 @@ print(Statevector(qc).probabilities_dict())  # expected: {'010': 0.5, '100': 0.5
 ├── src/
 │   ├── qchess/             # Qiskit game engine (board, rules, quantum moves)
 │   └── api.py              # FastAPI server: game API + serves the web UI
-├── web/                    # Frontend (index.html, style.css, app.js, piece SVGs)
+├── web/                    # Single-page app: Play, How to play (illustrated manual),
+│                           #   Classical vs Quantum (blog with live experiments), Settings
+│   └── engine.js           # In-browser port of the engine, used only when the server is off
+├── docs/index.html         # The whole app bundled into one offline HTML file
+├── tools/                  # build_single_page.py (creates docs/index.html)
 ├── tests/                  # Unit tests for rules and quantum moves
 ├── notebooks/
 │   └── solution.ipynb      # Main runnable notebook with outputs
@@ -97,11 +101,17 @@ print(Statevector(qc).probabilities_dict())  # expected: {'010': 0.5, '100': 0.5
    ```
 3. **Run the project / demo:**
    ```bash
-   # Start the game (API + web UI), then open http://127.0.0.1:8000
+   # Start the game with the Qiskit engine (API + web UI), then open http://127.0.0.1:8000
    uvicorn src.api:app
 
-   # Run the tests:
+   # Or open docs/index.html directly in a browser: the same app, offline,
+   # running the in-browser port of the engine (no Python needed)
+
+   # Run the tests (includes the Qiskit vs in-browser engine cross-check; needs Node.js):
    pytest tests
+
+   # Rebuild docs/index.html after changing anything in web/:
+   python tools/build_single_page.py
 
    # Or open the Jupyter Notebook:
    jupyter notebook notebooks/solution.ipynb
@@ -118,6 +128,10 @@ print(Statevector(qc).probabilities_dict())  # expected: {'010': 0.5, '100': 0.5
   4. The engine appends the matching gates to the Qiskit circuit of the affected piece group and evolves its statevector.
   5. For captures, the engine measures the relevant squares and the state collapses.
   6. The API returns each square's occupation probability and the circuit; the board redraws pieces with opacity matching their probability.
+
+  The web app is a single page with four parts: **Play** (the board, move list and live circuit), **How to play** (an illustrated rule manual with 13 board diagrams), **Classical vs Quantum** (a blog-style comparison with two experiments that run live in the browser) and **Settings** (four board themes, coordinates, probability badges, move hints, animations, board flip, and the engine choice).
+
+  **Engines:** when served by `uvicorn src.api:app`, every gate and measurement runs in Qiskit and the page shows "⚛ Qiskit". When opened as a plain file (`docs/index.html`), it falls back to `web/engine.js`, a JavaScript port of the same engine, shown as "◐ In-browser engine". `tests/test_js_engine.py` replays 25 random games (850+ moves, including splits, merges, entangling slides and measured captures) through both engines and requires every square's probability to match Qiskit to within 1e-9. The demo in the video uses the Qiskit engine.
 
 * **Key Screenshots / Terminal Output:**  
   `[To be added once the game is running]`
@@ -139,7 +153,7 @@ print(Statevector(qc).probabilities_dict())  # expected: {'010': 0.5, '100': 0.5
 ## 6. Performance, Results & Limitations
 
 * **Key Results & Observations:**  
-  * All four quantum mechanics (split, merge, entangling slide, measured capture) run on Qiskit statevectors and are covered by 12 automated tests, including a check over random games that every piece's probabilities always sum to 1.
+  * All four quantum mechanics (split, merge, entangling slide, measured capture) run on Qiskit statevectors and are covered by 13 automated tests, including a check over random games that every piece's probabilities always sum to 1, and a cross-check that the in-browser engine reproduces Qiskit's probabilities.
   * In a stress test of 150 random quantum-heavy games (about 10,000 moves), no move took longer than 0.5 s and the statevector never exceeded the 16-qubit cap.
   * With a depolarizing noise model on Qiskit Aer, the split-then-merge round trip (8 CNOTs after transpiling) brings the knight back with probability 1.000 noiseless, 0.847 at 0.5% gate error, 0.724 at 1% and 0.531 at 2% (notebook section 7).
 

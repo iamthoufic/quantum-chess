@@ -4,25 +4,28 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quantum Chess 5×5</title>
-<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body data-theme="blue">
 <header class="topbar">
-  <div class="brand"><span class="logo">⟨ψ|</span> Quantum Chess <span class="tag">5×5</span></div>
+  <a class="brand" href="#play"><span class="logo">⟨ψ|</span> Quantum Chess <span class="tag" id="modeTag">5×5</span></a>
+  <nav class="nav" aria-label="Sections">
+    <a href="#play" data-route="play">Play</a>
+    <a href="#manual" data-route="manual">How to play</a>
+    <a href="#blog" data-route="blog">Classical vs Quantum</a>
+  </nav>
   <div class="top-actions">
-    <div class="theme-switch" role="group" aria-label="Board theme">
-      <button data-theme-btn="blue" class="swatch blue" title="Blue board"></button>
-      <button data-theme-btn="pink" class="swatch pink" title="Pink board"></button>
-    </div>
-    <button id="rulesBtn" class="ghost">How to play</button>
+    <span class="engine-pill" id="enginePill" title="Which engine computes the quantum state">…</span>
+    <button id="settingsBtn" class="icon-btn" aria-label="Settings" title="Settings">⚙</button>
   </div>
 </header>
 
-<main class="layout">
+<!-- ============================================================ PLAY -->
+<main id="view-play" class="view layout">
   <section class="board-col">
     <div class="player-bar" id="barTop">
       <div class="avatar black"></div>
-      <div class="pname">Black</div>
+      <div class="pname" id="nameTop">Black</div>
       <div class="captured" id="capTop"></div>
       <div class="turn-dot" id="dotTop"></div>
     </div>
@@ -40,7 +43,7 @@
 
     <div class="player-bar" id="barBottom">
       <div class="avatar white"></div>
-      <div class="pname">White</div>
+      <div class="pname" id="nameBottom">White</div>
       <div class="captured" id="capBottom"></div>
       <div class="turn-dot" id="dotBottom"></div>
     </div>
@@ -49,7 +52,7 @@
   <aside class="panel">
     <div class="panel-head">
       <div class="status" id="status">White to move</div>
-      <div class="qubits" id="qubits" title="Qubits currently in the Qiskit statevector">0 qubits</div>
+      <div class="qubits" id="qubits" title="Qubits currently in the statevector">0 qubits</div>
     </div>
 
     <div class="modes" role="tablist" aria-label="Move type">
@@ -65,7 +68,7 @@
     </div>
 
     <div class="card circuit-card">
-      <div class="card-title">Qiskit circuit · last move</div>
+      <div class="card-title" id="circuitTitle">Circuit · last move</div>
       <div id="circuit" class="circuit"><span class="muted">Quantum moves show their circuit here.</span></div>
     </div>
 
@@ -76,21 +79,55 @@
   </aside>
 </main>
 
-<div id="toast" class="toast hidden"></div>
+<!-- ============================================================ MANUAL -->
+<main id="view-manual" class="view doc hidden">
+  <article class="article" id="manualBody"></article>
+</main>
 
-<dialog id="rules" class="rules">
-  <h2>How to play</h2>
-  <p>Gardner's 5×5 minichess with quantum moves. Every square is a qubit; the engine is a real Qiskit statevector.</p>
-  <ul>
-    <li><b>Move</b> as in chess. Sliding past a translucent "maybe" piece <b>entangles</b> your piece with it.</li>
-    <li><b>Split</b> a non-pawn piece onto two empty squares: it is on both, 50% each.</li>
-    <li><b>Merge</b> two parts of one piece onto one square: their amplitudes interfere.</li>
-    <li><b>Capture</b> triggers a <b>measurement</b>: the board decides where pieces really are, and the capture succeeds or fizzles.</li>
-    <li>No check: <b>capture the king</b> to win. No castling or en passant. Pawns promote to queens.</li>
-  </ul>
-  <form method="dialog"><button class="primary">Got it</button></form>
+<!-- ============================================================ BLOG -->
+<main id="view-blog" class="view doc hidden">
+  <article class="article" id="blogBody"></article>
+</main>
+
+<!-- ============================================================ SETTINGS -->
+<dialog id="settings" class="sheet">
+  <div class="sheet-head">
+    <h2>Settings</h2>
+    <form method="dialog"><button class="icon-btn" aria-label="Close">✕</button></form>
+  </div>
+
+  <section class="set-group">
+    <h3>Board theme</h3>
+    <div class="themes" id="themes"></div>
+  </section>
+
+  <section class="set-group">
+    <h3>Display</h3>
+    <label class="toggle"><input type="checkbox" data-setting="coords"><span></span>Show coordinates</label>
+    <label class="toggle"><input type="checkbox" data-setting="badges"><span></span>Show probability badges</label>
+    <label class="toggle"><input type="checkbox" data-setting="hints"><span></span>Highlight legal moves</label>
+    <label class="toggle"><input type="checkbox" data-setting="anim"><span></span>Animations (glow, measurement flash)</label>
+    <label class="toggle"><input type="checkbox" data-setting="flip"><span></span>Flip board (Black at the bottom)</label>
+  </section>
+
+  <section class="set-group">
+    <h3>Quantum engine</h3>
+    <label class="radio"><input type="radio" name="engine" value="auto"><span></span><b>Automatic</b> · Qiskit when the server is running, otherwise in-browser</label>
+    <label class="radio"><input type="radio" name="engine" value="qiskit"><span></span><b>Qiskit server</b> · real Qiskit Statevector (run <code>uvicorn src.api:app</code>)</label>
+    <label class="radio"><input type="radio" name="engine" value="local"><span></span><b>In-browser</b> · JavaScript port, verified against Qiskit, works offline</label>
+    <p class="set-note" id="engineNote"></p>
+  </section>
+
+  <div class="sheet-foot">
+    <button class="secondary" id="resetSettings">Reset to defaults</button>
+    <form method="dialog"><button class="primary">Done</button></form>
+  </div>
 </dialog>
 
-<script src="/static/app.js"></script>
+<div id="toast" class="toast hidden"></div>
+
+<script src="engine.js"></script>
+<script src="content.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
