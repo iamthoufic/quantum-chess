@@ -6,3 +6,7 @@ matplotlib
 rustworkx
 scipy
 jupyter
+pylatexenc
+fastapi
+uvicorn[standard]
+pytest
