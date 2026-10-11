@@ -127,19 +127,28 @@ function fitPuzzleBoard() {
   if (!layout || !panel || !panel.offsetParent || !PZ.pz) return;
   layout.style.removeProperty("--sq");
   panel.style.minHeight = "";
+  panel.classList.remove("compact", "tight");
   if (innerWidth <= 760) return;
-  const saved = [fb.className, fb.innerHTML];
-  fb.className = "pz-feedback good";
-  fb.innerHTML = card({ badge: "Solved", value: "100%", label: "chance to win", move: "Knight b1 × c3",
-    why: PZ.pz.lesson, roll: "measured a3: knight present · captured the black king on e5" });
-  const h = panel.getBoundingClientRect().height;
-  fb.className = saved[0];
-  fb.innerHTML = saved[1];
+  // height left for the page below the top bar (60px) and the page's own padding (2 x 20px)
+  const avail = innerHeight - 60 - 40 - 4;
+  const measure = () => {
+    const saved = [fb.className, fb.innerHTML];
+    fb.className = "pz-feedback good";
+    fb.innerHTML = card({ badge: "Solved", value: "100%", label: "chance to win", move: "Knight b1 × c3",
+      why: PZ.pz.lesson, roll: "measured a3: knight present · captured the black king on e5" });
+    const height = panel.getBoundingClientRect().height;
+    fb.className = saved[0];
+    fb.innerHTML = saved[1];
+    return height;
+  };
+  let h = measure();
+  if (h > avail) { panel.classList.add("compact"); h = measure(); }   // tighter spacing on short screens
+  if (h > avail) { panel.classList.add("tight"); h = measure(); }     // and tighter still on very short ones
   const bar = 52 + 8;                                   // player bar + gap above the board
   // the board also has to fit the window: below the top bar, and beside the list and the panel
   const stacked = innerWidth <= 1180;                  // the puzzle list sits above the board
   const above = stacked ? document.querySelector(".pz-side").getBoundingClientRect().height + 28 : 0;
-  const byHeight = (innerHeight - 60 - 48 - above - bar) / 5;
+  const byHeight = (avail - above - bar) / 5;
   const side = stacked ? 0 : 230 + 28;
   const byWidth = (innerWidth - side - 400 - 28 - 48) / 5;
   const sq = Math.max(64, Math.min(124, (h - bar) / 5, byHeight, byWidth));

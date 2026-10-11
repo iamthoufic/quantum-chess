@@ -462,7 +462,7 @@ body.no-anim .flash::after { animation: none; }
 .tut-meta small em { font: 600 11.5px var(--mono); font-style: normal; color: var(--text-3); }
 
 /* ---------- puzzles ---------- */
-.puzzles { padding: 24px 24px 32px; }
+.puzzles { padding: 20px 24px; }
 .pz-sub { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.5; }
 .pz-progress { width: 100%; }
 .pzp-num { font: 400 34px/1 var(--display); }
@@ -603,3 +603,34 @@ body.no-anim .flash::after { animation: none; }
 .fb-why summary::before { content: "+"; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 4px; background: rgba(95, 212, 232, 0.14); font-size: 13px; line-height: 1; }
 .fb-why[open] summary::before { content: "−"; }
 .fb-why p { margin: 8px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--text-2); }
+
+/* short screens: the puzzle panel tightens up so the page never needs to scroll */
+.pz-panel.compact { gap: 11px; padding: 16px 18px; }
+.pz-panel.compact .status { font-size: 26px; }
+.pz-panel.compact .pz-task { font-size: 14px; line-height: 1.5; }
+.pz-panel.compact .pz-goal { padding: 8px 12px; }
+.pz-panel.compact .mode { height: 36px; }
+.pz-panel.compact .pz-feedback { padding: 10px 12px; }
+.pz-panel.compact .btn { height: 40px; }
+.pz-panel.compact .fb-row, .pz-panel.compact .fb-why { margin-top: 9px; padding-top: 9px; }
+.pz-panel.compact .fb-stat b { font-size: 24px; }
+.pz-panel.tight { gap: 9px; padding: 14px 16px; }
+.pz-panel.tight .kicker { display: none; }
+.pz-panel.tight .status { font-size: 24px; margin-top: 0; }
+.pz-panel.tight .pz-task { font-size: 13.5px; line-height: 1.45; }
+.pz-panel.tight .pz-goal { flex-direction: row; gap: 8px; align-items: baseline; font-size: 13px; padding: 7px 10px; }
+.pz-panel.tight .mode { height: 34px; }
+.pz-panel.tight .btn { height: 38px; }
+.pz-panel.tight .pz-actions { gap: 6px; }
+.pz-panel.tight .fb-roll { padding: 6px 9px; margin-top: 8px; }
+.pz-panel.tight .fb-head .fb-stat small { display: none; }
+/* short windows: the puzzle list column tightens so it also fits */
+@media (max-height: 800px) and (min-width: 1181px) {
+  .pz-side { gap: 12px; }
+  .pz-sub { display: none; }
+  .pz-intro h1 { font-size: 32px; margin-bottom: 0; }
+  .pzp-num { font-size: 28px; }
+  .pz-strip { gap: 10px; padding: 12px 14px; }
+  .pz-tile { width: 32px; height: 32px; font-size: 13px; }
+  .pz-tile.endless { height: 32px; }
+}
