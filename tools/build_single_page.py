@@ -17,8 +17,9 @@ WEB = ROOT / "web"
 OUT = ROOT / "docs" / "index.html"
 
 
-def data_uri(svg: Path) -> str:
-    return "data:image/svg+xml;base64," + base64.b64encode(svg.read_bytes()).decode()
+def data_uri(path: Path) -> str:
+    mime = {".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg"}[path.suffix]
+    return f"data:{mime};base64," + base64.b64encode(path.read_bytes()).decode()
 
 
 def main():
@@ -31,7 +32,7 @@ def main():
     for key, uri in pieces.items():                       # <img src="pieces/..."> in the page itself (the logo)
         html = html.replace(f'src="pieces/{key}.svg"', f'src="{uri}"')
     author = "data:image/jpeg;base64," + base64.b64encode((WEB / "img" / "author.jpg").read_bytes()).decode()
-    for name in ("logo-dark.svg", "logo-light.svg", "favicon.svg"):     # the logo and the tab icon
+    for name in ("logo-dark.png", "logo-light.png", "favicon.png"):     # the logo and the tab icon
         html = html.replace(f'"img/{name}"', f'"{data_uri(WEB / "img" / name)}"')
     html = html.replace('<link rel="stylesheet" href="style.css">', f"<style>\n{css}\n</style>")
     scripts = f"<script>window.PIECE_DATA = {json.dumps(pieces)}; window.AUTHOR_IMG = {json.dumps(author)};</script>\n"
