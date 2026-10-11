@@ -31,6 +31,8 @@ def main():
     for key, uri in pieces.items():                       # <img src="pieces/..."> in the page itself (the logo)
         html = html.replace(f'src="pieces/{key}.svg"', f'src="{uri}"')
     author = "data:image/jpeg;base64," + base64.b64encode((WEB / "img" / "author.jpg").read_bytes()).decode()
+    for name in ("logo-dark.svg", "logo-light.svg", "favicon.svg"):     # the logo and the tab icon
+        html = html.replace(f'"img/{name}"', f'"{data_uri(WEB / "img" / name)}"')
     html = html.replace('<link rel="stylesheet" href="style.css">', f"<style>\n{css}\n</style>")
     scripts = f"<script>window.PIECE_DATA = {json.dumps(pieces)}; window.AUTHOR_IMG = {json.dumps(author)};</script>\n"
     for name in ("engine.js", "bot.js", "puzzles-core.js", "learn.js", "content.js", "puzzles.js", "app.js"):

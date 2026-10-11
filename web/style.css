@@ -77,9 +77,13 @@ kbd { font: 600 11px var(--mono); color: var(--text-3); border: 1px solid var(--
 .brand { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; justify-self: start; }
 /* logo: the knight in superposition (same cyan/pink fringe as pieces on the board) on a dark tile */
 .mark { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; flex: none;
-  background: linear-gradient(145deg, #34313c, #1f1e23); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09), 0 4px 12px -4px rgba(0, 0, 0, 0.6); }
-.mark img { width: 25px; height: 25px; filter: drop-shadow(-1.8px 0 0 rgba(95, 212, 232, 0.95)) drop-shadow(1.8px 0 0 rgba(255, 118, 184, 0.9)); transition: filter 0.25s; }
-.brand:hover .mark img { filter: drop-shadow(-2.6px 0 0 rgba(95, 212, 232, 0.95)) drop-shadow(2.6px 0 0 rgba(255, 118, 184, 0.9)); }
+  background: #26252b; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09), 0 4px 12px -4px rgba(0, 0, 0, 0.6); }
+.mark img { width: 32px; height: 32px; transition: transform 0.2s; }
+.brand:hover .mark img { transform: scale(1.06); }
+.mark .logo-light { display: none; }
+html[data-ui="light"] .mark { background: #fff; box-shadow: inset 0 0 0 1px var(--hair), 0 4px 12px -6px rgba(60, 45, 25, 0.3); }
+html[data-ui="light"] .mark .logo-dark { display: none; }
+html[data-ui="light"] .mark .logo-light { display: block; }
 .wordmark { font: 700 19px/1 "Unbounded", var(--ui); letter-spacing: 0.01em; display: flex; align-items: baseline; gap: 6px; }
 .wordmark small { font: 700 11px var(--mono); color: var(--q-cyan); background: rgba(95, 212, 232, 0.1); padding: 2px 6px; border-radius: 5px; letter-spacing: 0.02em; }
 
