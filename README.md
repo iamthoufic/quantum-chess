@@ -160,7 +160,7 @@ print(Statevector(qc).probabilities_dict())  # expected: {'010': 0.5, '100': 0.5
 ## 6. Performance, Results & Limitations
 
 * **Key Results & Observations:**  
-  * All four quantum mechanics (split, merge, entangling slide, measured capture) run on Qiskit statevectors and are covered by 14 automated tests, including a check over random games that every piece's probabilities always sum to 1, a cross-check that the in-browser engine reproduces Qiskit's probabilities, and a check that every puzzle's intended answer is the one the exact solver accepts.
+  * All four quantum mechanics (split, merge, entangling slide, measured capture) run on Qiskit statevectors and are covered by 21 automated tests, including a check over random games that every piece's probabilities always sum to 1, a cross-check that the in-browser engine reproduces Qiskit's probabilities, a check that every puzzle's intended answer is the one the exact solver accepts, and a rules audit: classical move generation matches an independent 5×5 move generator in 10,000+ positions, more than 10,000 random quantum moves keep every rule invariant (probabilities sum to 1, pawns never split, promotion, king capture), and every move the engine refuses leaves the game unchanged.
   * In a stress test of 150 random quantum-heavy games (about 10,000 moves), no move took longer than 0.5 s and the statevector never exceeded the 16-qubit cap.
   * With a depolarizing noise model on Qiskit Aer, the split-then-merge round trip (8 CNOTs after transpiling) brings the knight back with probability 1.000 noiseless, 0.847 at 0.5% gate error, 0.724 at 1% and 0.531 at 2% (notebook section 7).
 

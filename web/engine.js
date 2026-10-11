@@ -208,6 +208,9 @@
       this.q = new QuantumState(seed);
       this.turn = turn;
       this.winner = null;
+      this.endReason = null;     // why the game ended, in words
+      this.quietPlies = 0;       // plies since the last capture or pawn move (50-move rule)
+      this.countBefore = 0;
       this.quantum = quantum;
       this.ply = 0;
       this.log = [];
@@ -323,6 +326,7 @@
       if (this.winner) throw new IllegalMove("the game is over");
       const piece = this.pieces.get(src);
       if (!piece || piece.color !== this.turn) throw new IllegalMove(`no ${this.turn} piece on ${name(src)}`);
+      this.countBefore = new Set([...this.pieces.values()].map((p) => p.pid)).size;   // for the 50-move rule
       return piece;
     }
     event(t) { this.events.push(t); }
@@ -409,11 +413,22 @@
       this.events = [];
       this.log.push(entry);
       this.ply += 1;
-      if (!this.winner) {
+      const count = new Set([...this.pieces.values()].map((p) => p.pid)).size;
+      if (count < this.countBefore || piece.kind === PAWN) this.quietPlies = 0;
+      else this.quietPlies += 1;
+      if (this.winner) this.endReason = "The king was captured.";
+      else {
         this.turn = other(this.turn);
-        if (!this.hasAnyMove()) this.winner = "draw";
+        this.checkDraw();
       }
       return entry;
+    }
+
+    // draw rules: bare kings, the 50-move rule, or no legal action for the side to move
+    checkDraw() {
+      if ([...this.pieces.values()].every((p) => p.kind === KING)) { this.winner = "draw"; this.endReason = "Only the two kings are left."; }
+      else if (this.quietPlies >= 100) { this.winner = "draw"; this.endReason = "50 moves each without a capture or a pawn move."; }
+      else if (!this.hasAnyMove()) { this.winner = "draw"; this.endReason = "The side to move has no legal action."; }
     }
 
     // same JSON shape as the FastAPI /api/{gid} snapshot
@@ -427,7 +442,7 @@
         });
       }
       return {
-        id, turn: this.turn, winner: this.winner, quantum: this.quantum, ply: this.ply,
+        id, turn: this.turn, winner: this.winner, end_reason: this.endReason, quantum: this.quantum, ply: this.ply,
         qubits: this.q.numQubits, squares, log: this.log, has_circuit: this.lastTrace.length > 0,
         trace: this.lastTrace.map((t) => ({ ...t, sq: t.sq === undefined ? undefined : name(t.sq),
           squares: t.squares && t.squares.map(name), controls: t.controls && t.controls.map(name) })),

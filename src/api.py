@@ -79,7 +79,7 @@ def snapshot(gid: str, game: Game) -> dict:
             "quantum": game.q.is_active(sq),
         })
     return {
-        "id": gid, "turn": game.turn, "winner": game.winner, "quantum": game.quantum,
+        "id": gid, "turn": game.turn, "winner": game.winner, "end_reason": game.end_reason, "quantum": game.quantum,
         "ply": game.ply, "qubits": game.q.num_qubits, "squares": squares,
         "log": game.log, "has_circuit": game.last_circuit is not None,
         "circuit_text": str(game.last_circuit.draw("text", fold=-1)) if game.last_circuit else "",

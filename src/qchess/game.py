@@ -37,6 +37,9 @@ class Game:
         self.q = QuantumState(seed)
         self.turn = WHITE
         self.winner = None          # WHITE, BLACK, "draw" or None
+        self.end_reason = None      # why the game ended, in words
+        self.quiet_plies = 0        # plies since the last capture or pawn move (50-move rule)
+        self._count_before = 0
         self.quantum = quantum      # False = classical baseline (no split/merge)
         self.ply = 0
         self.log: list[dict] = []   # one entry per turn
@@ -164,6 +167,7 @@ class Game:
         piece = self.pieces.get(src)
         if piece is None or piece.color != self.turn:
             raise IllegalMove(f"no {self.turn} piece on {name(src)}")
+        self._count_before = len({p.pid for p in self.pieces.values()})   # for the 50-move rule
         return piece
 
     def _event(self, text):
@@ -265,11 +269,26 @@ class Game:
         self._events = []
         self.log.append(entry)
         self.ply += 1
-        if not self.winner:
+        count = len({p.pid for p in self.pieces.values()})
+        if count < self._count_before or piece.kind == PAWN:
+            self.quiet_plies = 0
+        else:
+            self.quiet_plies += 1
+        if self.winner:
+            self.end_reason = "The king was captured."
+        else:
             self.turn = other(self.turn)
-            if not self.has_any_move():
-                self.winner = "draw"
+            self._check_draw()
         return entry
+
+    def _check_draw(self):
+        """Draw rules: bare kings, the 50-move rule, or no legal action for the side to move."""
+        if all(p.kind == KING for p in self.pieces.values()):
+            self.winner, self.end_reason = "draw", "Only the two kings are left."
+        elif self.quiet_plies >= 100:
+            self.winner, self.end_reason = "draw", "50 moves each without a capture or a pawn move."
+        elif not self.has_any_move():
+            self.winner, self.end_reason = "draw", "The side to move has no legal action."
 
     # ------------------------------------------------------------------ display
     def ascii(self) -> str:

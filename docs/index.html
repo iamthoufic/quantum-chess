@@ -968,6 +968,9 @@ body.no-anim .flash::after { animation: none; }
       this.q = new QuantumState(seed);
       this.turn = turn;
       this.winner = null;
+      this.endReason = null;     // why the game ended, in words
+      this.quietPlies = 0;       // plies since the last capture or pawn move (50-move rule)
+      this.countBefore = 0;
       this.quantum = quantum;
       this.ply = 0;
       this.log = [];
@@ -1083,6 +1086,7 @@ body.no-anim .flash::after { animation: none; }
       if (this.winner) throw new IllegalMove("the game is over");
       const piece = this.pieces.get(src);
       if (!piece || piece.color !== this.turn) throw new IllegalMove(`no ${this.turn} piece on ${name(src)}`);
+      this.countBefore = new Set([...this.pieces.values()].map((p) => p.pid)).size;   // for the 50-move rule
       return piece;
     }
     event(t) { this.events.push(t); }
@@ -1169,11 +1173,22 @@ body.no-anim .flash::after { animation: none; }
       this.events = [];
       this.log.push(entry);
       this.ply += 1;
-      if (!this.winner) {
+      const count = new Set([...this.pieces.values()].map((p) => p.pid)).size;
+      if (count < this.countBefore || piece.kind === PAWN) this.quietPlies = 0;
+      else this.quietPlies += 1;
+      if (this.winner) this.endReason = "The king was captured.";
+      else {
         this.turn = other(this.turn);
-        if (!this.hasAnyMove()) this.winner = "draw";
+        this.checkDraw();
       }
       return entry;
+    }
+
+    // draw rules: bare kings, the 50-move rule, or no legal action for the side to move
+    checkDraw() {
+      if ([...this.pieces.values()].every((p) => p.kind === KING)) { this.winner = "draw"; this.endReason = "Only the two kings are left."; }
+      else if (this.quietPlies >= 100) { this.winner = "draw"; this.endReason = "50 moves each without a capture or a pawn move."; }
+      else if (!this.hasAnyMove()) { this.winner = "draw"; this.endReason = "The side to move has no legal action."; }
     }
 
     // same JSON shape as the FastAPI /api/{gid} snapshot
@@ -1187,7 +1202,7 @@ body.no-anim .flash::after { animation: none; }
         });
       }
       return {
-        id, turn: this.turn, winner: this.winner, quantum: this.quantum, ply: this.ply,
+        id, turn: this.turn, winner: this.winner, end_reason: this.endReason, quantum: this.quantum, ply: this.ply,
         qubits: this.q.numQubits, squares, log: this.log, has_circuit: this.lastTrace.length > 0,
         trace: this.lastTrace.map((t) => ({ ...t, sq: t.sq === undefined ? undefined : name(t.sq),
           squares: t.squares && t.squares.map(name), controls: t.controls && t.controls.map(name) })),
@@ -2002,7 +2017,8 @@ function buildManual(root) {
     <h2 id="m-end">Winning, draws and the qubit budget</h2>
     <ul class="ticks">
       <li><b>Win</b> by capturing the enemy king.</li>
-      <li><b>Draw</b> if the side to move has no legal action.</li>
+      <li><b>Draw</b> if only the two kings are left, after 50 moves each without a capture or a pawn move
+      (the 50-move rule), or if the side to move has no legal action.</li>
       <li>No check, no castling, no en passant.</li>
       <li><b>Qubit budget:</b> only uncertain squares cost qubits, and at most 16 can be uncertain at once.
       If a move would exceed that, the oldest uncertain square is measured first ("forced measurement").</li>
@@ -2943,7 +2959,7 @@ function renderPanel() {
   const ov = $("overlay");
   if (st.winner) {
     $("overlayTitle").textContent = st.winner === "draw" ? "Draw" : `${winnerName} wins`;
-    $("overlaySub").textContent = st.winner === "draw" ? "No legal moves left." : "The king was captured.";
+    $("overlaySub").textContent = st.end_reason || (st.winner === "draw" ? "Draw." : "The king was captured.");
     ov.classList.remove("hidden");
   } else ov.classList.add("hidden");
 }

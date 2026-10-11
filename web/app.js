@@ -290,7 +290,7 @@ function renderPanel() {
   const ov = $("overlay");
   if (st.winner) {
     $("overlayTitle").textContent = st.winner === "draw" ? "Draw" : `${winnerName} wins`;
-    $("overlaySub").textContent = st.winner === "draw" ? "No legal moves left." : "The king was captured.";
+    $("overlaySub").textContent = st.end_reason || (st.winner === "draw" ? "Draw." : "The king was captured.");
     ov.classList.remove("hidden");
   } else ov.classList.add("hidden");
 }

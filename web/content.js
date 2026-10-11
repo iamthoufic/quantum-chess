@@ -184,7 +184,8 @@ function buildManual(root) {
     <h2 id="m-end">Winning, draws and the qubit budget</h2>
     <ul class="ticks">
       <li><b>Win</b> by capturing the enemy king.</li>
-      <li><b>Draw</b> if the side to move has no legal action.</li>
+      <li><b>Draw</b> if only the two kings are left, after 50 moves each without a capture or a pawn move
+      (the 50-move rule), or if the side to move has no legal action.</li>
       <li>No check, no castling, no en passant.</li>
       <li><b>Qubit budget:</b> only uncertain squares cost qubits, and at most 16 can be uncertain at once.
       If a move would exceed that, the oldest uncertain square is measured first ("forced measurement").</li>
