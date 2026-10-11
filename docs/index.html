@@ -90,7 +90,7 @@ kbd { font: 600 11px var(--mono); color: var(--text-3); border: 1px solid var(--
   background: linear-gradient(145deg, #34313c, #1f1e23); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09), 0 4px 12px -4px rgba(0, 0, 0, 0.6); }
 .mark img { width: 25px; height: 25px; filter: drop-shadow(-1.8px 0 0 rgba(95, 212, 232, 0.95)) drop-shadow(1.8px 0 0 rgba(255, 118, 184, 0.9)); transition: filter 0.25s; }
 .brand:hover .mark img { filter: drop-shadow(-2.6px 0 0 rgba(95, 212, 232, 0.95)) drop-shadow(2.6px 0 0 rgba(255, 118, 184, 0.9)); }
-.wordmark { font: 700 15px/1 "Unbounded", var(--ui); letter-spacing: 0.01em; display: flex; align-items: baseline; gap: 6px; }
+.wordmark { font: 700 19px/1 "Unbounded", var(--ui); letter-spacing: 0.01em; display: flex; align-items: baseline; gap: 6px; }
 .wordmark small { font: 700 11px var(--mono); color: var(--q-cyan); background: rgba(95, 212, 232, 0.1); padding: 2px 6px; border-radius: 5px; letter-spacing: 0.02em; }
 
 .nav { display: flex; gap: 2px; padding: 4px; background: var(--surface); border: 1px solid var(--hair); border-radius: 12px; }
@@ -224,7 +224,13 @@ body.no-anim .overlay, body.no-anim .overlay-card, body.no-anim .ov-crown::befor
   background: var(--surface); border: 1px solid var(--hair); border-radius: 16px; padding: 20px; box-shadow: var(--shadow);
 }
 .panel-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
-.kicker { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); white-space: nowrap; }
+.kicker { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+.mode-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px 3px 6px; border-radius: 999px; font: 700 10.5px var(--mono); letter-spacing: 0.08em; }
+.mode-pill .ic { width: 12px; height: 12px; }
+.mode-pill.q { color: var(--q-cyan); background: rgba(95, 212, 232, 0.12); box-shadow: inset 0 0 0 1px rgba(95, 212, 232, 0.25); }
+.mode-pill.c { color: #e8b86a; background: rgba(232, 184, 106, 0.12); box-shadow: inset 0 0 0 1px rgba(232, 184, 106, 0.28); }
+html[data-ui="light"] .mode-pill.q { color: #0b7f95; background: rgba(11, 127, 149, 0.1); box-shadow: inset 0 0 0 1px rgba(11, 127, 149, 0.25); }
+html[data-ui="light"] .mode-pill.c { color: #9a6a12; background: rgba(154, 106, 18, 0.1); box-shadow: inset 0 0 0 1px rgba(154, 106, 18, 0.25); }
 .status { font: 400 30px/1.1 var(--display); margin-top: 3px; }
 .qmeter { width: 116px; }
 .qm-row { display: flex; justify-content: space-between; font: 600 11px var(--mono); color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
@@ -287,12 +293,14 @@ body.no-anim .overlay, body.no-anim .overlay-card, body.no-anim .ov-crown::befor
 /* ---------- manual & blog ---------- */
 .doc { display: grid; grid-template-columns: 220px minmax(0, 720px); gap: 56px; justify-content: center; padding: 48px 24px 96px; }
 .doc.single { grid-template-columns: minmax(0, 720px); }
-.toc-side { position: sticky; top: 92px; align-self: start; display: flex; flex-direction: column; height: calc(100vh - 92px - 120px); }
+#manualBody { grid-column: 2; }
+.toc-side { position: fixed; top: 110px; left: max(24px, calc(50% - 498px)); width: 220px; display: flex; flex-direction: column; }
 .toc-side .toc-title { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); margin-bottom: 10px; }
-.toc { display: flex; flex-direction: column; justify-content: space-between; flex: 1; max-height: 720px; border-left: 1px solid var(--hair-2); }
-.toc a { color: var(--text-3); text-decoration: none; font-size: 14px; font-weight: 600; padding: 5px 0 5px 14px; margin-left: -1px; border-left: 2px solid transparent; transition: color 0.15s, border-color 0.15s; }
+.toc { position: relative; display: flex; flex-direction: column; border-left: 1px solid var(--hair-2); }
+.toc-ind { position: absolute; left: -1px; width: 2px; height: 0; background: var(--q-cyan); border-radius: 1px; transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s; }
+.toc a { color: var(--text-3); text-decoration: none; font-size: 14px; font-weight: 600; padding: 7px 0 7px 14px; transition: color 0.15s; }
 .toc a:hover { color: var(--text); }
-.toc a.active { color: var(--text); border-left-color: var(--q-cyan); }
+.toc a.active { color: var(--text); }
 
 .article { font-size: 16.5px; line-height: 1.72; color: var(--text-2); }
 .article p, .article li { color: var(--text-2); }
@@ -412,6 +420,7 @@ body.no-anim .overlay, body.no-anim .overlay-card, body.no-anim .ov-crown::befor
 @media (max-width: 1100px) {
   .doc { grid-template-columns: minmax(0, 720px); }
   .toc-side { display: none; }
+  #manualBody { grid-column: 1; }
 }
 @media (max-width: 860px) {
   .topbar { grid-template-columns: 1fr auto; height: auto; padding: 10px 14px; row-gap: 10px; }
@@ -2468,6 +2477,7 @@ function buildManual(root) {
       <a href="#m-split">Split</a><a href="#m-merge">Merge</a><a href="#m-entangle">Entanglement</a>
       <a href="#m-capture">Captures</a><a href="#m-pawns">Pawns</a><a href="#m-end">Winning</a>
       <a href="#m-controls">Controls</a><a href="#m-fair">Engines and fair play</a>
+      <i class="toc-ind"></i>
     </nav>`;
   toc.querySelectorAll("a").forEach((a) => a.addEventListener("click", (e) => {
     e.preventDefault();
@@ -2617,9 +2627,7 @@ function buildManual(root) {
 function watchManualSections() {
   const links = [...document.querySelectorAll("#manualToc a")];
   const heads = [...document.querySelectorAll("#manualBody h2[id]")];
-  let ticking = false;
   const update = () => {
-    ticking = false;
     if ($("view-manual").classList.contains("hidden")) return;
     const line = innerHeight * 0.3;
     let current = heads[0];
@@ -2627,8 +2635,11 @@ function watchManualSections() {
     // at the very bottom the last sections can never reach the line: light the last one
     if (scrollY + innerHeight >= document.documentElement.scrollHeight - 2) current = heads[heads.length - 1];
     links.forEach((a) => a.classList.toggle("active", current && a.getAttribute("href") === "#" + current.id));
+    // only the indicator moves: slide it to the active entry
+    const on = links.find((a) => a.classList.contains("active")), ind = document.querySelector("#manualToc .toc-ind");
+    if (on && ind) { ind.style.top = on.offsetTop + "px"; ind.style.height = on.offsetHeight + "px"; }
   };
-  addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  addEventListener("scroll", update, { passive: true });
   addEventListener("resize", update);
   update();
 }
@@ -3638,7 +3649,9 @@ function renderPanel() {
   const whiteBottom = !boardFlipped();
   $("barBottom").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "w" : "b"));
   $("barTop").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "b" : "w"));
-  $("modeTag").textContent = `${st.quantum ? "Quantum" : "Classical"} · move ${Math.floor(st.ply / 2) + 1}`;
+  $("modeTag").innerHTML = st.quantum
+    ? `<span class="mode-pill q"><svg class="ic"><use href="#i-atom"/></svg>Quantum</span><span>move ${Math.floor(st.ply / 2) + 1}</span>`
+    : `<span class="mode-pill c"><svg class="ic"><use href="#i-half"/></svg>Classical</span><span>move ${Math.floor(st.ply / 2) + 1}</span>`;
   $("hint").textContent = hintText();
   renderMoves();
   renderCaptured(whiteBottom);

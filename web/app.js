@@ -378,7 +378,9 @@ function renderPanel() {
   const whiteBottom = !boardFlipped();
   $("barBottom").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "w" : "b"));
   $("barTop").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "b" : "w"));
-  $("modeTag").textContent = `${st.quantum ? "Quantum" : "Classical"} · move ${Math.floor(st.ply / 2) + 1}`;
+  $("modeTag").innerHTML = st.quantum
+    ? `<span class="mode-pill q"><svg class="ic"><use href="#i-atom"/></svg>Quantum</span><span>move ${Math.floor(st.ply / 2) + 1}</span>`
+    : `<span class="mode-pill c"><svg class="ic"><use href="#i-half"/></svg>Classical</span><span>move ${Math.floor(st.ply / 2) + 1}</span>`;
   $("hint").textContent = hintText();
   renderMoves();
   renderCaptured(whiteBottom);

@@ -72,6 +72,7 @@ function buildManual(root) {
       <a href="#m-split">Split</a><a href="#m-merge">Merge</a><a href="#m-entangle">Entanglement</a>
       <a href="#m-capture">Captures</a><a href="#m-pawns">Pawns</a><a href="#m-end">Winning</a>
       <a href="#m-controls">Controls</a><a href="#m-fair">Engines and fair play</a>
+      <i class="toc-ind"></i>
     </nav>`;
   toc.querySelectorAll("a").forEach((a) => a.addEventListener("click", (e) => {
     e.preventDefault();
@@ -221,9 +222,7 @@ function buildManual(root) {
 function watchManualSections() {
   const links = [...document.querySelectorAll("#manualToc a")];
   const heads = [...document.querySelectorAll("#manualBody h2[id]")];
-  let ticking = false;
   const update = () => {
-    ticking = false;
     if ($("view-manual").classList.contains("hidden")) return;
     const line = innerHeight * 0.3;
     let current = heads[0];
@@ -231,8 +230,11 @@ function watchManualSections() {
     // at the very bottom the last sections can never reach the line: light the last one
     if (scrollY + innerHeight >= document.documentElement.scrollHeight - 2) current = heads[heads.length - 1];
     links.forEach((a) => a.classList.toggle("active", current && a.getAttribute("href") === "#" + current.id));
+    // only the indicator moves: slide it to the active entry
+    const on = links.find((a) => a.classList.contains("active")), ind = document.querySelector("#manualToc .toc-ind");
+    if (on && ind) { ind.style.top = on.offsetTop + "px"; ind.style.height = on.offsetHeight + "px"; }
   };
-  addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  addEventListener("scroll", update, { passive: true });
   addEventListener("resize", update);
   update();
 }
