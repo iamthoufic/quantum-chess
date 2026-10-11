@@ -680,6 +680,19 @@ function switchMode(mode) {
   maybeBotMove();
 }
 
+/** Size the Bots board so the bots, the board and the panel all fit the window. */
+function fitBotsBoard() {
+  const arena = $("botsArena");
+  arena.style.removeProperty("--sq");
+  if (innerWidth <= 1100) return;
+  const avail = innerHeight - 60 - 48 - 4;            // below the top bar and the page padding
+  const bars = 52 + 8 + 8 + 52;                       // two player bars and their gaps
+  const byHeight = (avail - bars) / 5;
+  const byWidth = (innerWidth - 250 - 28 - 360 - 28 - 48) / 5;
+  const sq = Math.max(64, Math.min(112, byHeight, byWidth));
+  arena.style.setProperty("--sq", sq + "px");
+}
+
 function route() {
   // "#blog/<slug>" opens one article; every other route is a single word
   const [r, sub] = (location.hash || "#play").slice(1).split("/");
@@ -692,6 +705,7 @@ function route() {
   if (view === "blog") renderBlog($("blogBody"), sub);
   if (view === "puzzles" && !$("view-puzzles").dataset.built) { buildPuzzles($("view-puzzles")); $("view-puzzles").dataset.built = 1; }
   if (view === "puzzles") fitPuzzleBoard();
+  if (view === "bots") fitBotsBoard();
   window.scrollTo(0, 0);
 }
 
@@ -700,22 +714,20 @@ function wire() {
   document.querySelectorAll(".mode").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
   $("newQuantum").addEventListener("click", () => newGame(true));
   $("newClassical").addEventListener("click", () => newGame(false));
-  $("newMatch").addEventListener("click", newMatch);
   $("panelNew").addEventListener("click", newMatch);
+  $("flipBoard").addEventListener("click", () => { settings.flip = !settings.flip; saveSettings(); applySettings(); });
   $("overlayNew").addEventListener("click", () => (S.mode === "bots" ? newMatch() : newGame(S.state ? S.state.quantum : true)));
   $("takeBack").addEventListener("click", takeBack);
   $("botCards").innerHTML = QBOT.LEVELS.map((l, i) => `
-    <button class="bot-card" data-opp="${l.id}">
+    <button class="bot-card" data-opp="${l.id}" title="${l.blurb}">
       <span class="bot-badge"><svg class="ic"><use href="#i-robot"/></svg></span>
-      <span class="bot-level">Level ${i + 1} · ${l.tag}</span>
-      <b>${l.name}</b>
-      <p>${l.blurb}</p>
-      <span class="bot-cta"><svg class="ic"><use href="#i-play"/></svg>Play ${l.name}</span>
+      <span class="bot-text"><b>${l.name}</b><small>Level ${i + 1} · ${l.tag}</small></span>
+      <span class="bot-go"><svg class="ic"><use href="#i-play"/></svg></span>
     </button>`).join("");
   document.querySelectorAll(".bot-card").forEach((b) => b.addEventListener("click", () => {
     settings.opponent = b.dataset.opp; saveSettings(); applySettings(); newMatch();
-    $("botsArena").scrollIntoView({ behavior: "smooth", block: "start" });
   }));
+  window.addEventListener("resize", () => { if (S.mode === "bots") fitBotsBoard(); });
   document.querySelectorAll("[data-side]").forEach((b) => b.addEventListener("click", () => { settings.side = b.dataset.side; saveSettings(); applySettings(); newMatch(); }));
   document.querySelectorAll("[data-rules]").forEach((b) => b.addEventListener("click", () => { settings.rules = b.dataset.rules; saveSettings(); applySettings(); newMatch(); }));
   // close the result card to look at the final position; the panel still shows the result

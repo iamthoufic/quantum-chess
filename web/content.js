@@ -258,12 +258,13 @@ function renderBlog(root, slug) {
       <p class="eyebrow">Blog</p>
       <h1>Notes from building Quantum Chess</h1>
       <p class="lede">Articles on the ideas behind the game: what quantum mechanics changes about chess, and what it costs.</p>
+      <div class="author-card">${authorPhoto("Mohamed Thoufic")}<div><span class="author-kicker">Written by</span><b>Mohamed Thoufic</b><span>Built Quantum Chess 5×5 solo in 24 hours for Qiskit Fall Fest 2026, IIIT Kottayam.</span></div></div>
       <div class="post-list">${ARTICLES.map((a) => `
         <a class="post-card" href="#blog/${a.slug}">
           <div class="post-meta"><span class="post-no">Article ${a.no}</span><span>${a.date}</span><span>${a.read}</span></div>
           <h2 class="post-title">${a.titleHtml}</h2>
           <p class="post-dek">${a.dek}</p>
-          <div class="post-foot">${authorPhoto(a.author)}<span>Published by <b>${a.author}</b></span><span class="post-read">Read article <svg class="ic"><use href="#i-arrow"/></svg></span></div>
+          <div class="post-foot">${authorPhoto(a.author)}<span class="post-by"><b>${a.author}</b><small>${a.date} · ${a.read}</small></span><span class="post-read">Read article <svg class="ic"><use href="#i-arrow"/></svg></span></div>
         </a>`).join("")}
       </div>`;
     return;
@@ -278,7 +279,7 @@ function buildHistory(root, art) {
     <p class="eyebrow">Article ${art.no} · ${art.tags.join(" · ")}</p>
     <h1>${art.titleHtml}</h1>
     <p class="lede">${art.dek}</p>
-    <div class="byline">${authorPhoto(art.author)}<div><b>Published by ${art.author}</b><span>${art.date} · ${art.read}</span></div></div>
+    <div class="byline">${authorPhoto(art.author)}<div><span class="author-kicker">Published by</span><b>${art.author}</b><span>${art.date} · ${art.read}</span></div></div>
 
     <h2>A game older than most languages</h2>
     <p>Chess began in India as <b>chaturanga</b>, around the 6th century: a war game with infantry, cavalry,
@@ -362,7 +363,7 @@ function buildClassicalVsQuantum(root, art) {
     <p class="eyebrow">Article ${art.no} · ${art.tags.join(" · ")}</p>
     <h1>${art.titleHtml}</h1>
     <p class="lede">${art.dek}</p>
-    <div class="byline">${authorPhoto(art.author)}<div><b>Published by ${art.author}</b><span>${art.date} · ${art.read} · experiments run in your browser</span></div></div>
+    <div class="byline">${authorPhoto(art.author)}<div><span class="author-kicker">Published by</span><b>${art.author}</b><span>${art.date} · ${art.read} · experiments run in your browser</span></div></div>
 
     <h2>A small game with a big result</h2>
     <p>Martin Gardner introduced the 5×5 setup in 1969 as a pocket version of chess: one of each major piece
