@@ -14,7 +14,15 @@ const THEMES = [
   { id: "lavender", label: "Lavender", sub: "Low glare", light: "#f2eefa", dark: "#9886c4" },
   { id: "green", label: "Tournament", sub: "Classic green", light: "#ecedd1", dark: "#779657" },
 ];
-const DEFAULTS = { theme: "blue", coords: true, badges: true, hints: true, anim: true, flip: false, engine: "auto", cview: "qiskit" };
+const DEFAULTS = { theme: "blue", ui: "dark", coords: true, badges: true, hints: true, anim: true, flip: false, engine: "auto", cview: "qiskit" };
+const prefersLight = matchMedia("(prefers-color-scheme: light)");
+
+// "dark" | "light" | "system" -> the appearance actually shown
+function applyAppearance() {
+  const ui = settings.ui === "system" ? (prefersLight.matches ? "light" : "dark") : settings.ui;
+  document.documentElement.dataset.ui = ui;
+}
+prefersLight.addEventListener("change", () => { if (settings.ui === "system") applyAppearance(); });
 let settings = { ...DEFAULTS };
 
 function loadSettings() {
@@ -24,6 +32,8 @@ function saveSettings() {
   try { localStorage.setItem("qc-settings", JSON.stringify(settings)); } catch (e) { /* storage unavailable */ }
 }
 function applySettings() {
+  applyAppearance();
+  document.querySelectorAll("[data-ui-mode]").forEach((el) => el.classList.toggle("active", el.dataset.uiMode === settings.ui));
   document.body.dataset.theme = settings.theme;
   document.body.classList.toggle("no-anim", !settings.anim);
   document.querySelectorAll("[data-setting]").forEach((el) => (el.checked = !!settings[el.dataset.setting]));
@@ -603,6 +613,9 @@ function wire() {
       <span class="theme-preview"><i style="background:${t.light}"></i><i style="background:${t.dark}"></i><i style="background:${t.dark}"></i><i style="background:${t.light}"></i></span>
       <span><span class="tname">${t.label}</span><br><span class="tsub">${t.sub}</span></span>
       <svg class="ic"><use href="#i-check"/></svg></button>`).join("");
+  document.querySelectorAll("[data-ui-mode]").forEach((b) => b.addEventListener("click", () => {
+    settings.ui = b.dataset.uiMode; saveSettings(); applySettings();
+  }));
   document.querySelectorAll(".theme-card").forEach((b) => b.addEventListener("click", () => {
     settings.theme = b.dataset.theme; saveSettings(); applySettings();
   }));

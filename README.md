@@ -136,7 +136,7 @@ print(Statevector(qc).probabilities_dict())  # expected: {'010': 0.5, '100': 0.5
   * **How to play**: four animated video-style tutorials (split, merge, entanglement, capture), each frame computed by the engine and showing the board, the state |ψ⟩ and the circuit, followed by an illustrated rule manual with 13 board diagrams.
   * **Puzzles**: 10 hand-made positions in three levels (beginner, intermediate, advanced) plus an endless mode that generates new positions from random quantum games. Every answer is graded by an exact solver that enumerates every measurement outcome with its Born-rule probability, so feedback is precise ("this capture wins 25%; the best move wins 50%").
   * **Blog**: articles about the project. Article 01, "Same board, different universe: classical vs quantum 5×5 chess" by Mohamed Thoufic, compares the two games with two experiments that run live in the browser.
-  * **Settings**: four board themes, coordinates, probability readout, move hints, animations, board flip, and the engine choice.
+  * **Settings**: dark, light or system appearance, four board themes, coordinates, probability readout, move hints, animations, board flip, and the engine choice.
 
   **Engines:** when served by `uvicorn src.api:app`, every gate and measurement runs in Qiskit and the page shows "⚛ Qiskit". When opened as a plain file (`docs/index.html`), it falls back to `web/engine.js`, a JavaScript port of the same engine, shown as "◐ In-browser engine". `tests/test_js_engine.py` replays 25 random games (850+ moves, including splits, merges, entangling slides and measured captures) through both engines and requires every square's probability to match Qiskit to within 1e-9. The demo in the video uses the Qiskit engine.
 
