@@ -661,9 +661,10 @@ function lineChart(points, { xLabel = "", yLabel = "", color = "#5fd4e8" } = {})
 // The board and panel are one set of elements, shown in Play or in Bots; each section keeps its own game.
 function switchMode(mode) {
   const host = mode === "bots" ? $("botsArena") : $("view-play");
-  if (!host.contains(document.querySelector(".board-col"))) {
-    host.appendChild(document.querySelector(".board-col"));
-    host.appendChild(document.querySelector(".panel"));
+  // only the game's own board and panel move (Puzzles has its own, which must stay put)
+  if (!host.contains($("gameBoardCol"))) {
+    host.appendChild($("gameBoardCol"));
+    host.appendChild($("gamePanel"));
   }
   if (S.mode === mode && S.state) return;
   S.mode = mode;
