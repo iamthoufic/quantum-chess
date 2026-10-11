@@ -94,7 +94,7 @@ function lessonSplit() {
     .frame("Choose two targets", "In Split mode, click the knight, then two empty squares it can reach: a3 and c3.",
       { marks: { a3: "qdot", c3: "qdot" }, arrows: [["b1", "a3"], ["b1", "c3"]] })
     .gate("√iSWAP", "b1", "a3")
-    .frame("√iSWAP: half the amplitude moves", "A square-root-of-iSWAP gate on (b1, a3) sends half of the knight's amplitude to a3. It is now 50% on b1 and 50% on a3.",
+    .frame("iSWAP<sup>1/2</sup>: half the amplitude moves", "The square root of iSWAP, written iSWAP<sup>1/2</sup>, acts on (b1, a3) and sends half of the knight's amplitude to a3. It is now 50% on b1 and 50% on a3.",
       { arrows: [["b1", "a3"]] })
     .gate("iSWAP", "b1", "c3")
     .frame("iSWAP: the rest moves", "A full iSWAP on (b1, c3) moves everything left on b1 over to c3. b1 is now certainly empty.",
@@ -114,9 +114,9 @@ function lessonMerge() {
     .frame("Pick a target", "In Merge mode, click one half, then the other, then a square both can reach: b1.",
       { marks: { a3: "partner", c3: "partner", b1: "qdot" }, arrows: [["a3", "b1"], ["c3", "b1"]] })
     .gate("iSWAP†", "b1", "c3")
-    .frame("iSWAP†: pull one half back", "The inverse iSWAP on (b1, c3) moves the c3 half back onto b1.", { arrows: [["c3", "b1"]] })
+    .frame("iSWAP<sup>−1</sup>: pull one half back", "The inverse, iSWAP<sup>−1</sup>, on (b1, c3) moves the c3 half back onto b1.", { arrows: [["c3", "b1"]] })
     .gate("√iSWAP†", "b1", "a3")
-    .frame("√iSWAP†: interference", "The inverse √iSWAP mixes b1 with a3. The two amplitudes add up on b1 and cancel on a3: the knight is back with 100% certainty.",
+    .frame("iSWAP<sup>−1/2</sup>: interference", "iSWAP<sup>−1/2</sup> mixes b1 with a3. The two amplitudes add up on b1 and cancel on a3: the knight is back with 100% certainty.",
       { arrows: [["a3", "b1"]] });
   // the classical comparison: a coin decided a3 or c3, then the same gates
   const C = new LessonBuilder({ a3: "wN", e1: "wK", e5: "bK" });
@@ -168,7 +168,7 @@ function buildTutorials() {
   const wrap = document.createElement("section");
   wrap.className = "tutorials";
   wrap.innerHTML = `
-    <h2 id="m-videos"><span class="secno">00</span>Video tutorials</h2>
+    <h2 id="m-videos">Video tutorials</h2>
     <p>Four short animated lessons. Every frame is computed by the game's engine, so the probabilities, the state <code>|ψ⟩</code> and the circuit are the real ones.</p>
     <div class="tut">
       <div class="tut-stage">
@@ -228,8 +228,8 @@ function buildTutorials() {
         return `<line class="tut-arrow" x1="${x1}" y1="${y1}" x2="${x2 - (x2 - x1) * k}" y2="${y2 - (y2 - y1) * k}" stroke="rgba(255,170,0,0.9)" stroke-width="2.4" stroke-linecap="round" marker-end="url(#tah)"/>`;
       }).join("");
     $q(".tut-kicker").textContent = `${L.kicker} · step ${idx + 1} of ${L.frames.length}`;
-    $q(".tut-title").textContent = fr.title;
-    $q(".tut-caption").textContent = fr.caption;
+    $q(".tut-title").innerHTML = fr.title;
+    $q(".tut-caption").innerHTML = fr.caption;
     $q(".tut-ket code").textContent = fr.ket || "—";
     $q(".tut-circuit").innerHTML = fr.trace.length ? circuitSVG(fr.trace) : `<span class="empty">No gates yet.</span>`;
     $q(".tut-progress").innerHTML = L.frames.map((_, i) =>
@@ -277,7 +277,7 @@ function buildTutorials() {
   $q(".tut-list").innerHTML = lessons.map((l, n) => `
     <button class="tut-item" data-id="${l.id}">
       <span class="tut-thumb"><svg class="ic"><use href="#i-${["split", "merge", "atom", "target"][n]}"/></svg></span>
-      <span class="tut-meta"><b>${n + 1}. ${l.title}</b><small>${l.kicker} · 0:${String(Math.round((l.frames.length * FRAME_MS) / 1000)).padStart(2, "0")}</small></span>
+      <span class="tut-meta"><b>${n + 1}. ${l.title}</b><small>${l.kicker}</small><small><em>0:${String(Math.round((l.frames.length * FRAME_MS) / 1000)).padStart(2, "0")}</em></small></span>
     </button>`).join("");
   wrap.querySelectorAll(".tut-item").forEach((el) => el.addEventListener("click", () => load(lessons.find((l) => l.id === el.dataset.id), true)));
   $q(".tut-play").addEventListener("click", () => {

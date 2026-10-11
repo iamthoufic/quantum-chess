@@ -113,7 +113,33 @@ function openPuzzle(pz) {
   $("pzShow").disabled = false;
   updateProgress();
   renderPuzzle();
+  fitPuzzleBoard();
 }
+
+/**
+ * Size the board so its column is exactly as tall as the panel. The panel is
+ * measured once per puzzle with its longest message (the solved card), so the
+ * board doesn't jump when feedback appears.
+ */
+function fitPuzzleBoard() {
+  const layout = document.querySelector(".pz-layout"), panel = document.querySelector(".pz-panel"), fb = $("pzFeedback");
+  if (!layout || !panel || !panel.offsetParent || !PZ.pz) return;
+  layout.style.removeProperty("--sq");
+  panel.style.minHeight = "";
+  if (innerWidth <= 760) return;
+  const saved = [fb.className, fb.innerHTML];
+  fb.className = "pz-feedback good";
+  fb.innerHTML = card({ badge: "Solved", value: "100%", label: "chance to win", move: "Knight b1 × c3",
+    why: PZ.pz.lesson, roll: "measured a3: knight present · captured the black king on e5" });
+  const h = panel.getBoundingClientRect().height;
+  fb.className = saved[0];
+  fb.innerHTML = saved[1];
+  const bar = 52 + 8;                                   // player bar + gap above the board
+  const sq = Math.max(70, Math.min(124, (h - bar) / 5));
+  layout.style.setProperty("--sq", sq + "px");
+  panel.style.minHeight = sq * 5 + bar + "px";
+}
+window.addEventListener("resize", () => fitPuzzleBoard());
 
 function openEndless() {
   showFeedback("hint", card({ badge: "Endless", body: "Generating a position…" }));

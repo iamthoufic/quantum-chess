@@ -1,4 +1,4 @@
-// Content pages: the illustrated manual and the "Classical vs Quantum" blog post.
+// Content pages: the illustrated manual and the blog (an article list plus the articles).
 // Uses buildBoard / barChart / lineChart from app.js and the QC engine from engine.js.
 "use strict";
 
@@ -77,7 +77,7 @@ function buildManual(root) {
   }));
 
   let s = section(root, `
-    <h2 id="m-goal"><span class="secno">01</span>Goal and board</h2>
+    <h2 id="m-goal">Goal and board</h2>
     <p><b>Capture the enemy king.</b> There is no check or checkmate: a king that might be in two places
     can't be "in check" in any meaningful way, so you simply have to take it, and a capture of a "maybe" king
     only succeeds if a measurement finds it there.</p>
@@ -86,7 +86,7 @@ function buildManual(root) {
   s.appendChild(figure({ pieces: START, n: "Figure 1.", caption: "Starting position. White plays up the board." }));
 
   section(root, `
-    <h2 id="m-pieces"><span class="secno">02</span>The pieces</h2>
+    <h2 id="m-pieces">The pieces</h2>
     <table class="rules-table">
       <tr><th>Piece</th><th>Moves like</th><th>Quantum abilities</th></tr>
       <tr><td>${img("wK")} King</td><td>One square in any direction</td><td>Split, merge. Must be found by a measurement to be captured.</td></tr>
@@ -100,7 +100,7 @@ function buildManual(root) {
     (and the thin bar along the bottom of its square) is the probability that it is really on that square. The two halves of a split piece always add up to 100%.</p>`);
 
   s = section(root, `
-    <h2 id="m-turn"><span class="secno">03</span>Your turn: one action</h2>
+    <h2 id="m-turn">Your turn: one action</h2>
     <p>Each turn you do exactly one of these. Choose the type with the <b>Move / Split / Merge</b> buttons
     (or keys <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>).</p>
     <ul class="ticks">
@@ -114,10 +114,10 @@ function buildManual(root) {
     n: "Figure 2.", caption: "Knight on c3 selected: dots are empty squares, rings are captures." }));
 
   s = section(root, `
-    <h2 id="m-split"><span class="secno">04</span>Split: superposition</h2>
+    <h2 id="m-split">Split: superposition</h2>
     <p>Choose <b>Split</b>, click a non-pawn piece, then click <b>two empty squares</b> it could reach
     (dashed cyan circles). The piece now stands on both squares with 50% probability each.</p>
-    <p class="qbox"><b>Under the hood:</b> the piece's qubit is |1⟩. A <code>√iSWAP</code> with the first target
+    <p class="qbox"><b>Under the hood:</b> the piece's qubit is |1⟩. An <code>iSWAP<sup>1/2</sup></code> (square root of iSWAP) with the first target
     sends half the amplitude there; an <code>iSWAP</code> with the second target sends the rest.
     The state is <code>i(|a3⟩ + |c3⟩)/√2</code>.</p>`);
   s.appendChild(figRow(
@@ -126,21 +126,21 @@ function buildManual(root) {
   ));
 
   s = section(root, `
-    <h2 id="m-merge"><span class="secno">05</span>Merge: interference</h2>
+    <h2 id="m-merge">Merge: interference</h2>
     <p>Choose <b>Merge</b>, click one half of a split piece, click its other half (outlined), then click an
     empty square both halves can reach. The halves recombine there.</p>
     <p>If the two halves still have the phases a split gave them, the merge is <b>certain (100%)</b>: the
     amplitudes add up on the target and cancel elsewhere. If one half has moved on its own since, the phases
     differ and the merge may leave some probability behind. That is real quantum interference, and you can
     use it.</p>
-    <p class="qbox"><b>Under the hood:</b> the split run backwards, <code>iSWAP†</code> then <code>√iSWAP†</code>.</p>`);
+    <p class="qbox"><b>Under the hood:</b> the split run backwards, <code>iSWAP<sup>−1</sup></code> then <code>iSWAP<sup>−1/2</sup></code>.</p>`);
   s.appendChild(figRow(
     figure({ pieces: { ...START, b1: undefined, a3: ["wN", 0.5], c3: ["wN", 0.5] }, marks: { a3: "partner", c3: "partner", b1: "qdot" }, arrows: [["a3", "b1"], ["c3", "b1"]], n: "Figure 4a.", caption: "Merge both halves back onto b1." }),
     figure({ pieces: START, last: ["b1"], n: "Figure 4b.", caption: "Result: the knight is back on b1 with 100% certainty." }),
   ));
 
   s = section(root, `
-    <h2 id="m-entangle"><span class="secno">06</span>Sliding past a "maybe" piece: entanglement</h2>
+    <h2 id="m-entangle">Sliding past a "maybe" piece: entanglement</h2>
     <p>Rooks, bishops and queens may slide <b>through</b> a square that holds a piece in superposition. The
     move happens only in the branch where that square is empty, so your piece becomes <b>entangled</b> with it:
     if one is later measured, the other is decided too.</p>
@@ -152,7 +152,7 @@ function buildManual(root) {
   ));
 
   s = section(root, `
-    <h2 id="m-capture"><span class="secno">07</span>Captures are measurements</h2>
+    <h2 id="m-capture">Captures are measurements</h2>
     <p>When a capture involves anything uncertain, the engine measures in this order:</p>
     <ol class="steps">
       <li><b>The attacker's square.</b> If your piece isn't really there, the capture fizzles.</li>
@@ -168,7 +168,7 @@ function buildManual(root) {
   ));
 
   s = section(root, `
-    <h2 id="m-pawns"><span class="secno">08</span>Pawns</h2>
+    <h2 id="m-pawns">Pawns</h2>
     <ul class="ticks">
       <li>Pawns move one square forward (no double step) and capture one square diagonally forward.</li>
       <li>Pawns never split or merge.</li>
@@ -181,7 +181,7 @@ function buildManual(root) {
   ));
 
   section(root, `
-    <h2 id="m-end"><span class="secno">09</span>Winning, draws and the qubit budget</h2>
+    <h2 id="m-end">Winning, draws and the qubit budget</h2>
     <ul class="ticks">
       <li><b>Win</b> by capturing the enemy king.</li>
       <li><b>Draw</b> if the side to move has no legal action.</li>
@@ -191,7 +191,7 @@ function buildManual(root) {
     </ul>`);
 
   section(root, `
-    <h2 id="m-controls"><span class="secno">10</span>Controls</h2>
+    <h2 id="m-controls">Controls</h2>
     <table class="rules-table">
       <tr><th>Action</th><th>How</th></tr>
       <tr><td>Move / capture</td><td>Move mode: click a piece, then a dot or ring</td></tr>
@@ -203,7 +203,7 @@ function buildManual(root) {
     </table>`);
 
   section(root, `
-    <h2 id="m-fair"><span class="secno">11</span>Engines and fair play</h2>
+    <h2 id="m-fair">Engines and fair play</h2>
     <p>The quantum state is a full statevector simulation. The label at the top right shows which engine computes it:</p>
     <ul class="ticks">
       <li><b>Qiskit</b> (cyan dot): when the page is served by <code>uvicorn src.api:app</code>, every gate and measurement
@@ -229,13 +229,44 @@ function watchManualSections() {
 // ------------------------------------------------------------------ blog
 const NOISE = [[0, 1.0], [0.005, 0.847], [0.01, 0.724], [0.02, 0.531], [0.05, 0.245], [0.1, 0.144]];
 
-function buildBlog(root) {
+const ARTICLES = [
+  {
+    slug: "classical-vs-quantum", no: "01", author: "Mohamed Thoufic", date: "11 October 2026", read: "8 min read",
+    title: "Same board, different universe: classical vs quantum 5×5 chess",
+    titleHtml: "Same board, <em>different universe</em>: classical vs quantum 5×5 chess",
+    dek: "Gardner's 5×5 minichess is small enough that computers have solved it. What happens to such a tidy game when pieces are allowed to be in two places at once?",
+    tags: ["Quantum games", "Live experiments"],
+    build: buildClassicalVsQuantum,
+  },
+];
+
+function renderBlog(root, slug) {
+  const art = ARTICLES.find((a) => a.slug === slug);
+  if (!art) {
+    root.innerHTML = `
+      <p class="eyebrow">Blog</p>
+      <h1>Notes from building Quantum Chess</h1>
+      <p class="lede">Articles on the ideas behind the game: what quantum mechanics changes about chess, and what it costs.</p>
+      <div class="post-list">${ARTICLES.map((a) => `
+        <a class="post-card" href="#blog/${a.slug}">
+          <div class="post-meta"><span class="post-no">Article ${a.no}</span><span>${a.date}</span><span>${a.read}</span></div>
+          <h2 class="post-title">${a.titleHtml}</h2>
+          <p class="post-dek">${a.dek}</p>
+          <div class="post-foot"><span class="av">MT</span><span>Published by <b>${a.author}</b></span><span class="post-read">Read article <svg class="ic"><use href="#i-arrow"/></svg></span></div>
+        </a>`).join("")}
+      </div>`;
+    return;
+  }
+  art.build(root, art);
+}
+
+function buildClassicalVsQuantum(root, art) {
   root.innerHTML = `
-    <p class="eyebrow">Field notes · Qiskit Fall Fest 2026</p>
-    <h1>Same board, <em>different universe</em>: classical vs quantum 5×5 chess</h1>
-    <p class="lede">Gardner's 5×5 minichess is small enough that computers have solved it. What happens to
-    such a tidy game when pieces are allowed to be in two places at once?</p>
-    <div class="byline"><span class="av">MT</span><div><b>Mohamed Thoufic</b><span>11 October 2026 · 8 min read · experiments run in your browser</span></div></div>
+    <a class="back-link" href="#blog"><svg class="ic"><use href="#i-prev"/></svg>All articles</a>
+    <p class="eyebrow">Article ${art.no} · ${art.tags.join(" · ")}</p>
+    <h1>${art.titleHtml}</h1>
+    <p class="lede">${art.dek}</p>
+    <div class="byline"><span class="av">MT</span><div><b>Published by ${art.author}</b><span>${art.date} · ${art.read} · experiments run in your browser</span></div></div>
 
     <h2>A small game with a big result</h2>
     <p>Martin Gardner introduced the 5×5 setup in 1969 as a pocket version of chess: one of each major piece

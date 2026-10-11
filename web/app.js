@@ -1,4 +1,4 @@
-// Quantum Chess 5x5: single-page app (Play, How to play, Classical vs Quantum, Settings).
+// Quantum Chess 5x5: single-page app (Play, How to play, Puzzles, Blog, Settings).
 // The quantum state is computed by the Qiskit server when it is running, otherwise
 // by the in-browser port in engine.js (window.QC).
 "use strict";
@@ -361,6 +361,13 @@ function showCircuit() {
 }
 
 // ================================================================== circuit drawing (in-browser engine)
+// engine gate names -> "iSWAP" with a real superscript exponent
+const GATE_EXP = { "iSWAP": "", "√iSWAP": "1/2", "iSWAP†": "−1", "√iSWAP†": "−1/2" };
+function gateLabel(name) {
+  const exp = GATE_EXP[name];
+  return exp ? `iSWAP<tspan dy="-6" font-size="9.5">${exp}</tspan>` : "iSWAP";
+}
+
 function circuitSVG(trace) {
   const wires = [];
   const touch = (s) => { if (!wires.includes(s)) wires.push(s); };
@@ -412,7 +419,7 @@ function circuitSVG(trace) {
           svg += `<circle cx="${cx}" cy="${y}" r="7" fill="#fff" stroke="#9f1853" stroke-width="2"/>`;
         });
         svg += `<rect x="${cx - W / 2 - 8}" y="${top - 17}" width="${W + 16}" height="${bot - top + 34}" fill="#9f1853"/>`;
-        svg += `<text x="${cx}" y="${(top + bot) / 2 + 5}" font-size="13" fill="#fff" text-anchor="middle">${c.gate}</text>`;
+        svg += `<text x="${cx}" y="${(top + bot) / 2 + 5}" font-size="13" fill="#fff" text-anchor="middle">${gateLabel(c.gate)}</text>`;
       }
     }
   });
@@ -446,14 +453,16 @@ function lineChart(points, { xLabel = "", yLabel = "", color = "#5fd4e8" } = {})
 
 // ================================================================== routing
 function route() {
-  const r = (location.hash || "#play").slice(1);
+  // "#blog/<slug>" opens one article; every other route is a single word
+  const [r, sub] = (location.hash || "#play").slice(1).split("/");
   const views = ["play", "manual", "puzzles", "blog"];
   const view = views.includes(r) ? r : "play";
   for (const v of views) $("view-" + v).classList.toggle("hidden", v !== view);
   document.querySelectorAll(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.route === view));
   if (view === "manual" && !$("manualBody").dataset.built) { buildManual($("manualBody")); $("manualBody").dataset.built = 1; }
-  if (view === "blog" && !$("blogBody").dataset.built) { buildBlog($("blogBody")); $("blogBody").dataset.built = 1; }
+  if (view === "blog") renderBlog($("blogBody"), sub);
   if (view === "puzzles" && !$("view-puzzles").dataset.built) { buildPuzzles($("view-puzzles")); $("view-puzzles").dataset.built = 1; }
+  if (view === "puzzles") fitPuzzleBoard();
   window.scrollTo(0, 0);
 }
 

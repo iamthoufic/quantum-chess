@@ -29,9 +29,10 @@ def _labelled(gate, label):
 
 
 ISWAP = iSwapGate(label="iSWAP")
-ISWAP_DG = _labelled(iSwapGate().inverse(), "iSWAP†")
-SQRT_ISWAP = _labelled(iSwapGate().power(0.5), "√iSWAP")
-SQRT_ISWAP_DG = _labelled(iSwapGate().power(-0.5), "√iSWAP†")
+# labels use matplotlib mathtext so drawings show a real exponent: iSWAP^(1/2), not "√iSWAP"
+ISWAP_DG = _labelled(iSwapGate().inverse(), r"$\mathrm{iSWAP}^{-1}$")
+SQRT_ISWAP = _labelled(iSwapGate().power(0.5), r"$\mathrm{iSWAP}^{1/2}$")
+SQRT_ISWAP_DG = _labelled(iSwapGate().power(-0.5), r"$\mathrm{iSWAP}^{-1/2}$")
 
 
 def controlled_iswap(n_controls: int):
