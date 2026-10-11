@@ -6,7 +6,7 @@
 <title>Quantum Chess 5×5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@600;700&display=swap">
 <link rel="stylesheet" href="style.css">
 <script>
   try {
@@ -178,13 +178,19 @@
       </div>
       <div class="bot-cards" id="botCards"></div>
       <div class="bots-options">
-        <div class="setup-group">
-          <span class="setup-label">You play</span>
-          <div class="segmented small"><button class="mode" data-side="w">White</button><button class="mode" data-side="b">Black</button></div>
+        <div class="opt-block">
+          <span class="setup-label">I play as</span>
+          <div class="pick-row">
+            <button class="pick" data-side="w" title="Play White: you move first"><img src="pieces/wK.svg" alt=""><span>White</span></button>
+            <button class="pick" data-side="b" title="Play Black: the bot moves first"><img src="pieces/bK.svg" alt=""><span>Black</span></button>
+          </div>
         </div>
-        <div class="setup-group">
+        <div class="opt-block">
           <span class="setup-label">Rules</span>
-          <div class="segmented small"><button class="mode" data-rules="quantum">Quantum</button><button class="mode" data-rules="classical" title="Same engine with split and merge switched off">Classical</button></div>
+          <div class="pick-row">
+            <button class="pick" data-rules="quantum" title="Split, merge and measured captures"><svg class="ic"><use href="#i-atom"/></svg><span>Quantum</span></button>
+            <button class="pick" data-rules="classical" title="Plain 5×5 chess with check and checkmate"><svg class="ic"><use href="#i-half"/></svg><span>Classical</span></button>
+          </div>
         </div>
       </div>
     </aside>

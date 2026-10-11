@@ -64,6 +64,9 @@ class Game:
             return out
         if piece.kind == PAWN:
             self._pawn_options(sq, piece, out)
+            if not self.quantum:
+                out["move"] = [t for t in out["move"] if not self._exposes_king(sq, t)]
+                out["capture"] = [t for t in out["capture"] if not self._exposes_king(sq, t)]
             return out
         for target, path in rays(piece.kind, sq):
             if any(self.definite(p) for p in path):
@@ -75,6 +78,10 @@ class Game:
                     out["split"].append(target)
             elif occupant.color != piece.color:
                 out["capture"].append(target)
+        if not self.quantum:
+            # classical rules: you may not leave your own king in check
+            out["move"] = [t for t in out["move"] if not self._exposes_king(sq, t)]
+            out["capture"] = [t for t in out["capture"] if not self._exposes_king(sq, t)]
         if not self.quantum or len(out["split"]) < 2:
             out["split"] = []
         if self.quantum:
@@ -104,6 +111,45 @@ class Game:
                 occupant = self.pieces.get(diag)
                 if occupant is not None and occupant.color != piece.color:
                     out["capture"].append(diag)
+
+    # ---- classical check rules (every piece is definite, so plain chess logic applies)
+    def attacked(self, sq: int, by: str) -> bool:
+        """Is `sq` attacked by a piece of colour `by`? Classical positions only."""
+        for s, p in self.pieces.items():
+            if p.color != by:
+                continue
+            if p.kind == PAWN:
+                step = 1 if by == WHITE else -1
+                f, r = file_of(s), rank_of(s) + step
+                if on_board(f, r) and abs(file_of(sq) - f) == 1 and rank_of(sq) == r:
+                    return True
+                continue
+            for t, path in rays(p.kind, s):
+                if t == sq and not any(q in self.pieces for q in path):
+                    return True
+        return False
+
+    def king_square(self, color: str):
+        return next((s for s, p in self.pieces.items() if p.color == color and p.kind == KING), None)
+
+    def in_check(self, color: str) -> bool:
+        """Classical rules only: is `color`'s king attacked?"""
+        if self.quantum:
+            return False
+        k = self.king_square(color)
+        return k is not None and self.attacked(k, other(color))
+
+    def _exposes_king(self, src: int, dst: int) -> bool:
+        """Would moving src -> dst leave the mover's own king in check?"""
+        saved = dict(self.pieces)
+        piece = self.pieces[src]
+        del self.pieces[src]
+        self.pieces[dst] = piece
+        try:
+            k = self.king_square(piece.color)
+            return k is not None and self.attacked(k, other(piece.color))
+        finally:
+            self.pieces = saved
 
     def has_any_move(self) -> bool:
         for sq, piece in list(self.pieces.items()):
@@ -293,7 +339,12 @@ class Game:
         elif self.quiet_plies >= 100:
             self.winner, self.end_reason = "draw", "50 moves each without a capture or a pawn move."
         elif not self.has_any_move():
-            self.winner, self.end_reason = "draw", "The side to move has no legal action."
+            if not self.quantum and self.in_check(self.turn):
+                self.winner, self.end_reason = other(self.turn), "Checkmate."
+            elif not self.quantum:
+                self.winner, self.end_reason = "draw", "Stalemate: no legal move and not in check."
+            else:
+                self.winner, self.end_reason = "draw", "The side to move has no legal action."
 
     # ------------------------------------------------------------------ replay
     def replay_entry(self, e: dict):

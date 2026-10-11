@@ -6,7 +6,7 @@
 <title>Quantum Chess 5×5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@600;700&display=swap">
 <style>
 /* ==========================================================================
    Quantum Chess 5×5 — design tokens
@@ -90,7 +90,7 @@ kbd { font: 600 11px var(--mono); color: var(--text-3); border: 1px solid var(--
   background: linear-gradient(145deg, #34313c, #1f1e23); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.09), 0 4px 12px -4px rgba(0, 0, 0, 0.6); }
 .mark img { width: 25px; height: 25px; filter: drop-shadow(-1.8px 0 0 rgba(95, 212, 232, 0.95)) drop-shadow(1.8px 0 0 rgba(255, 118, 184, 0.9)); transition: filter 0.25s; }
 .brand:hover .mark img { filter: drop-shadow(-2.6px 0 0 rgba(95, 212, 232, 0.95)) drop-shadow(2.6px 0 0 rgba(255, 118, 184, 0.9)); }
-.wordmark { font: 800 17px/1 var(--ui); letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 6px; }
+.wordmark { font: 700 15px/1 "Unbounded", var(--ui); letter-spacing: 0.01em; display: flex; align-items: baseline; gap: 6px; }
 .wordmark small { font: 700 11px var(--mono); color: var(--q-cyan); background: rgba(95, 212, 232, 0.1); padding: 2px 6px; border-radius: 5px; letter-spacing: 0.02em; }
 
 .nav { display: flex; gap: 2px; padding: 4px; background: var(--surface); border: 1px solid var(--hair); border-radius: 12px; }
@@ -224,7 +224,7 @@ body.no-anim .overlay, body.no-anim .overlay-card, body.no-anim .ov-crown::befor
   background: var(--surface); border: 1px solid var(--hair); border-radius: 16px; padding: 20px; box-shadow: var(--shadow);
 }
 .panel-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
-.kicker { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); }
+.kicker { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); white-space: nowrap; }
 .status { font: 400 30px/1.1 var(--display); margin-top: 3px; }
 .qmeter { width: 116px; }
 .qm-row { display: flex; justify-content: space-between; font: 600 11px var(--mono); color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
@@ -239,7 +239,7 @@ body.no-anim .overlay, body.no-anim .overlay-card, body.no-anim .ov-crown::befor
 .mode[data-mode="split"].active .ic, .mode[data-mode="merge"].active .ic { color: var(--q-cyan); }
 .mode kbd { margin-left: 2px; }
 .mode.active kbd { color: var(--text-2); }
-.hint { margin: -4px 0 0; font-size: 13.5px; color: var(--text-2); min-height: 20px; }
+.hint { margin: -4px 0 0; font-size: 13.5px; line-height: 1.45; color: var(--text-2); height: 40px; overflow: hidden; }
 
 .psec h4 { margin: 0 0 8px; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); }
 .empty { margin: 0; color: var(--text-3); font-size: 13.5px; }
@@ -287,10 +287,10 @@ body.no-anim .overlay, body.no-anim .overlay-card, body.no-anim .ov-crown::befor
 /* ---------- manual & blog ---------- */
 .doc { display: grid; grid-template-columns: 220px minmax(0, 720px); gap: 56px; justify-content: center; padding: 48px 24px 96px; }
 .doc.single { grid-template-columns: minmax(0, 720px); }
-.toc-side { position: sticky; top: 92px; align-self: start; }
+.toc-side { position: sticky; top: 92px; align-self: start; display: flex; flex-direction: column; height: calc(100vh - 92px - 120px); }
 .toc-side .toc-title { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); margin-bottom: 10px; }
-.toc { display: flex; flex-direction: column; border-left: 1px solid var(--hair-2); }
-.toc a { color: var(--text-3); text-decoration: none; font-size: 14px; font-weight: 600; padding: 6px 0 6px 14px; margin-left: -1px; border-left: 2px solid transparent; transition: color 0.15s; }
+.toc { display: flex; flex-direction: column; justify-content: space-between; flex: 1; max-height: 720px; border-left: 1px solid var(--hair-2); }
+.toc a { color: var(--text-3); text-decoration: none; font-size: 14px; font-weight: 600; padding: 5px 0 5px 14px; margin-left: -1px; border-left: 2px solid transparent; transition: color 0.15s, border-color 0.15s; }
 .toc a:hover { color: var(--text); }
 .toc a.active { color: var(--text); border-left-color: var(--q-cyan); }
 
@@ -667,8 +667,7 @@ body.no-anim .overlay, body.no-anim .overlay-card, body.no-anim .ov-crown::befor
 }
 
 /* author photo: cropped to the face, round, with a thin ring that lifts it off the dark page */
-.av { border-radius: 50%; object-fit: cover; flex: none; background: var(--raised);
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px rgba(255, 255, 255, 0.16), 0 6px 14px -6px rgba(0, 0, 0, 0.8); }
+.av { border-radius: 50%; object-fit: cover; flex: none; background: var(--raised); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25); }
 
 /* ==========================================================================
    Light appearance: warm paper tones, not stark white. Same structure as the
@@ -766,13 +765,13 @@ html[data-ui="light"] .tut-controls { background: var(--surface-2); }
 
 /* ---------- action tiles (Play / Bots panel) ---------- */
 .panel-actions.tiles { grid-template-columns: 1fr 1fr; gap: 8px; }
-.tile-btn { display: flex; align-items: center; gap: 10px; height: 50px; padding: 0 12px 0 10px; border-radius: 12px; text-align: left; background: var(--bg); box-shadow: inset 0 0 0 1px var(--hair); color: var(--text-2); transition: box-shadow 0.15s, background 0.15s, transform 0.08s; }
+.tile-btn { display: flex; align-items: center; gap: 11px; height: 58px; padding: 0 12px 0 10px; border-radius: 12px; text-align: left; background: var(--bg); box-shadow: inset 0 0 0 1px var(--hair); color: var(--text-2); transition: box-shadow 0.15s, background 0.15s, transform 0.08s; }
 .tile-btn:hover { box-shadow: inset 0 0 0 1px var(--hair-2); color: var(--text); }
 .tile-btn:active { transform: translateY(1px); }
 .tile-btn:disabled { opacity: 0.45; cursor: default; }
 .tile-ic { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; background: var(--raised); color: var(--text-2); flex: none; }
 .tile-ic .ic { width: 17px; height: 17px; }
-.tile-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.tile-text { display: flex; flex-direction: column; gap: 4px; line-height: 1.1; min-width: 0; }
 .tile-text b { font-size: 14px; color: var(--text); white-space: nowrap; }
 .tile-text small { font-size: 11.5px; color: var(--text-3); white-space: nowrap; }
 .tile-btn.primary { background: var(--go); box-shadow: 0 3px 0 var(--go-press); }
@@ -802,11 +801,16 @@ body[data-mode="bots"] .play-only, body[data-mode="play"] .bots-only { display: 
 .bot-go { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--text-3); flex: none; }
 .bot-card.active .bot-go { background: var(--go); color: #fff; }
 .bot-go .ic { width: 14px; height: 14px; }
-.bots-options { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--hair); border-radius: 12px; }
-.setup-group { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.bots-options { display: flex; flex-direction: column; gap: 12px; padding: 14px; background: var(--surface); border: 1px solid var(--hair); border-radius: 14px; }
+.opt-block { display: flex; flex-direction: column; gap: 7px; }
 .setup-label { font: 600 10.5px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); }
-.segmented.small { padding: 3px; }
-.segmented.small .mode { height: 30px; padding: 0 12px; font-size: 13px; }
+.pick-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pick { display: flex; align-items: center; justify-content: center; gap: 8px; height: 44px; border-radius: 10px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--hair); color: var(--text-2); font-weight: 700; font-size: 13.5px; transition: box-shadow 0.15s, color 0.15s; }
+.pick:hover { color: var(--text); box-shadow: inset 0 0 0 1px var(--hair-2); }
+.pick.active { color: var(--text); box-shadow: inset 0 0 0 2px var(--go); }
+.pick img { width: 26px; height: 26px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5)); }
+.pick .ic { width: 17px; height: 17px; }
+.pick.active .ic { color: var(--go); }
 #botsArena { padding: 0; align-items: stretch; }
 .bot-ic { width: 14px; height: 14px; vertical-align: -2px; margin-left: 4px; color: var(--go); }
 @media (max-width: 1100px) {
@@ -829,6 +833,10 @@ body[data-mode="bots"] .play-only, body[data-mode="play"] .bots-only { display: 
 .post-by b { color: var(--text); }
 .post-by small { color: var(--text-3); font-size: 12.5px; }
 @media (max-width: 760px) { .author-card { flex-direction: column; align-items: flex-start; } }
+
+/* classical rules: the king in check */
+.sq.in-check::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle, rgba(235, 97, 80, 0.95) 0, rgba(235, 97, 80, 0.55) 38%, rgba(235, 97, 80, 0) 72%); }
+html[data-ui="light"] .pick, html[data-ui="light"] .tile-btn:not(.primary) { background: #fff; }
 
 </style>
 <script>
@@ -1001,13 +1009,19 @@ body[data-mode="bots"] .play-only, body[data-mode="play"] .bots-only { display: 
       </div>
       <div class="bot-cards" id="botCards"></div>
       <div class="bots-options">
-        <div class="setup-group">
-          <span class="setup-label">You play</span>
-          <div class="segmented small"><button class="mode" data-side="w">White</button><button class="mode" data-side="b">Black</button></div>
+        <div class="opt-block">
+          <span class="setup-label">I play as</span>
+          <div class="pick-row">
+            <button class="pick" data-side="w" title="Play White: you move first"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgdmlld0JveD0iMCAwIDQ1IDQ1Ij48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMTEuNjNWNk0yMCA4aDUiLz48cGF0aCBmaWxsPSIjZmZmIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMjVzNC41LTcuNSAzLTEwLjVjMCAwLTEtMi41LTMtMi41cy0zIDIuNS0zIDIuNWMtMS41IDMgMyAxMC41IDMgMTAuNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xMS41IDM3YzUuNSAzLjUgMTUuNSAzLjUgMjEgMHYtN3M5LTQuNSA2LTEwLjVjLTQtNi41LTEzLjUtMy41LTE2IDRWMjd2LTMuNWMtMy41LTcuNS0xMy0xMC41LTE2LTQtMyA2IDUgMTAgNSAxMHoiLz48cGF0aCBkPSJNMTEuNSAzMGM1LjUtMyAxNS41LTMgMjEgMG0tMjEgMy41YzUuNS0zIDE1LjUtMyAyMSAwbS0yMSAzLjVjNS41LTMgMTUuNS0zIDIxIDAiLz48L2c+PC9zdmc+" alt=""><span>White</span></button>
+            <button class="pick" data-side="b" title="Play Black: the bot moves first"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgdmlld0JveD0iMCAwIDQ1IDQ1Ij48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMTEuNlY2Ii8+PHBhdGggZmlsbD0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIGQ9Ik0yMi41IDI1czQuNS03LjUgMy0xMC41YzAgMC0xLTIuNS0zLTIuNXMtMyAyLjUtMyAyLjVjLTEuNSAzIDMgMTAuNSAzIDEwLjUiLz48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMTEuNSAzN2EyMi4zIDIyLjMgMCAwIDAgMjEgMHYtN3M5LTQuNSA2LTEwLjVjLTQtNi41LTEzLjUtMy41LTE2IDRWMjd2LTMuNWMtMy41LTcuNS0xMy0xMC41LTE2LTQtMyA2IDUgMTAgNSAxMHoiLz48cGF0aCBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBkPSJNMjAgOGg1Ii8+PHBhdGggc3Ryb2tlPSIjZWNlY2VjIiBkPSJNMzIgMjkuNXM4LjUtNCA2LTkuN0MzNC4xIDE0IDI1IDE4IDIyLjUgMjQuNnYyLjEtMi4xQzIwIDE4IDkuOSAxNCA3IDE5LjljLTIuNSA1LjYgNC44IDkgNC44IDkiLz48cGF0aCBzdHJva2U9IiNlY2VjZWMiIGQ9Ik0xMS41IDMwYzUuNS0zIDE1LjUtMyAyMSAwbS0yMSAzLjVjNS41LTMgMTUuNS0zIDIxIDBtLTIxIDMuNWM1LjUtMyAxNS41LTMgMjEgMCIvPjwvZz48L3N2Zz4=" alt=""><span>Black</span></button>
+          </div>
         </div>
-        <div class="setup-group">
+        <div class="opt-block">
           <span class="setup-label">Rules</span>
-          <div class="segmented small"><button class="mode" data-rules="quantum">Quantum</button><button class="mode" data-rules="classical" title="Same engine with split and merge switched off">Classical</button></div>
+          <div class="pick-row">
+            <button class="pick" data-rules="quantum" title="Split, merge and measured captures"><svg class="ic"><use href="#i-atom"/></svg><span>Quantum</span></button>
+            <button class="pick" data-rules="classical" title="Plain 5×5 chess with check and checkmate"><svg class="ic"><use href="#i-half"/></svg><span>Classical</span></button>
+          </div>
         </div>
       </div>
     </aside>
@@ -1301,7 +1315,14 @@ body[data-mode="bots"] .play-only, body[data-mode="play"] .bots-only { display: 
       const out = { move: [], capture: [], split: [], merge: new Map() };
       const piece = this.pieces.get(sq);
       if (!piece || piece.color !== this.turn || this.winner) return out;
-      if (piece.kind === PAWN) { this.pawnOptions(sq, piece, out); return out; }
+      if (piece.kind === PAWN) {
+        this.pawnOptions(sq, piece, out);
+        if (!this.quantum) {
+          out.move = out.move.filter((t) => !this.exposesKing(sq, t));
+          out.capture = out.capture.filter((t) => !this.exposesKing(sq, t));
+        }
+        return out;
+      }
       for (const [t, path] of rays(piece.kind, sq)) {
         if (path.some((p) => this.definite(p))) continue;
         const occ = this.pieces.get(t);
@@ -1309,6 +1330,11 @@ body[data-mode="bots"] .play-only, body[data-mode="play"] .bots-only { display: 
           out.move.push(t);
           if (!path.some((p) => this.pieces.has(p))) out.split.push(t);
         } else if (occ.color !== piece.color) out.capture.push(t);
+      }
+      if (!this.quantum) {
+        // classical rules: you may not leave your own king in check
+        out.move = out.move.filter((t) => !this.exposesKing(sq, t));
+        out.capture = out.capture.filter((t) => !this.exposesKing(sq, t));
       }
       if (!this.quantum || out.split.length < 2) out.split = [];
       if (this.quantum) {
@@ -1341,6 +1367,34 @@ body[data-mode="bots"] .play-only, body[data-mode="play"] .bots-only { display: 
           if (occ && occ.color !== piece.color) out.capture.push(d);
         }
       }
+    }
+
+    // ---- classical check rules (every piece is definite, so plain chess logic applies)
+    attacked(sq, by) {
+      for (const [s, p] of this.pieces) {
+        if (p.color !== by) continue;
+        if (p.kind === PAWN) {
+          const step = by === WHITE ? 1 : -1, f = fileOf(s), r = rankOf(s) + step;
+          if (onBoard(f, r) && Math.abs(fileOf(sq) - f) === 1 && rankOf(sq) === r) return true;
+          continue;
+        }
+        for (const [t, path] of rays(p.kind, s)) if (t === sq && !path.some((q) => this.pieces.has(q))) return true;
+      }
+      return false;
+    }
+    kingSquare(color) { for (const [s, p] of this.pieces) if (p.color === color && p.kind === KING) return s; return null; }
+    inCheck(color) {
+      if (this.quantum) return false;
+      const k = this.kingSquare(color);
+      return k !== null && this.attacked(k, other(color));
+    }
+    exposesKing(src, dst) {
+      const saved = new Map(this.pieces), piece = this.pieces.get(src);
+      this.pieces.delete(src); this.pieces.set(dst, piece);
+      const k = this.kingSquare(piece.color);
+      const bad = k !== null && this.attacked(k, other(piece.color));
+      this.pieces = saved;
+      return bad;
     }
 
     hasAnyMove() {
@@ -1533,7 +1587,11 @@ body[data-mode="bots"] .play-only, body[data-mode="play"] .bots-only { display: 
     checkDraw() {
       if ([...this.pieces.values()].every((p) => p.kind === KING)) { this.winner = "draw"; this.endReason = "Only the two kings are left."; }
       else if (this.quietPlies >= 100) { this.winner = "draw"; this.endReason = "50 moves each without a capture or a pawn move."; }
-      else if (!this.hasAnyMove()) { this.winner = "draw"; this.endReason = "The side to move has no legal action."; }
+      else if (!this.hasAnyMove()) {
+        if (!this.quantum && this.inCheck(this.turn)) { this.winner = other(this.turn); this.endReason = "Checkmate."; }
+        else if (!this.quantum) { this.winner = "draw"; this.endReason = "Stalemate: no legal move and not in check."; }
+        else { this.winner = "draw"; this.endReason = "The side to move has no legal action."; }
+      }
     }
 
     // same JSON shape as the FastAPI /api/{gid} snapshot
@@ -1548,6 +1606,7 @@ body[data-mode="bots"] .play-only, body[data-mode="play"] .bots-only { display: 
       }
       return {
         id, turn: this.turn, winner: this.winner, end_reason: this.endReason, quantum: this.quantum, ply: this.ply,
+        check: this.inCheck(this.turn), check_sq: this.inCheck(this.turn) ? name(this.kingSquare(this.turn)) : null,
         qubits: this.q.numQubits, squares, log: this.log, has_circuit: this.lastTrace.length > 0,
         trace: this.lastTrace.map((t) => ({ ...t, sq: t.sq === undefined ? undefined : name(t.sq),
           squares: t.squares && t.squares.map(name), controls: t.controls && t.controls.map(name) })),
@@ -2557,13 +2616,21 @@ function buildManual(root) {
 
 function watchManualSections() {
   const links = [...document.querySelectorAll("#manualToc a")];
-  const spy = new IntersectionObserver((entries) => {
-    for (const en of entries) {
-      if (!en.isIntersecting) continue;
-      links.forEach((a) => a.classList.toggle("active", a.getAttribute("href") === "#" + en.target.id));
-    }
-  }, { rootMargin: "-20% 0px -70% 0px" });
-  document.querySelectorAll("#manualBody h2[id]").forEach((h) => spy.observe(h));
+  const heads = [...document.querySelectorAll("#manualBody h2[id]")];
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    if ($("view-manual").classList.contains("hidden")) return;
+    const line = innerHeight * 0.3;
+    let current = heads[0];
+    for (const h of heads) if (h.getBoundingClientRect().top <= line) current = h;
+    // at the very bottom the last sections can never reach the line: light the last one
+    if (scrollY + innerHeight >= document.documentElement.scrollHeight - 2) current = heads[heads.length - 1];
+    links.forEach((a) => a.classList.toggle("active", current && a.getAttribute("href") === "#" + current.id));
+  };
+  addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  addEventListener("resize", update);
+  update();
 }
 
 // ------------------------------------------------------------------ blog
@@ -2595,7 +2662,7 @@ function renderBlog(root, slug) {
       <p class="eyebrow">Blog</p>
       <h1>Notes from building Quantum Chess</h1>
       <p class="lede">Articles on the ideas behind the game: what quantum mechanics changes about chess, and what it costs.</p>
-      <div class="author-card">${authorPhoto("Mohamed Thoufic")}<div><span class="author-kicker">Written by</span><b>Mohamed Thoufic</b><span>Built Quantum Chess 5×5 solo in 24 hours for Qiskit Fall Fest 2026, IIIT Kottayam.</span></div></div>
+
       <div class="post-list">${ARTICLES.map((a) => `
         <a class="post-card" href="#blog/${a.slug}">
           <div class="post-meta"><span class="post-no">Article ${a.no}</span><span>${a.date}</span><span>${a.read}</span></div>
@@ -3256,6 +3323,7 @@ function applySettings() {
   document.body.dataset.mode = S.mode;
   document.querySelectorAll("[data-side]").forEach((el) => el.classList.toggle("active", el.dataset.side === settings.side));
   document.querySelectorAll("[data-rules]").forEach((el) => el.classList.toggle("active", el.dataset.rules === settings.rules));
+  if (S.state && S.state.check) $("status").textContent += " · Check";
 
   if (S.state) render();
 }
@@ -3409,6 +3477,7 @@ async function play(kind, src, dst, extra = null) {
   const last = S.state.log[S.state.log.length - 1];
   flashMeasured(last);
   if (last && last.events.length) toast(last.events[last.events.length - 1]);
+  else if (S.state.check && !S.state.winner) toast("Check!");
   showCircuit();
   maybeBotMove();
 }
@@ -3537,6 +3606,7 @@ function render() {
     badges: settings.badges, last: last ? [last.from, last.to, last.extra].filter(Boolean) : [], onClick: onSquare,
   });
   board.id = "board";
+  if (S.state.check_sq) board.querySelector(`.sq[data-sq="${S.state.check_sq}"]`).classList.add("in-check");
   $("board").replaceWith(board);
   renderPanel();
 }
@@ -3568,7 +3638,7 @@ function renderPanel() {
   const whiteBottom = !boardFlipped();
   $("barBottom").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "w" : "b"));
   $("barTop").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "b" : "w"));
-  $("modeTag").textContent = `${st.quantum ? "Quantum game" : "Classical baseline"} · move ${Math.floor(st.ply / 2) + 1}`;
+  $("modeTag").textContent = `${st.quantum ? "Quantum" : "Classical"} · move ${Math.floor(st.ply / 2) + 1}`;
   $("hint").textContent = hintText();
   renderMoves();
   renderCaptured(whiteBottom);
@@ -3595,6 +3665,7 @@ function renderPanel() {
 function hintText() {
   if (S.state.winner) return "Game over.";
   if (BOT.thinking) return "";
+  if (S.state.check) return `${sideName(S.state.turn) === "You" ? "Your" : sideName(S.state.turn) + "'s"} king is in check.`;
   if (isBotTurn()) return `${botLevel().name} to move.`;
   if (S.moveMode === "move") return S.sel ? "Click a dot to move, a ring to capture (captures measure the board)." : "Select a piece to see where it can go.";
   if (S.moveMode === "split") return S.sel ? `Pick two empty squares (${S.picks.length}/2). The piece ends up on both, 50% each.` : "Select a non-pawn piece to split it across two squares.";

@@ -228,7 +228,14 @@
       const out = { move: [], capture: [], split: [], merge: new Map() };
       const piece = this.pieces.get(sq);
       if (!piece || piece.color !== this.turn || this.winner) return out;
-      if (piece.kind === PAWN) { this.pawnOptions(sq, piece, out); return out; }
+      if (piece.kind === PAWN) {
+        this.pawnOptions(sq, piece, out);
+        if (!this.quantum) {
+          out.move = out.move.filter((t) => !this.exposesKing(sq, t));
+          out.capture = out.capture.filter((t) => !this.exposesKing(sq, t));
+        }
+        return out;
+      }
       for (const [t, path] of rays(piece.kind, sq)) {
         if (path.some((p) => this.definite(p))) continue;
         const occ = this.pieces.get(t);
@@ -236,6 +243,11 @@
           out.move.push(t);
           if (!path.some((p) => this.pieces.has(p))) out.split.push(t);
         } else if (occ.color !== piece.color) out.capture.push(t);
+      }
+      if (!this.quantum) {
+        // classical rules: you may not leave your own king in check
+        out.move = out.move.filter((t) => !this.exposesKing(sq, t));
+        out.capture = out.capture.filter((t) => !this.exposesKing(sq, t));
       }
       if (!this.quantum || out.split.length < 2) out.split = [];
       if (this.quantum) {
@@ -268,6 +280,34 @@
           if (occ && occ.color !== piece.color) out.capture.push(d);
         }
       }
+    }
+
+    // ---- classical check rules (every piece is definite, so plain chess logic applies)
+    attacked(sq, by) {
+      for (const [s, p] of this.pieces) {
+        if (p.color !== by) continue;
+        if (p.kind === PAWN) {
+          const step = by === WHITE ? 1 : -1, f = fileOf(s), r = rankOf(s) + step;
+          if (onBoard(f, r) && Math.abs(fileOf(sq) - f) === 1 && rankOf(sq) === r) return true;
+          continue;
+        }
+        for (const [t, path] of rays(p.kind, s)) if (t === sq && !path.some((q) => this.pieces.has(q))) return true;
+      }
+      return false;
+    }
+    kingSquare(color) { for (const [s, p] of this.pieces) if (p.color === color && p.kind === KING) return s; return null; }
+    inCheck(color) {
+      if (this.quantum) return false;
+      const k = this.kingSquare(color);
+      return k !== null && this.attacked(k, other(color));
+    }
+    exposesKing(src, dst) {
+      const saved = new Map(this.pieces), piece = this.pieces.get(src);
+      this.pieces.delete(src); this.pieces.set(dst, piece);
+      const k = this.kingSquare(piece.color);
+      const bad = k !== null && this.attacked(k, other(piece.color));
+      this.pieces = saved;
+      return bad;
     }
 
     hasAnyMove() {
@@ -460,7 +500,11 @@
     checkDraw() {
       if ([...this.pieces.values()].every((p) => p.kind === KING)) { this.winner = "draw"; this.endReason = "Only the two kings are left."; }
       else if (this.quietPlies >= 100) { this.winner = "draw"; this.endReason = "50 moves each without a capture or a pawn move."; }
-      else if (!this.hasAnyMove()) { this.winner = "draw"; this.endReason = "The side to move has no legal action."; }
+      else if (!this.hasAnyMove()) {
+        if (!this.quantum && this.inCheck(this.turn)) { this.winner = other(this.turn); this.endReason = "Checkmate."; }
+        else if (!this.quantum) { this.winner = "draw"; this.endReason = "Stalemate: no legal move and not in check."; }
+        else { this.winner = "draw"; this.endReason = "The side to move has no legal action."; }
+      }
     }
 
     // same JSON shape as the FastAPI /api/{gid} snapshot
@@ -475,6 +519,7 @@
       }
       return {
         id, turn: this.turn, winner: this.winner, end_reason: this.endReason, quantum: this.quantum, ply: this.ply,
+        check: this.inCheck(this.turn), check_sq: this.inCheck(this.turn) ? name(this.kingSquare(this.turn)) : null,
         qubits: this.q.numQubits, squares, log: this.log, has_circuit: this.lastTrace.length > 0,
         trace: this.lastTrace.map((t) => ({ ...t, sq: t.sq === undefined ? undefined : name(t.sq),
           squares: t.squares && t.squares.map(name), controls: t.controls && t.controls.map(name) })),

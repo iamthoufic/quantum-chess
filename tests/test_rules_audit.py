@@ -15,7 +15,9 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from qchess import Game, IllegalMove  # noqa: E402
+from qchess import Game, IllegalMove, parse  # noqa: E402
+
+S = parse
 from qchess.quantum import MAX_QUBITS  # noqa: E402
 
 DIRS = {
@@ -61,6 +63,33 @@ def reference_moves(board, sq):
     return out
 
 
+def reference_attacked(board, sq, by):
+    """Is sq attacked by colour `by`? Written from the rules, independently of the engine."""
+    for s, (c, k) in board.items():
+        if c != by:
+            continue
+        if k == "P":
+            step = 1 if by == "w" else -1
+            if sq // 5 == s // 5 + step and abs(sq % 5 - s % 5) == 1:
+                return True
+        elif sq in reference_moves(board, s):
+            return True
+    return False
+
+
+def reference_legal(board, sq):
+    """Pseudo-legal moves minus those that leave the mover's own king in check."""
+    color = board[sq][0]
+    out = set()
+    for t in reference_moves(board, sq):
+        b2 = dict(board)
+        b2[t] = b2.pop(sq)
+        king = next((s for s, (c, k) in b2.items() if c == color and k == "K"), None)
+        if king is None or not reference_attacked(b2, king, "b" if color == "w" else "w"):
+            out.add(t)
+    return out
+
+
 def test_classical_moves_match_an_independent_generator():
     checked = 0
     for seed in range(300):
@@ -76,7 +105,7 @@ def test_classical_moves_match_an_independent_generator():
                     continue
                 o = g.options(sq)
                 engine = set(o["move"]) | set(o["capture"])
-                assert engine == reference_moves(board, sq), (seed, g.ply, sq)
+                assert engine == reference_legal(board, sq), (seed, g.ply, sq)
                 legal += [(sq, t) for t in engine]
                 checked += 1
             src, dst = legal[rng.integers(len(legal))]
@@ -175,9 +204,9 @@ def test_wrong_side_and_finished_game_are_refused():
         g2.move(5, 10)
 
 
-def bare_game(pieces, turn="w"):
+def bare_game(pieces, turn="w", quantum=True):
     from qchess.board import Piece
-    g = Game(seed=0)
+    g = Game(seed=0, quantum=quantum)
     g.pieces = {sq: Piece(f"{c}{k}{sq}", c, k) for sq, (c, k) in pieces.items()}
     g.turn = turn
     return g
@@ -206,3 +235,37 @@ def test_capture_resets_the_fifty_move_clock():
     assert g.quiet_plies == 2
     g.move(4, 14)         # rook takes the pawn on e3
     assert g.quiet_plies == 0
+
+
+# ---------------------------------------------------------------- classical check rules
+def test_classical_checkmate():
+    # white: K c3, Q b2; black: K a5. Qb2-b4 attacks a5 and covers a4 and b5: mate
+    g = bare_game({S("c3"): ("w", "K"), S("b2"): ("w", "Q"), S("a5"): ("b", "K")}, quantum=False)
+    g.move(S("b2"), S("b4"))
+    assert g.winner == "w" and g.end_reason == "Checkmate."
+
+
+def test_classical_stalemate():
+    # white: K e1, Q c2; black: K a5. Qc2-c4 covers a4, b4 and b5 but not a5: stalemate
+    g = bare_game({S("e1"): ("w", "K"), S("c2"): ("w", "Q"), S("a5"): ("b", "K")}, quantum=False)
+    g.move(S("c2"), S("c4"))
+    assert g.winner == "draw" and "Stalemate" in g.end_reason
+
+
+def test_classical_cannot_leave_king_in_check():
+    # black rook on a1 pins nothing yet; the white king on e1 is attacked along the rank by Ra1
+    g = bare_game({S("e1"): ("w", "K"), S("d2"): ("w", "N"), S("a1"): ("b", "R"), S("e5"): ("b", "K")}, quantum=False)
+    assert g.in_check("w")
+    o = g.options(S("d2"))
+    assert o["move"] == [S("b1")] and o["capture"] == []     # the knight's only legal move blocks the check
+    king = g.options(S("e1"))
+    assert S("d1") not in king["move"]                        # still on the rook's rank
+    assert S("e2") in king["move"]
+    with pytest.raises(IllegalMove):
+        g.move(S("d2"), S("b3"))
+
+
+def test_quantum_mode_keeps_king_capture():
+    g = bare_game({S("e1"): ("w", "K"), S("d2"): ("w", "N"), S("a1"): ("b", "R"), S("e5"): ("b", "K")}, quantum=True)
+    assert not g.in_check("w")
+    assert S("b3") in g.options(S("d2"))["move"]              # allowed: no check rule in quantum play

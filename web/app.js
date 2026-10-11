@@ -63,6 +63,7 @@ function applySettings() {
   document.body.dataset.mode = S.mode;
   document.querySelectorAll("[data-side]").forEach((el) => el.classList.toggle("active", el.dataset.side === settings.side));
   document.querySelectorAll("[data-rules]").forEach((el) => el.classList.toggle("active", el.dataset.rules === settings.rules));
+  if (S.state && S.state.check) $("status").textContent += " · Check";
 
   if (S.state) render();
 }
@@ -216,6 +217,7 @@ async function play(kind, src, dst, extra = null) {
   const last = S.state.log[S.state.log.length - 1];
   flashMeasured(last);
   if (last && last.events.length) toast(last.events[last.events.length - 1]);
+  else if (S.state.check && !S.state.winner) toast("Check!");
   showCircuit();
   maybeBotMove();
 }
@@ -344,6 +346,7 @@ function render() {
     badges: settings.badges, last: last ? [last.from, last.to, last.extra].filter(Boolean) : [], onClick: onSquare,
   });
   board.id = "board";
+  if (S.state.check_sq) board.querySelector(`.sq[data-sq="${S.state.check_sq}"]`).classList.add("in-check");
   $("board").replaceWith(board);
   renderPanel();
 }
@@ -375,7 +378,7 @@ function renderPanel() {
   const whiteBottom = !boardFlipped();
   $("barBottom").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "w" : "b"));
   $("barTop").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "b" : "w"));
-  $("modeTag").textContent = `${st.quantum ? "Quantum game" : "Classical baseline"} · move ${Math.floor(st.ply / 2) + 1}`;
+  $("modeTag").textContent = `${st.quantum ? "Quantum" : "Classical"} · move ${Math.floor(st.ply / 2) + 1}`;
   $("hint").textContent = hintText();
   renderMoves();
   renderCaptured(whiteBottom);
@@ -402,6 +405,7 @@ function renderPanel() {
 function hintText() {
   if (S.state.winner) return "Game over.";
   if (BOT.thinking) return "";
+  if (S.state.check) return `${sideName(S.state.turn) === "You" ? "Your" : sideName(S.state.turn) + "'s"} king is in check.`;
   if (isBotTurn()) return `${botLevel().name} to move.`;
   if (S.moveMode === "move") return S.sel ? "Click a dot to move, a ring to capture (captures measure the board)." : "Select a piece to see where it can go.";
   if (S.moveMode === "split") return S.sel ? `Pick two empty squares (${S.picks.length}/2). The piece ends up on both, 50% each.` : "Select a non-pawn piece to split it across two squares.";

@@ -220,13 +220,21 @@ function buildManual(root) {
 
 function watchManualSections() {
   const links = [...document.querySelectorAll("#manualToc a")];
-  const spy = new IntersectionObserver((entries) => {
-    for (const en of entries) {
-      if (!en.isIntersecting) continue;
-      links.forEach((a) => a.classList.toggle("active", a.getAttribute("href") === "#" + en.target.id));
-    }
-  }, { rootMargin: "-20% 0px -70% 0px" });
-  document.querySelectorAll("#manualBody h2[id]").forEach((h) => spy.observe(h));
+  const heads = [...document.querySelectorAll("#manualBody h2[id]")];
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    if ($("view-manual").classList.contains("hidden")) return;
+    const line = innerHeight * 0.3;
+    let current = heads[0];
+    for (const h of heads) if (h.getBoundingClientRect().top <= line) current = h;
+    // at the very bottom the last sections can never reach the line: light the last one
+    if (scrollY + innerHeight >= document.documentElement.scrollHeight - 2) current = heads[heads.length - 1];
+    links.forEach((a) => a.classList.toggle("active", current && a.getAttribute("href") === "#" + current.id));
+  };
+  addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  addEventListener("resize", update);
+  update();
 }
 
 // ------------------------------------------------------------------ blog
@@ -258,7 +266,7 @@ function renderBlog(root, slug) {
       <p class="eyebrow">Blog</p>
       <h1>Notes from building Quantum Chess</h1>
       <p class="lede">Articles on the ideas behind the game: what quantum mechanics changes about chess, and what it costs.</p>
-      <div class="author-card">${authorPhoto("Mohamed Thoufic")}<div><span class="author-kicker">Written by</span><b>Mohamed Thoufic</b><span>Built Quantum Chess 5×5 solo in 24 hours for Qiskit Fall Fest 2026, IIIT Kottayam.</span></div></div>
+
       <div class="post-list">${ARTICLES.map((a) => `
         <a class="post-card" href="#blog/${a.slug}">
           <div class="post-meta"><span class="post-no">Article ${a.no}</span><span>${a.date}</span><span>${a.read}</span></div>

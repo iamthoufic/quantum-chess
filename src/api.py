@@ -88,6 +88,7 @@ def snapshot(gid: str, game: Game) -> dict:
         })
     return {
         "id": gid, "turn": game.turn, "winner": game.winner, "end_reason": game.end_reason, "quantum": game.quantum,
+        "check": game.in_check(game.turn), "check_sq": name(game.king_square(game.turn)) if game.in_check(game.turn) else None,
         "ply": game.ply, "qubits": game.q.num_qubits, "squares": squares,
         "log": game.log, "has_circuit": game.last_circuit is not None,
         "circuit_text": str(game.last_circuit.draw("text", fold=-1)) if game.last_circuit else "",
