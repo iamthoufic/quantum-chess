@@ -103,7 +103,8 @@ function openPuzzle(pz) {
   const black = pz.side === "b";
   $("pzSide").textContent = `${black ? "Black" : "White"} to move`;
   $("pzAvatar").className = "avatar " + (black ? "black" : "white");
-  showFeedback("", "");
+  showFeedback("idle", `<svg class="ic"><use href="#i-target"/></svg>Make your move on the board. Use Move, Split or Merge above.`);
+  setRetry(false);
   document.querySelectorAll(".pz-tile[data-id]").forEach((t) => {
     t.classList.toggle("active", t.dataset.id === pz.id);
     t.classList.toggle("solved", PZ.solved.has(t.dataset.id));
@@ -191,9 +192,8 @@ function submit(a) {
     document.querySelector(`.pz-tile[data-id="${PZ.pz.id}"]`)?.classList.add("solved");
     showFeedback("good", `<b>Solved.</b> ${text}: ${res.label} <b>${pct(res.value)}</b>.<p>${PZ.pz.lesson}</p>${happened}`);
   } else {
-    showFeedback("bad", `<b>${lucky ? "Lucky this time, but not quite." : "Not quite."}</b> ${text}: ${res.label} <b>${pct(res.value)}</b> (${target}).${happened}
-      <button class="btn ghost small" id="pzRetry"><svg class="ic"><use href="#i-reset"/></svg>Try again</button>`);
-    $("pzRetry").addEventListener("click", () => openPuzzle(PZ.pz));
+    showFeedback("bad", `<b>${lucky ? "Lucky this time, but not quite." : "Not quite."}</b> ${text}: ${res.label} <b>${pct(res.value)}</b> (${target}).${happened}`);
+    setRetry(true);
   }
 }
 
@@ -214,6 +214,13 @@ function showSolution() {
   renderPuzzle([], marks);
   const act = [ans[0], ...ans.slice(1).map(QC.parse)];
   showFeedback("hint", `<b>Solution.</b> ${actionText(act)}.<p>${pz.lesson}</p>`);
+}
+
+// after a wrong move the Reset button becomes the obvious next step
+function setRetry(on) {
+  const b = $("pzReset");
+  b.classList.toggle("retry", on);
+  b.innerHTML = `<svg class="ic"><use href="#i-reset"/></svg>${on ? "Try again" : "Reset"}`;
 }
 
 function showFeedback(kind, html) {

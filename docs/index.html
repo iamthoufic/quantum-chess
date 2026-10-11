@@ -428,9 +428,9 @@ body.no-anim .flash::after { animation: none; }
 .tut-kicker { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--q-cyan); }
 .article .tut-title { font: 400 28px/1.15 var(--display); margin: 0; color: var(--text); }
 .tut-caption { margin: 0; font-size: 15px; line-height: 1.6; min-height: 72px; }
-.tut-ket { display: flex; align-items: baseline; gap: 10px; background: var(--bg); border-radius: 10px; padding: 10px 12px; overflow-x: auto; }
+.tut-ket { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; background: var(--bg); border-radius: 10px; padding: 10px 12px; }
 .tut-ket span { font: 600 10.5px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); flex: none; }
-.tut-ket code { background: none; padding: 0; font-size: 14px; color: #bfeff7; white-space: nowrap; }
+.tut-ket code { background: none; padding: 0; font-size: 14px; color: #bfeff7; white-space: normal; overflow-wrap: anywhere; }
 .tut-circuit { background: #f6f5f2; border-radius: 10px; padding: 8px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
 .tut-circuit svg { width: 100%; height: auto; max-height: 170px; }
 .tut-circuit .empty { color: #6f6c66; font-size: 13px; }
@@ -472,21 +472,23 @@ body.no-anim .flash::after { animation: none; }
 .pz-tile.active { box-shadow: inset 0 0 0 2px var(--q-cyan); color: var(--text); }
 .pz-tile.endless .ic { width: 18px; height: 18px; }
 .pz-layout { padding: 22px 0 0; --sq: min(11.2vh, 92px); }
+.pz-panel { width: 400px; }
 .pz-panel header { padding-bottom: 2px; }
 .pz-task { margin: 0; color: var(--text); font-size: 15px; line-height: 1.6; }
 .pz-goal { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 10px; background: var(--bg); font-weight: 700; font-size: 14px; }
 .pz-goal span { font: 600 10.5px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--q-cyan); }
-.pz-feedback { flex: 1 1 0; min-height: 90px; overflow-y: auto; font-size: 14px; line-height: 1.55; color: var(--text-2); border-radius: 10px; padding: 0; }
-.pz-feedback:not(:empty) { padding: 12px 14px; background: var(--bg); }
+/* grows with its text: never a scrollbar */
+.pz-feedback { flex: none; font-size: 14px; line-height: 1.55; color: var(--text-2); border-radius: 10px; padding: 12px 14px; background: var(--bg); }
+.pz-feedback.idle { display: flex; align-items: center; gap: 10px; color: var(--text-3); background: none; border: 1px dashed var(--hair-2); }
 .pz-feedback.good { box-shadow: inset 3px 0 0 var(--go); }
 .pz-feedback.bad { box-shadow: inset 3px 0 0 #f0a35e; }
 .pz-feedback.hint { box-shadow: inset 3px 0 0 var(--q-cyan); }
 .pz-feedback b { color: var(--text); }
 .pz-feedback p { margin: 8px 0 0; }
 .pz-events { font-size: 12.5px; color: var(--text-3); }
-.pz-feedback .btn.small { height: 34px; font-size: 13px; padding: 0 12px; margin-top: 10px; }
 .pz-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: auto; }
 .pz-actions #pzNext { grid-column: 1 / -1; }
+.pz-actions #pzReset.retry { color: #f6c08f; box-shadow: inset 0 0 0 1px rgba(240, 163, 94, 0.6); background: rgba(240, 163, 94, 0.08); }
 .pz-actions .btn { padding: 0 8px; font-size: 13.5px; gap: 6px; }
 
 @media (max-width: 860px) {
@@ -500,7 +502,6 @@ body.no-anim .flash::after { animation: none; }
   .tut-stage { padding: 14px; }
   .puzzles { padding: 24px 20px 40px; }
   .pz-layout { --sq: calc((100vw - 40px) / 5); }
-  .pz-feedback { flex: none; }
 }
 
 </style>
@@ -2255,7 +2256,8 @@ function openPuzzle(pz) {
   const black = pz.side === "b";
   $("pzSide").textContent = `${black ? "Black" : "White"} to move`;
   $("pzAvatar").className = "avatar " + (black ? "black" : "white");
-  showFeedback("", "");
+  showFeedback("idle", `<svg class="ic"><use href="#i-target"/></svg>Make your move on the board. Use Move, Split or Merge above.`);
+  setRetry(false);
   document.querySelectorAll(".pz-tile[data-id]").forEach((t) => {
     t.classList.toggle("active", t.dataset.id === pz.id);
     t.classList.toggle("solved", PZ.solved.has(t.dataset.id));
@@ -2343,9 +2345,8 @@ function submit(a) {
     document.querySelector(`.pz-tile[data-id="${PZ.pz.id}"]`)?.classList.add("solved");
     showFeedback("good", `<b>Solved.</b> ${text}: ${res.label} <b>${pct(res.value)}</b>.<p>${PZ.pz.lesson}</p>${happened}`);
   } else {
-    showFeedback("bad", `<b>${lucky ? "Lucky this time, but not quite." : "Not quite."}</b> ${text}: ${res.label} <b>${pct(res.value)}</b> (${target}).${happened}
-      <button class="btn ghost small" id="pzRetry"><svg class="ic"><use href="#i-reset"/></svg>Try again</button>`);
-    $("pzRetry").addEventListener("click", () => openPuzzle(PZ.pz));
+    showFeedback("bad", `<b>${lucky ? "Lucky this time, but not quite." : "Not quite."}</b> ${text}: ${res.label} <b>${pct(res.value)}</b> (${target}).${happened}`);
+    setRetry(true);
   }
 }
 
@@ -2366,6 +2367,13 @@ function showSolution() {
   renderPuzzle([], marks);
   const act = [ans[0], ...ans.slice(1).map(QC.parse)];
   showFeedback("hint", `<b>Solution.</b> ${actionText(act)}.<p>${pz.lesson}</p>`);
+}
+
+// after a wrong move the Reset button becomes the obvious next step
+function setRetry(on) {
+  const b = $("pzReset");
+  b.classList.toggle("retry", on);
+  b.innerHTML = `<svg class="ic"><use href="#i-reset"/></svg>${on ? "Try again" : "Reset"}`;
 }
 
 function showFeedback(kind, html) {
