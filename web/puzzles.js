@@ -129,8 +129,20 @@ function fitPuzzleBoard() {
   panel.style.minHeight = "";
   panel.classList.remove("compact", "tight");
   if (innerWidth <= 760) return;
-  // height left for the page below the top bar (60px) and the page's own padding (2 x 20px)
-  const avail = innerHeight - 60 - 40 - 4;
+  // the board is sized exactly as on Play and Bots, so it never changes from puzzle to puzzle
+  const avail = innerHeight - 60 - 48 - 4;
+  const stacked = innerWidth <= 1180;                  // the puzzle list sits above the board
+  const above = stacked ? document.querySelector(".pz-side").getBoundingClientRect().height + 28 : 0;
+  const byHeight = (avail - above - 120) / 5;
+  const side = stacked ? 0 : 224 + 28;
+  const byWidth = (innerWidth - side - 400 - 28 - 48) / 5;
+  const sq = Math.max(64, Math.min(112, byHeight, byWidth));
+  layout.style.setProperty("--sq", sq + "px");
+  const bar = 52 + 8;                                   // player bar + gap above the board
+  const target = sq * 5 + bar;
+  panel.style.minHeight = target + "px";
+  // the panel is measured with its longest message (the solved card); if that would be taller
+  // than the board, its spacing tightens so the column keeps the board's height
   const measure = () => {
     const saved = [fb.className, fb.innerHTML];
     fb.className = "pz-feedback good";
@@ -142,18 +154,8 @@ function fitPuzzleBoard() {
     return height;
   };
   let h = measure();
-  if (h > avail) { panel.classList.add("compact"); h = measure(); }   // tighter spacing on short screens
-  if (h > avail) { panel.classList.add("tight"); h = measure(); }     // and tighter still on very short ones
-  const bar = 52 + 8;                                   // player bar + gap above the board
-  // the board also has to fit the window: below the top bar, and beside the list and the panel
-  const stacked = innerWidth <= 1180;                  // the puzzle list sits above the board
-  const above = stacked ? document.querySelector(".pz-side").getBoundingClientRect().height + 28 : 0;
-  const byHeight = (avail - above - bar) / 5;
-  const side = stacked ? 0 : 224 + 28;
-  const byWidth = (innerWidth - side - 400 - 28 - 48) / 5;
-  const sq = Math.max(64, Math.min(124, (h - bar) / 5, byHeight, byWidth));
-  layout.style.setProperty("--sq", sq + "px");
-  panel.style.minHeight = sq * 5 + bar + "px";
+  if (h > target + 1) { panel.classList.add("compact"); h = measure(); }
+  if (h > target + 1) { panel.classList.add("tight"); h = measure(); }
 }
 window.addEventListener("resize", () => fitPuzzleBoard());
 
