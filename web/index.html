@@ -69,6 +69,7 @@
     <a href="#play" data-route="play"><svg class="ic"><use href="#i-board"/></svg>Play</a>
     <a href="#manual" data-route="manual"><svg class="ic"><use href="#i-book"/></svg><span class="l">How to play</span><span class="s">Manual</span></a>
     <a href="#puzzles" data-route="puzzles"><svg class="ic"><use href="#i-puzzle"/></svg>Puzzles</a>
+    <a href="#bots" data-route="bots"><svg class="ic"><use href="#i-robot"/></svg>Bots</a>
     <a href="#blog" data-route="blog"><svg class="ic"><use href="#i-article"/></svg>Blog</a>
   </nav>
   <div class="top-actions">
@@ -79,22 +80,6 @@
 
 <!-- ============================================================ PLAY -->
 <main id="view-play" class="view layout">
-  <div class="setup" id="setup">
-    <div class="setup-group">
-      <span class="setup-label">Opponent</span>
-      <div class="opp-cards" id="oppCards"></div>
-    </div>
-    <div class="setup-group" id="sideGroup">
-      <span class="setup-label">You play</span>
-      <div class="segmented small"><button class="mode" data-side="w">White</button><button class="mode" data-side="b">Black</button></div>
-    </div>
-    <div class="setup-group">
-      <span class="setup-label">Rules</span>
-      <div class="segmented small"><button class="mode" data-rules="quantum">Quantum</button><button class="mode" data-rules="classical" title="Same engine with split and merge switched off: the classical baseline">Classical</button></div>
-    </div>
-    <button class="btn primary setup-new" id="newMatch"><svg class="ic"><use href="#i-plus"/></svg>New match</button>
-    <p class="setup-blurb" id="oppBlurb"></p>
-  </div>
   <section class="board-col">
     <div class="player-bar" id="barTop">
       <div class="avatar black"></div>
@@ -163,8 +148,10 @@
     </section>
 
     <footer class="panel-actions">
-      <button class="btn ghost" id="takeBack" title="Take back the last move"><svg class="ic"><use href="#i-undo"/></svg>Take back</button>
-      <button class="btn primary" id="panelNew"><svg class="ic"><use href="#i-plus"/></svg>New match</button>
+      <button class="btn primary play-only" id="newQuantum"><svg class="ic"><use href="#i-plus"/></svg>New game</button>
+      <button class="btn ghost play-only" id="newClassical" title="Same engine with split and merge switched off"><svg class="ic"><use href="#i-half"/></svg>Classical</button>
+      <button class="btn ghost bots-only" id="takeBack" title="Take back your last move (and the bot's reply)"><svg class="ic"><use href="#i-undo"/></svg>Take back</button>
+      <button class="btn primary bots-only" id="panelNew"><svg class="ic"><use href="#i-plus"/></svg>New match</button>
     </footer>
   </aside>
 </main>
@@ -179,6 +166,30 @@
 <main id="view-puzzles" class="view puzzles hidden"></main>
 
 <!-- ============================================================ BLOG -->
+<!-- ============================================================ BOTS -->
+<main id="view-bots" class="view botsview hidden">
+  <section class="bots-head">
+    <div class="bots-intro">
+      <p class="eyebrow">Play against the computer</p>
+      <h1>Choose your opponent</h1>
+      <p class="bots-sub">Each bot looks at every legal move and weighs every measurement outcome by its exact probability. Pick a level, a colour, and press play.</p>
+    </div>
+    <div class="bot-cards" id="botCards"></div>
+    <div class="bots-options">
+      <div class="setup-group">
+        <span class="setup-label">You play</span>
+        <div class="segmented small"><button class="mode" data-side="w">White</button><button class="mode" data-side="b">Black</button></div>
+      </div>
+      <div class="setup-group">
+        <span class="setup-label">Rules</span>
+        <div class="segmented small"><button class="mode" data-rules="quantum">Quantum</button><button class="mode" data-rules="classical" title="Same engine with split and merge switched off">Classical</button></div>
+      </div>
+      <button class="btn primary" id="newMatch"><svg class="ic"><use href="#i-play"/></svg>New match</button>
+    </div>
+  </section>
+  <div class="layout" id="botsArena"></div>
+</main>
+
 <main id="view-blog" class="view doc single hidden">
   <article class="article" id="blogBody"></article>
 </main>

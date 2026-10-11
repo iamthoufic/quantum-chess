@@ -15,11 +15,12 @@ const THEMES = [
   { id: "green", label: "Tournament", sub: "Classic green", light: "#ecedd1", dark: "#779657" },
 ];
 const DEFAULTS = { theme: "blue", ui: "dark", coords: true, badges: true, hints: true, anim: true, flip: false, engine: "auto", cview: "qiskit",
-  opponent: "human", side: "w", rules: "quantum" };
+  opponent: "heisenberg", side: "w", rules: "quantum" };
 
 // ---- match setup: who plays whom
-const botSide = () => (settings.opponent === "human" ? null : settings.side === "w" ? "b" : "w");
-const botLevel = () => QBOT.LEVELS.find((l) => l.id === settings.opponent) || null;
+// bots only play in the Bots section; the Play section is always two players
+const botLevel = () => (S.mode === "bots" ? QBOT.LEVELS.find((l) => l.id === settings.opponent) || QBOT.LEVELS[1] : null);
+const botSide = () => (botLevel() ? (settings.side === "w" ? "b" : "w") : null);
 const isBotTurn = () => !!(S.state && !S.state.winner && botSide() === S.state.turn);
 // the board is flipped by the Settings toggle, and also when you play Black against a bot
 const boardFlipped = () => settings.flip !== (botSide() !== null && settings.side === "b");
@@ -58,12 +59,11 @@ function applySettings() {
   $("nameBottom").innerHTML = label(bottom);
   document.querySelector("#barTop .avatar").className = "avatar " + (top === "w" ? "white" : "black");
   document.querySelector("#barBottom .avatar").className = "avatar " + (bottom === "w" ? "white" : "black");
-  document.querySelectorAll(".opp-card").forEach((el) => el.classList.toggle("active", el.dataset.opp === settings.opponent));
+  document.querySelectorAll(".bot-card").forEach((el) => el.classList.toggle("active", el.dataset.opp === settings.opponent));
+  document.body.dataset.mode = S.mode;
   document.querySelectorAll("[data-side]").forEach((el) => el.classList.toggle("active", el.dataset.side === settings.side));
   document.querySelectorAll("[data-rules]").forEach((el) => el.classList.toggle("active", el.dataset.rules === settings.rules));
-  $("sideGroup").classList.toggle("hidden", settings.opponent === "human");
-  const lvl = botLevel();
-  $("oppBlurb").textContent = lvl ? `${lvl.name} · ${lvl.tag}: ${lvl.blurb}` : "Two players at one board: White and Black take turns.";
+
   if (S.state) render();
 }
 
@@ -133,11 +133,11 @@ let qiskitVersion = null;
 async function chooseEngine() {
   qiskitVersion = await probeServer();
   const wantQiskit = settings.engine === "qiskit" || (settings.engine === "auto" && qiskitVersion);
-  if (wantQiskit && qiskitVersion) S.engine = new ServerEngine(qiskitVersion);
-  else {
-    S.engine = new LocalEngine();
-    if (settings.engine === "qiskit") toast("Qiskit server not found, so the in-browser engine is used. Start it with: uvicorn src.api:app");
-  }
+  const make = () => (wantQiskit && qiskitVersion ? new ServerEngine(qiskitVersion) : new LocalEngine());
+  S.engines = { play: make(), bots: make() };          // one game per section
+  S.states = { play: null, bots: null };
+  S.engine = S.engines[S.mode];
+  if (!(wantQiskit && qiskitVersion) && settings.engine === "qiskit") toast("Qiskit server not found, so the in-browser engine is used. Start it with: uvicorn src.api:app");
   const pill = $("enginePill");
   pill.innerHTML = `<span class="edot"></span><span>${S.engine.kind === "qiskit" ? S.engine.label : "In-browser engine"}</span>`;
   pill.classList.toggle("qiskit", S.engine.kind === "qiskit");
@@ -151,7 +151,8 @@ async function chooseEngine() {
 }
 
 // ================================================================== game state
-const S = { engine: null, state: null, mode: "move", sel: null, opts: null, picks: [], partner: null, busy: false };
+const S = { engine: null, state: null, mode: "play", moveMode: "move", sel: null, opts: null, picks: [], partner: null, busy: false,
+  engines: {}, states: { play: null, bots: null } };
 
 function toast(msg) {
   const t = $("toast");
@@ -163,7 +164,7 @@ function toast(msg) {
 
 async function newGame(quantum) {
   try {
-    S.state = await S.engine.newGame(quantum);
+    S.state = S.states[S.mode] = await S.engine.newGame(quantum);
   } catch (e) {
     toast("Engine error: " + e.message);
     return;
@@ -182,7 +183,7 @@ function clearSelection() { S.sel = null; S.opts = null; S.picks = []; S.partner
 
 function setMode(mode) {
   if (mode !== "move" && S.state && !S.state.quantum) { toast("Classical baseline: split and merge are switched off."); return; }
-  S.mode = mode;
+  S.moveMode = mode;
   clearSelection();
   document.querySelectorAll(".mode").forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
   render();
@@ -195,15 +196,15 @@ async function select(sq) {
   if (!info.piece || info.piece.color !== S.state.turn) { clearSelection(); render(); return; }
   S.sel = sq; S.picks = []; S.partner = null;
   S.opts = await S.engine.options(sq);
-  if (S.mode === "split" && S.opts.split.length < 2) toast("This piece has no two empty squares to split onto.");
-  if (S.mode === "merge" && Object.keys(S.opts.merge).length === 0) toast("Merge needs a piece that is split across two squares.");
+  if (S.moveMode === "split" && S.opts.split.length < 2) toast("This piece has no two empty squares to split onto.");
+  if (S.moveMode === "merge" && Object.keys(S.opts.merge).length === 0) toast("Merge needs a piece that is split across two squares.");
   render();
 }
 
 async function play(kind, src, dst, extra = null) {
   S.busy = true;
   try {
-    S.state = await S.engine.play(kind, src, dst, extra);
+    S.state = S.states[S.mode] = await S.engine.play(kind, src, dst, extra);
   } catch (e) {
     toast(e.message);
     S.busy = false;
@@ -246,7 +247,7 @@ async function maybeBotMove() {
 }
 
 function newMatch() {
-  newGame(settings.rules !== "classical").then(() => {
+  newGame(S.mode === "bots" ? settings.rules !== "classical" : true).then(() => {
     const lvl = botLevel();
     if (lvl) toast(`New match against ${lvl.name} (${lvl.tag}). You play ${settings.side === "w" ? "White" : "Black"}.`);
     maybeBotMove();
@@ -261,7 +262,7 @@ async function takeBack() {
   const plies = Math.min(S.state.log.length, bot && last.color === bot ? 2 : 1);
   S.busy = true;
   try {
-    S.state = await S.engine.undo(plies);
+    S.state = S.states[S.mode] = await S.engine.undo(plies);
   } catch (e) { toast(e.message); S.busy = false; return; }
   S.busy = false;
   clearSelection();
@@ -275,11 +276,11 @@ async function takeBack() {
 async function onSquare(sq) {
   if (S.busy || !S.state || S.state.winner || isBotTurn()) return;
   const o = S.opts;
-  if (S.mode === "move") {
+  if (S.moveMode === "move") {
     if (S.sel && o && (o.move.includes(sq) || o.capture.includes(sq))) return play("move", S.sel, sq);
     return select(sq);
   }
-  if (S.mode === "split") {
+  if (S.moveMode === "split") {
     if (S.sel && o && o.split.includes(sq) && !S.picks.includes(sq)) {
       S.picks.push(sq);
       if (S.picks.length === 2) return play("split", S.sel, S.picks[0], S.picks[1]);
@@ -350,10 +351,10 @@ function render() {
 function hintMap() {
   const m = {}, o = S.opts;
   if (!S.sel || !o) return m;
-  if (S.mode === "move") {
+  if (S.moveMode === "move") {
     o.move.forEach((s) => (m[s] = "dot"));
     o.capture.forEach((s) => (m[s] = "ring"));
-  } else if (S.mode === "split") {
+  } else if (S.moveMode === "split") {
     o.split.forEach((s) => (m[s] = S.picks.includes(s) ? "picked" : "qdot"));
   } else if (!S.partner) {
     Object.keys(o.merge).forEach((s) => (m[s] = "partner"));
@@ -402,8 +403,8 @@ function hintText() {
   if (S.state.winner) return "Game over.";
   if (BOT.thinking) return "";
   if (isBotTurn()) return `${botLevel().name} to move.`;
-  if (S.mode === "move") return S.sel ? "Click a dot to move, a ring to capture (captures measure the board)." : "Select a piece to see where it can go.";
-  if (S.mode === "split") return S.sel ? `Pick two empty squares (${S.picks.length}/2). The piece ends up on both, 50% each.` : "Select a non-pawn piece to split it across two squares.";
+  if (S.moveMode === "move") return S.sel ? "Click a dot to move, a ring to capture (captures measure the board)." : "Select a piece to see where it can go.";
+  if (S.moveMode === "split") return S.sel ? `Pick two empty squares (${S.picks.length}/2). The piece ends up on both, 50% each.` : "Select a non-pawn piece to split it across two squares.";
   if (!S.sel) return "Select one half of a split piece.";
   return S.partner ? "Pick the square where both halves should interfere." : "Now click its other half (outlined).";
 }
@@ -657,12 +658,34 @@ function lineChart(points, { xLabel = "", yLabel = "", color = "#5fd4e8" } = {})
 }
 
 // ================================================================== routing
+// The board and panel are one set of elements, shown in Play or in Bots; each section keeps its own game.
+function switchMode(mode) {
+  const host = mode === "bots" ? $("botsArena") : $("view-play");
+  if (!host.contains(document.querySelector(".board-col"))) {
+    host.appendChild(document.querySelector(".board-col"));
+    host.appendChild(document.querySelector(".panel"));
+  }
+  if (S.mode === mode && S.state) return;
+  S.mode = mode;
+  S.engine = S.engines[mode];
+  S.state = S.states[mode];
+  clearSelection();
+  BOT.thinking = false;
+  S.busy = false;
+  applySettings();
+  if (!S.state) { if (S.engine) newMatch(); return; }
+  render();
+  showCircuit();
+  maybeBotMove();
+}
+
 function route() {
   // "#blog/<slug>" opens one article; every other route is a single word
   const [r, sub] = (location.hash || "#play").slice(1).split("/");
-  const views = ["play", "manual", "puzzles", "blog"];
+  const views = ["play", "manual", "puzzles", "bots", "blog"];
   const view = views.includes(r) ? r : "play";
   for (const v of views) $("view-" + v).classList.toggle("hidden", v !== view);
+  if (view === "play" || view === "bots") switchMode(view);
   document.querySelectorAll(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.route === view));
   if (view === "manual" && !$("manualBody").dataset.built) { buildManual($("manualBody")); $("manualBody").dataset.built = 1; }
   if (view === "blog") renderBlog($("blogBody"), sub);
@@ -674,14 +697,24 @@ function route() {
 // ================================================================== wiring
 function wire() {
   document.querySelectorAll(".mode").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
+  $("newQuantum").addEventListener("click", () => newGame(true));
+  $("newClassical").addEventListener("click", () => newGame(false));
   $("newMatch").addEventListener("click", newMatch);
   $("panelNew").addEventListener("click", newMatch);
-  $("overlayNew").addEventListener("click", newMatch);
+  $("overlayNew").addEventListener("click", () => (S.mode === "bots" ? newMatch() : newGame(S.state ? S.state.quantum : true)));
   $("takeBack").addEventListener("click", takeBack);
-  $("oppCards").innerHTML = [{ id: "human", name: "Two players", tag: "Local", icon: "users" }]
-    .concat(QBOT.LEVELS.map((l) => ({ id: l.id, name: l.name, tag: l.tag, icon: "robot" })))
-    .map((o) => `<button class="opp-card" data-opp="${o.id}"><svg class="ic"><use href="#i-${o.icon}"/></svg><span><b>${o.name}</b><small>${o.tag}</small></span></button>`).join("");
-  document.querySelectorAll(".opp-card").forEach((b) => b.addEventListener("click", () => { settings.opponent = b.dataset.opp; saveSettings(); applySettings(); newMatch(); }));
+  $("botCards").innerHTML = QBOT.LEVELS.map((l, i) => `
+    <button class="bot-card" data-opp="${l.id}">
+      <span class="bot-badge"><svg class="ic"><use href="#i-robot"/></svg></span>
+      <span class="bot-level">Level ${i + 1} · ${l.tag}</span>
+      <b>${l.name}</b>
+      <p>${l.blurb}</p>
+      <span class="bot-cta"><svg class="ic"><use href="#i-play"/></svg>Play ${l.name}</span>
+    </button>`).join("");
+  document.querySelectorAll(".bot-card").forEach((b) => b.addEventListener("click", () => {
+    settings.opponent = b.dataset.opp; saveSettings(); applySettings(); newMatch();
+    $("botsArena").scrollIntoView({ behavior: "smooth", block: "start" });
+  }));
   document.querySelectorAll("[data-side]").forEach((b) => b.addEventListener("click", () => { settings.side = b.dataset.side; saveSettings(); applySettings(); newMatch(); }));
   document.querySelectorAll("[data-rules]").forEach((b) => b.addEventListener("click", () => { settings.rules = b.dataset.rules; saveSettings(); applySettings(); newMatch(); }));
   // close the result card to look at the final position; the panel still shows the result
