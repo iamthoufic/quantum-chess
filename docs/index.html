@@ -402,6 +402,107 @@ body.no-anim .flash::after { animation: none; }
   .rules-table td:first-child { white-space: normal; min-width: 96px; }
 }
 
+/* ---------- video tutorials ---------- */
+.tutorials { margin-bottom: 8px; }
+.tut { background: var(--surface); border: 1px solid var(--hair); border-radius: 16px; overflow: hidden; margin-top: 18px; box-shadow: var(--shadow); }
+.tut-stage { display: grid; grid-template-columns: auto 1fr; gap: 26px; padding: 22px; align-items: start; }
+.tut-boardwrap { position: relative; }
+.board.tut-b { --sq: min(12vw, 62px); }
+.board.tut-b .sq { cursor: default; }
+.board.tut-b .piece { transition: opacity 0.7s ease; }
+.board.tut-b .coord { font-size: 10px; }
+.board.tut-b .prob-num { font-size: 9.5px; line-height: 14px; }
+.tut-mark { position: absolute; inset: 0; pointer-events: none; }
+.tut-mark.qdot { inset: 34%; border-radius: 50%; border: 2.5px dashed var(--q-ink); background: rgba(95, 212, 232, 0.22); }
+.tut-mark.dot { inset: 36%; border-radius: 50%; background: rgba(0, 0, 0, 0.16); }
+.tut-mark.ring { inset: 4%; border-radius: 50%; border: 5px solid rgba(0, 0, 0, 0.16); }
+.tut-mark.partner { box-shadow: inset 0 0 0 3px var(--q-ink); }
+.tut-arrows { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.tut-arrow { animation: draw 0.6s ease-out both; }
+@keyframes draw { from { opacity: 0; } }
+.tut-big { position: absolute; inset: 0; margin: auto; width: 68px; height: 68px; border-radius: 50%; background: rgba(20, 20, 18, 0.72); color: #fff; display: grid; place-items: center; backdrop-filter: blur(3px); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); transition: opacity 0.2s, transform 0.2s; }
+.tut-big .ic { width: 28px; height: 28px; margin-left: 3px; }
+.tut-big:hover { transform: scale(1.06); }
+.tutorials.is-playing .tut-big { opacity: 0; pointer-events: none; }
+.tut-side { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.tut-kicker { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--q-cyan); }
+.article .tut-title { font: 400 28px/1.15 var(--display); margin: 0; color: var(--text); }
+.tut-caption { margin: 0; font-size: 15px; line-height: 1.6; min-height: 72px; }
+.tut-ket { display: flex; align-items: baseline; gap: 10px; background: var(--bg); border-radius: 10px; padding: 10px 12px; overflow-x: auto; }
+.tut-ket span { font: 600 10.5px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); flex: none; }
+.tut-ket code { background: none; padding: 0; font-size: 14px; color: #bfeff7; white-space: nowrap; }
+.tut-circuit { background: #f6f5f2; border-radius: 10px; padding: 8px; min-height: 60px; display: flex; align-items: center; justify-content: center; }
+.tut-circuit svg { width: 100%; height: auto; max-height: 170px; }
+.tut-circuit .empty { color: #6f6c66; font-size: 13px; }
+.tut-controls { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-top: 1px solid var(--hair); background: var(--bg); }
+.tut-btn { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 8px; color: var(--text-2); flex: none; }
+.tut-btn:hover { background: var(--surface-2); color: var(--text); }
+.tut-play { color: var(--text); }
+.tut-progress { flex: 1; display: flex; gap: 4px; margin: 0 8px; }
+.tut-progress .seg { flex: 1; height: 6px; padding: 0; border-radius: 3px; background: var(--raised); overflow: hidden; }
+.tut-progress .seg:hover { background: var(--hair-2); }
+.tut-progress .seg i { display: block; height: 100%; background: var(--q-cyan); }
+.tut-time { font: 600 12px var(--mono); color: var(--text-3); min-width: 82px; text-align: right; }
+.tut-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 12px 0 0; }
+.tut-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--hair); text-align: left; transition: box-shadow 0.15s; }
+.tut-item:hover { box-shadow: inset 0 0 0 1px var(--hair-2); }
+.tut-item.active { box-shadow: inset 0 0 0 2px var(--q-cyan); }
+.tut-thumb { width: 38px; height: 38px; border-radius: 9px; display: grid; place-items: center; background: var(--raised); color: var(--q-cyan); flex: none; }
+.tut-meta { display: flex; flex-direction: column; min-width: 0; }
+.tut-meta b { font-size: 14px; color: var(--text); }
+.tut-meta small { font: 500 11.5px var(--mono); color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- puzzles ---------- */
+.puzzles { padding: 36px 24px 56px; }
+.pz-head { max-width: 1060px; margin: 0 auto 18px; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; }
+.pz-head h1 { font: 400 48px/1 var(--display); margin: 6px 0 8px; }
+.pz-sub { margin: 0; color: var(--text-2); max-width: 620px; }
+.pz-progress { width: 150px; flex: none; }
+.pzp-num { font: 400 34px/1 var(--display); }
+.pzp-num b { font-weight: 400; color: var(--go); }
+.pzp-label { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); margin: 2px 0 8px; }
+.pz-progress .qm-bar i { background: var(--go); }
+.pz-strip { max-width: 1060px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 10px 28px; padding: 14px 18px; background: var(--surface); border: 1px solid var(--hair); border-radius: 14px; }
+.pz-group { display: flex; align-items: center; gap: 12px; }
+.pz-level { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); }
+.pz-tiles { display: flex; gap: 6px; }
+.pz-tile { width: 36px; height: 36px; border-radius: 9px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--hair-2); font: 700 14px var(--mono); color: var(--text-2); display: grid; place-items: center; position: relative; }
+.pz-tile:hover { color: var(--text); box-shadow: inset 0 0 0 1px var(--text-3); }
+.pz-tile.solved { background: rgba(129, 182, 76, 0.16); color: #b6dd8f; box-shadow: inset 0 0 0 1px rgba(129, 182, 76, 0.45); }
+.pz-tile.active { box-shadow: inset 0 0 0 2px var(--q-cyan); color: var(--text); }
+.pz-tile.endless .ic { width: 18px; height: 18px; }
+.pz-layout { padding: 22px 0 0; --sq: min(11.2vh, 92px); }
+.pz-panel header { padding-bottom: 2px; }
+.pz-task { margin: 0; color: var(--text); font-size: 15px; line-height: 1.6; }
+.pz-goal { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 10px; background: var(--bg); font-weight: 700; font-size: 14px; }
+.pz-goal span { font: 600 10.5px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--q-cyan); }
+.pz-feedback { flex: 1 1 0; min-height: 90px; overflow-y: auto; font-size: 14px; line-height: 1.55; color: var(--text-2); border-radius: 10px; padding: 0; }
+.pz-feedback:not(:empty) { padding: 12px 14px; background: var(--bg); }
+.pz-feedback.good { box-shadow: inset 3px 0 0 var(--go); }
+.pz-feedback.bad { box-shadow: inset 3px 0 0 #f0a35e; }
+.pz-feedback.hint { box-shadow: inset 3px 0 0 var(--q-cyan); }
+.pz-feedback b { color: var(--text); }
+.pz-feedback p { margin: 8px 0 0; }
+.pz-events { font-size: 12.5px; color: var(--text-3); }
+.pz-feedback .btn.small { height: 34px; font-size: 13px; padding: 0 12px; margin-top: 10px; }
+.pz-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: auto; }
+.pz-actions #pzNext { grid-column: 1 / -1; }
+.pz-actions .btn { padding: 0 8px; font-size: 13.5px; gap: 6px; }
+
+@media (max-width: 860px) {
+  .tut-stage { grid-template-columns: 1fr; justify-items: center; }
+  .tut-side { width: 100%; }
+  .tut-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pz-head { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 760px) {
+  .board.tut-b { --sq: calc((100vw - 84px) / 5); }
+  .tut-stage { padding: 14px; }
+  .puzzles { padding: 24px 20px 40px; }
+  .pz-layout { --sq: calc((100vw - 40px) / 5); }
+  .pz-feedback { flex: none; }
+}
+
 </style>
 </head>
 <body data-theme="blue">
@@ -429,7 +530,16 @@ body.no-anim .flash::after { animation: none; }
     <symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 3.5a8.5 8.5 0 1 0 0 17c1.1 0 1.7-.7 1.7-1.6 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.1 0-.9.7-1.6 1.6-1.6h1.9a4.8 4.8 0 0 0 4.8-4.8c0-3.7-3.8-6.7-9-6.7z"/><circle cx="7.6" cy="11.2" r="1.1" fill="currentColor" stroke="none"/><circle cx="10.4" cy="7.6" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.8" cy="7.9" r="1.1" fill="currentColor" stroke="none"/></symbol>
     <symbol id="i-half" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" stroke="none"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
-    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5.5v13M16 5.5v13" stroke-width="3"/></symbol>
+    <symbol id="i-prev" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-puzzle" viewBox="0 0 24 24"><path d="M10 4.5a2 2 0 1 1 4 0V6h4v4h-1.5a2 2 0 1 0 0 4H18v4h-4v-1.5a2 2 0 1 0-4 0V18H6v-4h1.5a2 2 0 1 0 0-4H6V6h4z"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3L4.5 9"/><path d="M4.5 4.5V9H9"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-dice" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="15" r="1.3" fill="currentColor" stroke="none"/></symbol>
   </defs>
 </svg>
 
@@ -441,6 +551,7 @@ body.no-anim .flash::after { animation: none; }
   <nav class="nav" aria-label="Sections">
     <a href="#play" data-route="play"><svg class="ic"><use href="#i-board"/></svg>Play</a>
     <a href="#manual" data-route="manual"><svg class="ic"><use href="#i-book"/></svg><span class="l">How to play</span><span class="s">Manual</span></a>
+    <a href="#puzzles" data-route="puzzles"><svg class="ic"><use href="#i-puzzle"/></svg>Puzzles</a>
     <a href="#blog" data-route="blog"><svg class="ic"><use href="#i-article"/></svg><span class="l">Classical vs Quantum</span><span class="s">Blog</span></a>
   </nav>
   <div class="top-actions">
@@ -518,6 +629,9 @@ body.no-anim .flash::after { animation: none; }
   <aside class="toc-side" id="manualToc" aria-label="Manual contents"></aside>
   <article class="article" id="manualBody"></article>
 </main>
+
+<!-- ============================================================ PUZZLES -->
+<main id="view-puzzles" class="view puzzles hidden"></main>
 
 <!-- ============================================================ BLOG -->
 <main id="view-blog" class="view doc single hidden">
@@ -1011,6 +1125,618 @@ body.no-anim .flash::after { animation: none; }
 
 </script>
 <script>
+/*
+ * Puzzles: positions, an exact solver, and an endless position generator.
+ *
+ * The solver never samples. It explores every measurement outcome a move can
+ * trigger (with its Born-rule probability) by replaying the move with the
+ * engine's forceOutcome hook, so "this capture wins 25% of the time" is exact.
+ * Works in the browser (window.QCPuzzles) and in node (module.exports).
+ */
+(function (root) {
+  "use strict";
+  const QC = root.QC || (typeof require !== "undefined" ? require("./engine.js") : null);
+  const EPS = 1e-9;
+
+  // ------------------------------------------------------------------ positions
+  // pieces: square -> symbol (pid = symbol + starting square, e.g. "wNa3")
+  // setup:  quantum moves played first to create the position (no measurements)
+  // goal:   win   — capture the king with probability >= min
+  //         best  — capture the king with the best possible probability
+  //         survive — after your move, the opponent's best chance to capture your king <= max
+  //         certain — piece `pid` ends 100% on one of `squares`
+  const PUZZLES = [
+    {
+      id: "b1", level: "Beginner", title: "King hunt",
+      side: "w", pieces: { e1: "wK", d1: "wR", b3: "wN", d4: "bK", d3: "bP", a5: "bR" },
+      answer: ["move", "b3", "d4"],
+      goal: { type: "win", min: 1 },
+      task: "Capture the black king this move.",
+      hint: "The rook's path is blocked. Which piece can jump?",
+      lesson: "Knights jump over pieces, so blockers never stop them. Classical chess still works here.",
+    },
+    {
+      id: "b2", level: "Beginner", title: "Half a king",
+      side: "w", pieces: { e1: "wK", c1: "wR", a2: "wP", d4: "bK", a5: "bR" },
+      setup: [["split", "d4", "c5", "e5"]],
+      answer: ["move", "c1", "c5"],
+      goal: { type: "win", min: 0.5 },
+      task: "The black king is 50% on c5 and 50% on e5. Give yourself a 50% chance to win.",
+      hint: "Attack one of the two king squares. The capture measures it.",
+      lesson: "A capture measures the target square. Half a king means a coin-fair 50%: if the king isn't there, your rook simply moves onto the empty square.",
+    },
+    {
+      id: "b3", level: "Beginner", title: "Reunite the knight",
+      side: "w", pieces: { e1: "wK", b1: "wN", d4: "bK", e5: "bR" },
+      setup: [["split", "b1", "a3", "c3"]],
+      answer: ["merge", "a3", "c3", "b5"],
+      goal: { type: "certain", pid: "wNb1", squares: ["b5"] },
+      task: "Your knight is split across a3 and c3. Merge it, with 100% certainty, onto the one square where it attacks the black king.",
+      hint: "Merge mode: click one half, then the other, then a square both halves can reach.",
+      lesson: "Both halves can reach b1 and b5. Merging onto b5 brings the knight back with certainty, and from there it attacks d4.",
+    },
+    {
+      id: "b4", level: "Beginner", title: "Ghost on the line",
+      side: "w", pieces: { a1: "wK", e1: "wR", a5: "wR", e5: "bK", d5: "bN" },
+      setup: [["split", "d5", "e3", "c3"]],
+      answer: ["move", "a5", "e5"],
+      goal: { type: "win", min: 1 },
+      task: "Win with certainty. Careful: a black knight is 50% on e3 and 50% on c3.",
+      hint: "A 'maybe' piece on a path is measured during the capture. Find a path with no ghost on it.",
+      lesson: "Rook e1 → e5 passes the 50% knight on e3, so it only works half the time. The rook on a5 slides along the 5th rank: the knight left d5 when it split, so that path is completely empty. 100%.",
+    },
+    {
+      id: "i1", level: "Intermediate", title: "Trust the jumper",
+      side: "w", pieces: { d1: "wK", e1: "wQ", c1: "wR", b3: "wN", a5: "bK", d5: "bN" },
+      setup: [["split", "c1", "a1", "b1"], ["split", "d5", "c3", "e3"]],
+      answer: ["move", "b3", "a5"],
+      goal: { type: "win", min: 1 },
+      task: "Capture the king with certainty. Your rook is split across a1 and b1, and a black knight is split across c3 and e3.",
+      hint: "An attacker in superposition is measured too. Use a piece that is certainly there, with a path that has no ghosts.",
+      lesson: "Rook a1 → a5 only works if the rook is really on a1 (50%). Queen e1 → a5 runs through c3, where the black knight might be (50%). The knight on b3 jumps straight to a5: a certain attacker with no path, 100%.",
+    },
+    {
+      id: "i2", level: "Intermediate", title: "Hedge the king",
+      side: "w", pieces: { b1: "wK", e3: "wP", b5: "bR", a5: "bQ", e2: "bR", d3: "bN", e5: "bK" },
+      answer: ["split", "b1", "a1", "c1"],
+      goal: { type: "survive", max: 0.5 },
+      task: "Your king is attacked and every escape square is covered. Cut Black's winning chance to 50%.",
+      hint: "If the king can't be safe anywhere, make it be in two places.",
+      lesson: "Split the king onto two attacked squares. Black can only capture one of them per move, and that capture is measured: 50%.",
+    },
+    {
+      id: "i3", level: "Intermediate", title: "Unequal odds",
+      side: "w", pieces: { e1: "wK", a4: "wR", e4: "wN", c4: "bK", a5: "bR" },
+      setup: [["split", "c4", "c5", "c3"], ["split", "c3", "b4", "d4"]],
+      answer: ["move", "e4", "c5"],
+      goal: { type: "best" },
+      task: "The black king is spread over three squares. Find the capture with the highest chance to win.",
+      hint: "Read the percentages. Then check whether a capture's path runs through another king square.",
+      lesson: "The king is 50% on c5, 25% on b4 and 25% on d4. The knight takes c5 directly: 50%. Rook takes b4: 25%. Rook to d4 must pass b4, which could hold the king: still 25%.",
+    },
+    {
+      id: "i4", level: "Intermediate", title: "Build a wall",
+      side: "w", pieces: { e1: "wK", a3: "wN", e5: "bR", d5: "bQ", b5: "bK" },
+      setup: [["split", "a3", "c2", "c4"]],
+      answer: ["merge", "c2", "c4", "e3"],
+      goal: { type: "survive", max: 0 },
+      task: "The rook on e5 attacks your king and the queen covers d1 and d2. Make your king completely safe.",
+      hint: "Half a blocker only blocks half the time. Can you make a whole one?",
+      lesson: "Merge the knight from c2 and c4 onto e3. It is now 100% there and blocks the e-file completely. Moving one half to e3 would leave a 50% hole.",
+    },
+    {
+      id: "a1", level: "Advanced", title: "Hide behind a ghost",
+      side: "w", pieces: { b1: "wK", b5: "wN", a5: "bQ", c5: "bR", d3: "bB", d1: "bN", e5: "bK" },
+      setup: [["split", "b5", "a3", "c3"]],
+      answer: ["split", "b1", "a1", "c1"],
+      goal: { type: "survive", max: 0.25 },
+      task: "The bishop on d3 attacks your king, and every escape square is covered. Your knight is 50% on a3 and 50% on c3. Bring Black's winning chance down to 25%.",
+      hint: "The a-file and the c-file are each blocked by one half of your knight, and exactly one half is real.",
+      lesson: "a1, a2 and c1 are only attacked through a square where your knight might be. Moving the king to one of them already halves the risk to 50%. Splitting it across two of them halves it again: every capture now needs the king on that square (50%) and the knight on the other file (50%), so 25%.",
+    },
+    {
+      id: "a2", level: "Advanced", title: "Ghost maze",
+      side: "w", pieces: { e1: "wQ", c1: "wR", a3: "wB", a1: "wK", d4: "bK", d5: "bN" },
+      setup: [["split", "d4", "c5", "e5"], ["split", "d5", "c3", "e3"]],
+      answer: ["move", "a3", "c5"],
+      goal: { type: "best" },
+      task: "King 50/50 on c5 and e5; a black knight 50/50 on c3 and e3, guarding both files. Find the best capture.",
+      hint: "Count the probabilities that must all line up for each capture.",
+      lesson: "Rook c1 → c5 and queen e1 → e5 each need the king there (50%) and the knight not on their file (50%): 25%. The bishop on a3 reaches c5 through b4, which nothing can occupy: 50%, the most any single capture can get when the king is split in two.",
+    },
+  ];
+
+  // ------------------------------------------------------------------ game helpers
+  function doAction(g, a) {
+    if (a[0] === "move") return g.move(a[1], a[2]);
+    if (a[0] === "split") return g.split(a[1], a[2], a[3]);
+    return g.merge(a[1], a[2], a[3]);
+  }
+
+  function makePuzzleGame(pz, seed = null) {
+    const pieces = new Map();
+    for (const [sq, sym] of Object.entries(pz.pieces)) {
+      pieces.set(QC.parse(sq), { pid: sym + sq, color: sym[0], kind: sym[1] });
+    }
+    const g = new QC.Game({ pieces, seed, quantum: true });
+    for (const [kind, ...sqs] of pz.setup || []) {
+      const s = sqs.map(QC.parse);
+      g.turn = g.pieces.get(s[0]).color;
+      doAction(g, [kind, ...s]);
+    }
+    g.turn = pz.side; g.winner = null; g.log = []; g.ply = 0; g.lastTrace = []; g.q.trace = [];
+    return g;
+  }
+
+  function allActions(g) {
+    const acts = [];
+    for (const [sq, p] of g.pieces) {
+      if (p.color !== g.turn) continue;
+      const o = g.options(sq);
+      for (const t of o.move.concat(o.capture)) acts.push(["move", sq, t]);
+      for (let a = 0; a < o.split.length; a++) for (let b = a + 1; b < o.split.length; b++) acts.push(["split", sq, o.split[a], o.split[b]]);
+      for (const [s2, ts] of o.merge) for (const t of ts) if (sq < s2) acts.push(["merge", sq, s2, t]);
+    }
+    return acts;
+  }
+
+  // every measurement branch of `act`: [{ w, prefix, game }]
+  function outcomes(factory, act) {
+    const leaves = [];
+    (function run(prefix) {
+      const g = factory(), ps = [];
+      let k = 0;
+      g.q.forceOutcome = (p) => {
+        if (k < prefix.length) { ps.push(p); return prefix[k++]; }
+        throw { branch: p };
+      };
+      try {
+        doAction(g, act);
+      } catch (e) {
+        if (e && e.branch !== undefined) {
+          if (e.branch > EPS) run(prefix.concat(1));
+          if (e.branch < 1 - EPS) run(prefix.concat(0));
+          return;
+        }
+        throw e;
+      }
+      g.q.forceOutcome = null;
+      let w = 1;
+      prefix.forEach((v, i) => (w *= v ? ps[i] : 1 - ps[i]));
+      leaves.push({ w, prefix, game: g });
+    })([]);
+    return leaves;
+  }
+
+  function replay(factory, act, prefix) {
+    return () => {
+      const g = factory();
+      let k = 0;
+      g.q.forceOutcome = () => prefix[k++];
+      doAction(g, act);
+      g.q.forceOutcome = null;
+      return g;
+    };
+  }
+
+  function winChance(factory, act, color) {
+    return outcomes(factory, act).reduce((s, l) => s + (l.game.winner === color ? l.w : 0), 0);
+  }
+
+  function bestWin(factory) {
+    const g = factory(), me = g.turn;
+    let best = 0;
+    for (const a of allActions(g)) best = Math.max(best, winChance(factory, a, me));
+    return best;
+  }
+
+  // opponent's best chance to win immediately after `act`, averaged over its outcomes
+  function riskAfter(factory, act) {
+    const me = factory().turn;
+    let risk = 0;
+    for (const leaf of outcomes(factory, act)) {
+      if (leaf.game.winner === me) continue;
+      risk += leaf.w * bestWin(replay(factory, act, leaf.prefix));
+    }
+    return risk;
+  }
+
+  function certainOn(factory, act, pid, squares) {
+    let ok = 0;
+    for (const leaf of outcomes(factory, act)) {
+      const hit = squares.some((s) => {
+        const sq = QC.parse(s), p = leaf.game.pieces.get(sq);
+        return p && p.pid === pid && leaf.game.prob(sq) > 1 - 1e-7;
+      });
+      if (hit) ok += leaf.w;
+    }
+    return ok;
+  }
+
+  /** Grade one move. Returns { ok, value, best, label }. */
+  function grade(pz, act, cache = {}) {
+    const factory = pz.factory || (() => makePuzzleGame(pz));
+    const g = pz.goal;
+    if (g.type === "win" || g.type === "best") {
+      const value = winChance(factory, act, pz.side);
+      const best = g.type === "best" ? (cache.best ??= bestWin(factory)) : g.min;
+      return { ok: value >= best - 1e-9 && value > 0, value, best, label: "chance to win" };
+    }
+    if (g.type === "survive") {
+      const value = riskAfter(factory, act);
+      return { ok: value <= g.max + 1e-9, value, best: g.max, label: "opponent's chance to win next move" };
+    }
+    const value = certainOn(factory, act, g.pid, g.squares);
+    return { ok: value > 1 - 1e-9, value, best: 1, label: "chance the piece ends on the target" };
+  }
+
+  // ------------------------------------------------------------------ endless mode
+  function mulberry(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = Math.imul(a ^ (a >>> 15), a | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /**
+   * A random quantum position reached by play from the start, where the side to
+   * move has a real but uncertain shot at the king. Moves are recorded so the
+   * position can be rebuilt exactly (measurements replayed with fixed outcomes).
+   */
+  function generateChallenge(seed, maxTries = 400) {
+    for (let t = 0; t < maxTries; t++) {
+      const rnd = mulberry(seed * 7919 + t);
+      const g = new QC.Game({ seed: seed + t });
+      const history = [];
+      const plies = 6 + Math.floor(rnd() * 12);
+      let dead = false;
+      for (let i = 0; i < plies && !g.winner; i++) {
+        const acts = allActions(g);
+        const quantum = acts.filter((a) => a[0] !== "move");
+        const pool = quantum.length && rnd() < 0.55 ? quantum : acts;
+        const a = pool[Math.floor(rnd() * pool.length)];
+        const outs = [];
+        g.q.forceOutcome = (p) => { const v = rnd() < p ? 1 : 0; outs.push(v); return v; };
+        doAction(g, a);
+        g.q.forceOutcome = null;
+        history.push({ a, outs });
+        if (g.winner) dead = true;
+      }
+      if (dead || g.q.numQubits === 0) continue;
+      const factory = () => {
+        const h = new QC.Game({ seed: 1 });
+        for (const { a, outs } of history) {
+          let k = 0;
+          h.q.forceOutcome = () => outs[k++];
+          doAction(h, a);
+          h.q.forceOutcome = null;
+        }
+        h.log = []; h.ply = 0; h.lastTrace = []; h.q.trace = [];
+        return h;
+      };
+      const fg = factory();
+      const scores = allActions(fg).map((a) => winChance(factory, a, fg.turn)).filter((v) => v > 0);
+      const best = Math.max(0, ...scores);
+      // a real decision: a decent best move and at least one worse capture to avoid
+      if (best < 0.2 || best > 0.99 || !scores.some((v) => v < best - 1e-6)) continue;
+      return {
+        id: `x${seed}`, level: "Endless", title: `Challenge #${seed}`, side: fg.turn, factory,
+        goal: { type: "best" },
+        task: `A position from a real quantum game. ${fg.turn === "w" ? "White" : "Black"} to move: find the capture with the best chance to take the king.`,
+        hint: "Multiply the chances: attacker really there × path really clear × king really on the target.",
+        lesson: `The best available chance here is ${Math.round(best * 100)}%.`,
+        bestKnown: best,
+      };
+    }
+    return null;
+  }
+
+  const API = { PUZZLES, makePuzzleGame, allActions, outcomes, winChance, bestWin, riskAfter, grade, doAction, generateChallenge };
+  if (typeof module !== "undefined" && module.exports) module.exports = API;
+  else root.QCPuzzles = API;
+})(this);
+
+</script>
+<script>
+// Animated tutorials ("video lessons"): every frame is computed by the engine's
+// QuantumState, so the probabilities, the state |ψ⟩ and the circuit are real.
+"use strict";
+
+// ------------------------------------------------------------------ lesson builder
+class LessonBuilder {
+  constructor(pieces) {
+    this.pieces = new Map(Object.entries(pieces).map(([sq, sym]) => [QC.parse(sq), sym]));
+    this.q = new QC.QuantumState(1);
+    this.frames = [];
+  }
+  activate(sq, occupied) { this.q.activate(QC.parse(sq), occupied); return this; }
+  gate(name, a, b, controls = []) { this.q.apply(name, controls.map(QC.parse), QC.parse(a), QC.parse(b)); return this; }
+  place(sq, sym) { this.pieces.set(QC.parse(sq), sym); return this; }
+  remove(sq) { this.pieces.delete(QC.parse(sq)); return this; }
+  measure(sq, outcome) {
+    this.q.forceOutcome = () => outcome;
+    this.q.measure(QC.parse(sq));
+    this.q.forceOutcome = null;
+    return this;
+  }
+  // after a measurement a square is classical again: take it out of the register
+  settle(sq) {
+    const k = this.q.active.indexOf(QC.parse(sq));
+    if (k >= 0) this.q.drop(k, this.q.p1(k) > 0.5 ? 1 : 0);
+    return this;
+  }
+  save() {
+    return { pieces: new Map(this.pieces), active: [...this.q.active], re: this.q.re && this.q.re.slice(),
+      im: this.q.im && this.q.im.slice(), trace: this.q.trace.slice() };
+  }
+  restore(s) {
+    this.pieces = new Map(s.pieces); this.q.active = [...s.active];
+    this.q.re = s.re && s.re.slice(); this.q.im = s.im && s.im.slice(); this.q.trace = s.trace.slice();
+    return this;
+  }
+  prob(sq) { return this.q.isActive(sq) ? this.q.prob(sq) : 1; }
+
+  ket() {
+    if (!this.q.re) return "";
+    const terms = [];
+    for (let i = 0; i < this.q.re.length; i++) {
+      const re = this.q.re[i], im = this.q.im[i];
+      if (re * re + im * im < 1e-9) continue;
+      const occ = this.q.active.filter((s, k) => (i >> k) & 1 && this.pieces.has(s)).map(QC.name);
+      terms.push({ amp: fmtAmp(re, im), basis: occ.length ? occ.join(" ") : "∅" });
+    }
+    if (terms.length === 1 && /^−?i?1?$/.test(terms[0].amp.replace("1", ""))) return `|${terms[0].basis}⟩`;  // a global phase is invisible
+    return terms.map((t, n) => {
+      const neg = t.amp.startsWith("−");
+      const a = neg ? t.amp.slice(1) : t.amp;
+      return `${n === 0 ? (neg ? "−" : "") : neg ? " − " : " + "}${a === "1" ? "" : a}|${t.basis}⟩`;
+    }).join("");
+  }
+
+  frame(title, caption, { marks = {}, arrows = [] } = {}) {
+    const cells = {};
+    for (const [sq, sym] of this.pieces) {
+      const p = this.prob(sq);
+      if (p > 1e-6) cells[QC.name(sq)] = { color: sym[0], kind: sym[1], prob: p };
+    }
+    const trace = this.q.trace.map((t) => ({ ...t, sq: t.sq === undefined ? undefined : QC.name(t.sq),
+      squares: t.squares && t.squares.map(QC.name), controls: t.controls && t.controls.map(QC.name) }));
+    this.frames.push({ title, caption, cells, marks, arrows, ket: this.ket(), trace });
+    return this;
+  }
+}
+
+function fmtAmp(re, im) {
+  // magnitudes that appear in these lessons, written the way a physicist would
+  const mag = (x) => {
+    const v = Math.abs(x);
+    if (Math.abs(v - 1) < 1e-6) return "1";
+    if (Math.abs(v - Math.SQRT1_2) < 1e-3) return "1/√2";
+    if (Math.abs(v - 0.5) < 1e-3) return "1/2";
+    return String(Math.round(v * 100) / 100);
+  };
+  const near = (x) => Math.abs(x) < 1e-6;
+  const sign = (x) => (x < 0 ? "−" : "");
+  if (near(im)) return sign(re) + mag(re);
+  if (near(re)) {
+    const m = mag(im);
+    return sign(im) + (m === "1" ? "i" : m.startsWith("1/") ? "i" + m.slice(1) : m + "i");
+  }
+  return `(${sign(re)}${mag(re)} ${im < 0 ? "−" : "+"} ${mag(im)}i)`;
+}
+
+// ------------------------------------------------------------------ the four lessons
+function lessonSplit() {
+  const L = new LessonBuilder({ b1: "wN", e1: "wK", e5: "bK" });
+  L.activate("b1", true)
+    .frame("Every square is a qubit", "The knight's square b1 is in state |1⟩ (occupied). Every empty square is |0⟩.")
+    .activate("a3", false).activate("c3", false).place("a3", "wN").place("c3", "wN")
+    .frame("Choose two targets", "In Split mode, click the knight, then two empty squares it can reach: a3 and c3.",
+      { marks: { a3: "qdot", c3: "qdot" }, arrows: [["b1", "a3"], ["b1", "c3"]] })
+    .gate("√iSWAP", "b1", "a3")
+    .frame("√iSWAP: half the amplitude moves", "A square-root-of-iSWAP gate on (b1, a3) sends half of the knight's amplitude to a3. It is now 50% on b1 and 50% on a3.",
+      { arrows: [["b1", "a3"]] })
+    .gate("iSWAP", "b1", "c3")
+    .frame("iSWAP: the rest moves", "A full iSWAP on (b1, c3) moves everything left on b1 over to c3. b1 is now certainly empty.",
+      { arrows: [["b1", "c3"]] })
+    .frame("One knight, two squares", "The knight is on a3 and c3 at once, 50% each. The halves always add up to one knight, until a measurement decides.",
+      { marks: { a3: "partner", c3: "partner" } });
+  return { id: "split", title: "Split", kicker: "Superposition", frames: L.frames };
+}
+
+function lessonMerge() {
+  const L = new LessonBuilder({ b1: "wN", e1: "wK", e5: "bK" });
+  L.activate("b1", true).activate("a3", false).activate("c3", false)
+    .gate("√iSWAP", "b1", "a3").gate("iSWAP", "b1", "c3").place("a3", "wN").place("c3", "wN");
+  L.q.trace = [];
+  L.frame("A split knight", "After a split, the knight has amplitude i/√2 on a3 and on c3. Their phases match, and that matters.",
+    { marks: { a3: "partner", c3: "partner" } })
+    .frame("Pick a target", "In Merge mode, click one half, then the other, then a square both can reach: b1.",
+      { marks: { a3: "partner", c3: "partner", b1: "qdot" }, arrows: [["a3", "b1"], ["c3", "b1"]] })
+    .gate("iSWAP†", "b1", "c3")
+    .frame("iSWAP†: pull one half back", "The inverse iSWAP on (b1, c3) moves the c3 half back onto b1.", { arrows: [["c3", "b1"]] })
+    .gate("√iSWAP†", "b1", "a3")
+    .frame("√iSWAP†: interference", "The inverse √iSWAP mixes b1 with a3. The two amplitudes add up on b1 and cancel on a3: the knight is back with 100% certainty.",
+      { arrows: [["a3", "b1"]] });
+  // the classical comparison: a coin decided a3 or c3, then the same gates
+  const C = new LessonBuilder({ a3: "wN", e1: "wK", e5: "bK" });
+  C.activate("b1", false).activate("a3", true).activate("c3", false).place("b1", "wN")
+    .gate("iSWAP†", "b1", "c3").gate("√iSWAP†", "b1", "a3")
+    .frame("Why this is quantum", "Compare a coin flip: if the knight were simply on a3 (or c3) and we just didn't know which, the very same gates bring it back only 50% of the time. Merges work because of phase.");
+  return { id: "merge", title: "Merge", kicker: "Interference", frames: L.frames.concat(C.frames) };
+}
+
+function lessonEntangle() {
+  const L = new LessonBuilder({ a1: "wR", e1: "wK", c3: "bN", e5: "bK" });
+  L.activate("c3", true).activate("a2", false).activate("b5", false)
+    .gate("√iSWAP", "c3", "a2").gate("iSWAP", "c3", "b5").place("a2", "bN").place("b5", "bN").remove("c3");
+  L.q.trace = [];
+  L.frame("A knight in two places", "Black's knight is 50% on a2 and 50% on b5. White's rook on a1 wants to slide up to a4.",
+    { arrows: [["a1", "a4"]], marks: { a4: "dot" } })
+    .activate("a1", true).activate("a4", false)
+    .gate("iSWAP", "a1", "a4", ["a2"]).place("a4", "wR")
+    .frame("A controlled slide", "The rook's iSWAP is controlled on a2 being empty (the open dot in the circuit). It slides only in the branch where the knight is on b5.");
+  const both = L.save();
+  L.frame("Entangled", "Rook and knight now share one state: rook on a4 exactly when the knight is on b5. Neither piece has a position of its own.",
+    { marks: { a1: "partner", a4: "partner", a2: "partner", b5: "partner" } })
+    .measure("a2", 1)
+    .frame("Measure one piece…", "Suppose something measures a2 and finds the knight there. Instantly the rook is certainly back on a1.", { marks: { a2: "partner" } });
+  L.restore(both).measure("a2", 0)
+    .frame("…and the other follows", "If a2 is found empty instead, the knight is certainly on b5 and the rook certainly reached a4. One measurement settled both pieces.", { marks: { a2: "partner" } });
+  return { id: "entangle", title: "Entanglement", kicker: "Sliding past a ghost", frames: L.frames };
+}
+
+function lessonCapture() {
+  const L = new LessonBuilder({ a1: "wR", e1: "wK", c3: "bN", e5: "bK" });
+  L.activate("c3", true).activate("a2", false).activate("b5", false)
+    .gate("√iSWAP", "c3", "a2").gate("iSWAP", "c3", "b5").place("a2", "bN").place("b5", "bN").remove("c3");
+  L.q.trace = [];
+  L.frame("Attack a ghost", "White's rook attacks a2, where Black's knight is with 50% probability.", { marks: { a2: "ring" }, arrows: [["a1", "a2"]] });
+  const before = L.save();
+  L.measure("a2", 1).remove("a2").remove("a1").place("a2", "wR").remove("b5")
+    .frame("Outcome 1 · 50%", "The capture measures a2: the knight is there, so it is captured. Its other half on b5 vanishes with it.");
+  L.restore(before).measure("a2", 0).settle("a2").remove("a1").place("a2", "wR")
+    .frame("Outcome 2 · 50%", "Or a2 is empty: the rook simply moves in, and the knight is now certainly on b5. Every capture of a ghost is a fair coin decided by the Born rule.");
+  return { id: "capture", title: "Capture", kicker: "Measurement", frames: L.frames };
+}
+
+// ------------------------------------------------------------------ player
+const FRAME_MS = 4800;
+
+function buildTutorials() {
+  const lessons = [lessonSplit(), lessonMerge(), lessonEntangle(), lessonCapture()];
+  const wrap = document.createElement("section");
+  wrap.className = "tutorials";
+  wrap.innerHTML = `
+    <h2 id="m-videos"><span class="secno">00</span>Video tutorials</h2>
+    <p>Four short animated lessons. Every frame is computed by the game's engine, so the probabilities, the state <code>|ψ⟩</code> and the circuit are the real ones.</p>
+    <div class="tut">
+      <div class="tut-stage">
+        <div class="tut-boardwrap"><div class="tut-board"></div><svg class="tut-arrows" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <button class="tut-big" aria-label="Play"><svg class="ic"><use href="#i-play"/></svg></button></div>
+        <div class="tut-side">
+          <div class="tut-kicker"></div>
+          <h3 class="tut-title"></h3>
+          <p class="tut-caption"></p>
+          <div class="tut-ket"><span>State</span><code></code></div>
+          <div class="tut-circuit"></div>
+        </div>
+      </div>
+      <div class="tut-controls">
+        <button class="tut-btn tut-play" aria-label="Play"><svg class="ic"><use href="#i-play"/></svg></button>
+        <button class="tut-btn tut-prev" aria-label="Previous step"><svg class="ic"><use href="#i-prev"/></svg></button>
+        <button class="tut-btn tut-next" aria-label="Next step"><svg class="ic"><use href="#i-next"/></svg></button>
+        <div class="tut-progress"></div>
+        <span class="tut-time"></span>
+      </div>
+    </div>
+    <div class="tut-list"></div>`;
+
+  const $q = (s) => wrap.querySelector(s);
+  const boardHost = $q(".tut-board");
+  const board = buildBoard({}, { coords: true, badges: true, mini: false });
+  board.classList.add("tut-b");
+  boardHost.appendChild(board);
+  const sqEl = {};
+  board.querySelectorAll(".sq").forEach((el) => {
+    sqEl[el.dataset.sq] = el;
+    const p = document.createElement("div");
+    p.className = "piece";
+    p.style.opacity = 0;
+    el.appendChild(p);
+    el.insertAdjacentHTML("beforeend", `<span class="prob-num" hidden></span><span class="prob-bar" hidden><i></i></span><span class="tut-mark"></span>`);
+  });
+
+  let L = lessons[0], idx = 0, playing = false, t0 = 0, raf = 0;
+
+  function paint(fr) {
+    for (const [sq, el] of Object.entries(sqEl)) {
+      const c = fr.cells[sq], piece = el.querySelector(".piece");
+      if (c) piece.style.backgroundImage = `url(${pieceUrl(c.color, c.kind)})`;
+      piece.style.opacity = c ? (c.prob > 0.9999 ? 1 : 0.3 + 0.7 * c.prob).toFixed(2) : 0;
+      piece.classList.toggle("maybe", !!c && c.prob < 0.9999);
+      const num = el.querySelector(".prob-num"), bar = el.querySelector(".prob-bar");
+      const partial = !!c && c.prob < 0.9999;
+      num.hidden = bar.hidden = !partial;
+      if (partial) { num.textContent = Math.round(c.prob * 100) + "%"; bar.firstChild.style.width = c.prob * 100 + "%"; }
+      el.querySelector(".tut-mark").className = "tut-mark " + (fr.marks[sq] || "");
+    }
+    const center = (s) => [("abcde".indexOf(s[0]) + 0.5) * 20, (5 - Number(s[1]) + 0.5) * 20];
+    $q(".tut-arrows").innerHTML = `<defs><marker id="tah" markerWidth="4" markerHeight="4" refX="2.2" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4 z" fill="rgba(255,170,0,0.95)"/></marker></defs>`
+      + fr.arrows.map(([a, b]) => {
+        const [x1, y1] = center(a), [x2, y2] = center(b), k = 7 / Math.hypot(x2 - x1, y2 - y1);
+        return `<line class="tut-arrow" x1="${x1}" y1="${y1}" x2="${x2 - (x2 - x1) * k}" y2="${y2 - (y2 - y1) * k}" stroke="rgba(255,170,0,0.9)" stroke-width="2.4" stroke-linecap="round" marker-end="url(#tah)"/>`;
+      }).join("");
+    $q(".tut-kicker").textContent = `${L.kicker} · step ${idx + 1} of ${L.frames.length}`;
+    $q(".tut-title").textContent = fr.title;
+    $q(".tut-caption").textContent = fr.caption;
+    $q(".tut-ket code").textContent = fr.ket || "—";
+    $q(".tut-circuit").innerHTML = fr.trace.length ? circuitSVG(fr.trace) : `<span class="empty">No gates yet.</span>`;
+    $q(".tut-progress").innerHTML = L.frames.map((_, i) =>
+      `<button class="seg" data-i="${i}" aria-label="Step ${i + 1}"><i style="width:${i < idx ? 100 : 0}%"></i></button>`).join("");
+    $q(".tut-progress").querySelectorAll(".seg").forEach((b) => b.addEventListener("click", () => go(Number(b.dataset.i), playing)));
+    wrap.querySelectorAll(".tut-item").forEach((el) => el.classList.toggle("active", el.dataset.id === L.id));
+    tick();
+  }
+
+  function setPlaying(p) {
+    playing = p;
+    wrap.classList.toggle("is-playing", p);  // hides the big play button
+    $q(".tut-play").innerHTML = `<svg class="ic"><use href="#i-${p ? "pause" : "play"}"/></svg>`;
+    $q(".tut-play").setAttribute("aria-label", p ? "Pause" : "Play");
+    cancelAnimationFrame(raf);
+    if (p) { t0 = performance.now(); raf = requestAnimationFrame(loop); }
+  }
+
+  function tick(frac = 0) {
+    const seg = $q(`.tut-progress .seg[data-i="${idx}"] i`);
+    if (seg) seg.style.width = frac * 100 + "%";
+    const sec = Math.floor((idx * FRAME_MS + frac * FRAME_MS) / 1000), tot = Math.round((L.frames.length * FRAME_MS) / 1000);
+    $q(".tut-time").textContent = `0:${String(sec).padStart(2, "0")} / 0:${String(tot).padStart(2, "0")}`;
+  }
+
+  function loop(now) {
+    const frac = Math.min(1, (now - t0) / FRAME_MS);
+    tick(frac);
+    if (frac >= 1) {
+      if (idx < L.frames.length - 1) { go(idx + 1, true); return; }
+      setPlaying(false);
+      return;
+    }
+    raf = requestAnimationFrame(loop);
+  }
+
+  function go(i, keepPlaying = false) {
+    idx = Math.max(0, Math.min(L.frames.length - 1, i));
+    paint(L.frames[idx]);
+    setPlaying(keepPlaying);
+  }
+
+  function load(lesson, autoplay) { L = lesson; go(0, autoplay); }
+
+  $q(".tut-list").innerHTML = lessons.map((l, n) => `
+    <button class="tut-item" data-id="${l.id}">
+      <span class="tut-thumb"><svg class="ic"><use href="#i-${["split", "merge", "atom", "target"][n]}"/></svg></span>
+      <span class="tut-meta"><b>${n + 1}. ${l.title}</b><small>${l.kicker} · 0:${String(Math.round((l.frames.length * FRAME_MS) / 1000)).padStart(2, "0")}</small></span>
+    </button>`).join("");
+  wrap.querySelectorAll(".tut-item").forEach((el) => el.addEventListener("click", () => load(lessons.find((l) => l.id === el.dataset.id), true)));
+  $q(".tut-play").addEventListener("click", () => {
+    if (!playing && idx === L.frames.length - 1) return go(0, true);
+    setPlaying(!playing);
+  });
+  $q(".tut-big").addEventListener("click", () => go(idx === L.frames.length - 1 ? 0 : idx, true));
+  $q(".tut-prev").addEventListener("click", () => go(idx - 1, playing));
+  $q(".tut-next").addEventListener("click", () => go(idx + 1, playing));
+
+  load(lessons[0], false);
+  return wrap;
+}
+
+</script>
+<script>
 // Content pages: the illustrated manual and the "Classical vs Quantum" blog post.
 // Uses buildBoard / barChart / lineChart from app.js and the QC engine from engine.js.
 "use strict";
@@ -1076,9 +1802,10 @@ function buildManual(root) {
     <p class="lede">Chess on Martin Gardner's 5×5 board, where pieces can be in two places at once.
     Every square is a qubit, every quantum move is a gate, and every capture is a measurement.</p>
 `;
+  root.appendChild(buildTutorials());
   const toc = $("manualToc");
   toc.innerHTML = `<div class="toc-title">Contents</div><nav class="toc">
-      <a href="#m-goal">Goal and board</a><a href="#m-pieces">The pieces</a><a href="#m-turn">Your turn</a>
+      <a href="#m-videos">Video tutorials</a><a href="#m-goal">Goal and board</a><a href="#m-pieces">The pieces</a><a href="#m-turn">Your turn</a>
       <a href="#m-split">Split</a><a href="#m-merge">Merge</a><a href="#m-entangle">Entanglement</a>
       <a href="#m-capture">Captures</a><a href="#m-pawns">Pawns</a><a href="#m-end">Winning</a>
       <a href="#m-controls">Controls</a><a href="#m-fair">Engines and fair play</a>
@@ -1419,6 +2146,251 @@ function runExperiment2() {
     { label: "Coin flip → same merge", value: classicalBack, text: `${classicalBack} / ${T}`, color: "#6f6b63" },
   ], { max: T }) + `<p class="note">Knight found back on b1, out of ${T} trials each.</p>`;
   $("exp2Status").textContent = "Done.";
+}
+
+</script>
+<script>
+// Puzzles page: curated positions plus an endless generator, graded by the exact solver.
+"use strict";
+
+const PZ = {
+  pz: null, game: null, mode: "move", sel: null, opts: null, picks: [], partner: null,
+  done: false, solved: new Set(), cache: {},
+};
+
+function loadSolved() {
+  try { PZ.solved = new Set(JSON.parse(localStorage.getItem("qc-puzzles") || "[]")); } catch (e) { /* storage unavailable */ }
+}
+function saveSolved() {
+  try { localStorage.setItem("qc-puzzles", JSON.stringify([...PZ.solved])); } catch (e) { /* storage unavailable */ }
+}
+
+const pct = (v) => `${Math.round(v * 1000) / 10}%`;
+const sqName = (s) => (typeof s === "number" ? QC.name(s) : s);
+
+function actionText(a) {
+  const p = PZ.game.pieces.get(typeof a[1] === "number" ? a[1] : QC.parse(a[1]));
+  const kind = p ? p.kind : "", s = a.slice(1).map(sqName);
+  const name = { K: "King", Q: "Queen", R: "Rook", B: "Bishop", N: "Knight", P: "Pawn" }[kind] || "Piece";
+  if (a[0] === "split") return `Split the ${name.toLowerCase()} on ${s[0]} to ${s[1]} and ${s[2]}`;
+  if (a[0] === "merge") return `Merge the ${name.toLowerCase()} from ${s[0]} and ${s[1]} onto ${s[2]}`;
+  const target = PZ.game.pieces.get(typeof a[2] === "number" ? a[2] : QC.parse(a[2]));
+  return `${name} ${s[0]} ${target && p && target.color !== p.color ? "×" : "→"} ${s[1]}`;
+}
+
+// ------------------------------------------------------------------ page
+function buildPuzzles(root) {
+  loadSolved();
+  const levels = ["Beginner", "Intermediate", "Advanced"];
+  root.innerHTML = `
+    <header class="pz-head">
+      <div>
+        <p class="eyebrow">Practice</p>
+        <h1>Puzzles</h1>
+        <p class="pz-sub">${QCPuzzles.PUZZLES.length} hand-made positions, each checked by an exact solver that weighs every measurement outcome, plus endless generated challenges.</p>
+      </div>
+      <div class="pz-progress" id="pzProgress"></div>
+    </header>
+    <div class="pz-strip">
+      ${levels.map((lv) => `<div class="pz-group"><span class="pz-level">${lv}</span><div class="pz-tiles">
+        ${QCPuzzles.PUZZLES.filter((p) => p.level === lv).map((p) => `<button class="pz-tile" data-id="${p.id}" title="${p.title}">${p.id.slice(1)}</button>`).join("")}
+      </div></div>`).join("")}
+      <div class="pz-group"><span class="pz-level">Endless</span><div class="pz-tiles">
+        <button class="pz-tile endless" id="pzEndless" title="Generate a new position"><svg class="ic"><use href="#i-dice"/></svg></button></div></div>
+    </div>
+    <div class="layout pz-layout">
+      <section class="board-col">
+        <div class="player-bar turn" id="pzBar"><div class="avatar white" id="pzAvatar"></div>
+          <div class="pinfo"><div class="pname" id="pzSide">White to move</div></div><div class="turn-flag">your move</div></div>
+        <div class="board-wrap"><div id="pzBoard" class="board"></div></div>
+      </section>
+      <aside class="panel pz-panel">
+        <header>
+          <div class="kicker" id="pzKicker"></div>
+          <div class="status" id="pzTitle"></div>
+        </header>
+        <p class="pz-task" id="pzTask"></p>
+        <div class="pz-goal" id="pzGoal"></div>
+        <div class="segmented" role="tablist" aria-label="Move type">
+          <button class="mode pz-mode active" data-mode="move"><svg class="ic"><use href="#i-move"/></svg>Move</button>
+          <button class="mode pz-mode" data-mode="split"><svg class="ic"><use href="#i-split"/></svg>Split</button>
+          <button class="mode pz-mode" data-mode="merge"><svg class="ic"><use href="#i-merge"/></svg>Merge</button>
+        </div>
+        <div class="pz-feedback" id="pzFeedback"></div>
+        <footer class="pz-actions">
+          <button class="btn ghost" id="pzHint"><svg class="ic"><use href="#i-bulb"/></svg>Hint</button>
+          <button class="btn ghost" id="pzReset"><svg class="ic"><use href="#i-reset"/></svg>Reset</button>
+          <button class="btn ghost" id="pzShow"><svg class="ic"><use href="#i-eye"/></svg>Solution</button>
+          <button class="btn primary" id="pzNext"><svg class="ic"><use href="#i-arrow"/></svg>Next</button>
+        </footer>
+      </aside>
+    </div>`;
+
+  root.querySelectorAll(".pz-tile[data-id]").forEach((b) => b.addEventListener("click", () => openPuzzle(QCPuzzles.PUZZLES.find((p) => p.id === b.dataset.id))));
+  $("pzEndless").addEventListener("click", openEndless);
+  root.querySelectorAll(".pz-mode").forEach((b) => b.addEventListener("click", () => pzSetMode(b.dataset.mode)));
+  $("pzHint").addEventListener("click", () => showFeedback("hint", `<b>Hint.</b> ${PZ.pz.hint}`));
+  $("pzReset").addEventListener("click", () => openPuzzle(PZ.pz));
+  $("pzShow").addEventListener("click", showSolution);
+  $("pzNext").addEventListener("click", nextPuzzle);
+
+  const first = QCPuzzles.PUZZLES.find((p) => !PZ.solved.has(p.id)) || QCPuzzles.PUZZLES[0];
+  openPuzzle(first);
+}
+
+function openPuzzle(pz) {
+  PZ.pz = pz;
+  PZ.cache = {};
+  PZ.game = pz.factory ? pz.factory() : QCPuzzles.makePuzzleGame(pz);
+  PZ.done = false;
+  pzSetMode("move");
+  $("pzKicker").textContent = `${pz.level} · ${pz.id.startsWith("x") ? "generated" : "puzzle " + pz.id.slice(1)}`;
+  $("pzTitle").textContent = pz.title;
+  $("pzTask").textContent = pz.task;
+  const g = pz.goal;
+  $("pzGoal").innerHTML = g.type === "win" ? `<span>Goal</span>${g.min >= 1 ? "Win this move with certainty (100%)" : `Win this move with at least ${pct(g.min)} chance`}`
+    : g.type === "best" ? `<span>Goal</span>Find the best possible chance to win`
+    : g.type === "survive" ? `<span>Goal</span>Black's best reply wins ≤ ${pct(g.max)} of the time`
+    : `<span>Goal</span>End with the piece 100% on the target`;
+  const black = pz.side === "b";
+  $("pzSide").textContent = `${black ? "Black" : "White"} to move`;
+  $("pzAvatar").className = "avatar " + (black ? "black" : "white");
+  showFeedback("", "");
+  document.querySelectorAll(".pz-tile[data-id]").forEach((t) => {
+    t.classList.toggle("active", t.dataset.id === pz.id);
+    t.classList.toggle("solved", PZ.solved.has(t.dataset.id));
+  });
+  $("pzEndless").classList.toggle("active", pz.id.startsWith("x"));
+  $("pzShow").disabled = false;
+  updateProgress();
+  renderPuzzle();
+}
+
+function openEndless() {
+  showFeedback("hint", "Generating a position…");
+  setTimeout(() => {
+    const seed = 1 + Math.floor(Math.random() * 99999);
+    const pz = QCPuzzles.generateChallenge(seed);
+    if (pz) openPuzzle(pz); else showFeedback("bad", "Could not generate a position, try again.");
+  }, 20);
+}
+
+function nextPuzzle() {
+  const list = QCPuzzles.PUZZLES;
+  const i = list.findIndex((p) => p.id === PZ.pz.id);
+  if (i < 0 || i === list.length - 1) return openEndless();
+  openPuzzle(list.find((p, j) => j > i && !PZ.solved.has(p.id)) || list[i + 1]);
+}
+
+function updateProgress() {
+  const n = QCPuzzles.PUZZLES.filter((p) => PZ.solved.has(p.id)).length, total = QCPuzzles.PUZZLES.length;
+  $("pzProgress").innerHTML = `<div class="pzp-num"><b>${n}</b> / ${total}</div><div class="pzp-label">solved</div>
+    <div class="qm-bar"><i style="width:${(100 * n) / total}%"></i></div>`;
+}
+
+// ------------------------------------------------------------------ interaction
+function pzSetMode(mode) {
+  PZ.mode = mode; PZ.sel = null; PZ.opts = null; PZ.picks = []; PZ.partner = null;
+  document.querySelectorAll(".pz-mode").forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
+  if (PZ.game) renderPuzzle();
+}
+
+function pzOptions(sq) {
+  const o = PZ.game.options(QC.parse(sq));
+  return {
+    move: o.move.map(QC.name), capture: o.capture.map(QC.name), split: o.split.map(QC.name),
+    merge: Object.fromEntries([...o.merge].map(([k, v]) => [QC.name(k), v.map(QC.name)])),
+  };
+}
+
+function pzClick(sq) {
+  if (PZ.done) return;
+  const o = PZ.opts;
+  const pick = (a) => submit(a);
+  if (PZ.mode === "move") {
+    if (PZ.sel && o && (o.move.includes(sq) || o.capture.includes(sq))) return pick(["move", PZ.sel, sq]);
+  } else if (PZ.mode === "split") {
+    if (PZ.sel && o && o.split.includes(sq) && !PZ.picks.includes(sq)) {
+      PZ.picks.push(sq);
+      if (PZ.picks.length === 2) return pick(["split", PZ.sel, PZ.picks[0], PZ.picks[1]]);
+      return renderPuzzle();
+    }
+  } else {
+    if (PZ.sel && o && !PZ.partner && o.merge[sq]) { PZ.partner = sq; return renderPuzzle(); }
+    if (PZ.sel && PZ.partner && o.merge[PZ.partner].includes(sq)) return pick(["merge", PZ.sel, PZ.partner, sq]);
+  }
+  const p = PZ.game.pieces.get(QC.parse(sq));
+  if (p && p.color === PZ.game.turn) {
+    PZ.sel = sq; PZ.picks = []; PZ.partner = null; PZ.opts = pzOptions(sq);
+  } else { PZ.sel = null; PZ.opts = null; }
+  renderPuzzle();
+}
+
+function submit(a) {
+  const act = [a[0], ...a.slice(1).map(QC.parse)];
+  const res = QCPuzzles.grade(PZ.pz, act, PZ.cache);
+  const text = actionText(act);
+  // play it on the board too, with a real measurement, so the player sees what happened
+  const entry = QCPuzzles.doAction(PZ.game, act);
+  PZ.done = true; PZ.sel = null; PZ.opts = null; PZ.picks = []; PZ.partner = null;
+  renderPuzzle([entry.from, entry.to, entry.extra].filter(Boolean));
+  const happened = entry.events.length ? `<p class="pz-events">This time: ${entry.events.join("; ")}.</p>` : "";
+  const gt = PZ.pz.goal.type;
+  const target = gt === "survive" ? `needs ≤ ${pct(res.best)}` : gt === "certain" ? "needs 100%" : gt === "win" ? `needs ≥ ${pct(res.best)}` : `best is ${pct(res.best)}`;
+  const lucky = PZ.game.winner === PZ.pz.side;
+  if (res.ok) {
+    PZ.solved.add(PZ.pz.id); saveSolved(); updateProgress();
+    document.querySelector(`.pz-tile[data-id="${PZ.pz.id}"]`)?.classList.add("solved");
+    showFeedback("good", `<b>Solved.</b> ${text}: ${res.label} <b>${pct(res.value)}</b>.<p>${PZ.pz.lesson}</p>${happened}`);
+  } else {
+    showFeedback("bad", `<b>${lucky ? "Lucky this time, but not quite." : "Not quite."}</b> ${text}: ${res.label} <b>${pct(res.value)}</b> (${target}).${happened}
+      <button class="btn ghost small" id="pzRetry"><svg class="ic"><use href="#i-reset"/></svg>Try again</button>`);
+    $("pzRetry").addEventListener("click", () => openPuzzle(PZ.pz));
+  }
+}
+
+function showSolution() {
+  const pz = PZ.pz;
+  let ans = pz.answer;
+  if (!ans) {           // generated puzzle: let the solver find the best capture
+    const g = pz.factory();
+    let best = -1;
+    for (const a of QCPuzzles.allActions(g)) {
+      const v = QCPuzzles.winChance(pz.factory, a, g.turn);
+      if (v > best) { best = v; ans = [a[0], ...a.slice(1).map(QC.name)]; }
+    }
+  }
+  openPuzzle(pz);
+  const marks = {};
+  ans.slice(1).forEach((s, i) => (marks[s] = i === 0 ? "partner" : "qdot"));
+  renderPuzzle([], marks);
+  const act = [ans[0], ...ans.slice(1).map(QC.parse)];
+  showFeedback("hint", `<b>Solution.</b> ${actionText(act)}.<p>${pz.lesson}</p>`);
+}
+
+function showFeedback(kind, html) {
+  const box = $("pzFeedback");
+  box.className = "pz-feedback " + kind;
+  box.innerHTML = html;
+}
+
+function renderPuzzle(last = [], forced = null) {
+  const g = PZ.game, cells = {};
+  for (const [sq, p] of g.pieces) cells[QC.name(sq)] = { color: p.color, kind: p.kind, prob: g.prob(sq) };
+  let marks = forced || {};
+  const o = PZ.opts;
+  if (!forced && PZ.sel && o && settings.hints) {
+    if (PZ.mode === "move") { o.move.forEach((s) => (marks[s] = "dot")); o.capture.forEach((s) => (marks[s] = "ring")); }
+    else if (PZ.mode === "split") o.split.forEach((s) => (marks[s] = PZ.picks.includes(s) ? "picked" : "qdot"));
+    else if (!PZ.partner) Object.keys(o.merge).forEach((s) => (marks[s] = "partner"));
+    else { marks[PZ.partner] = "partner"; o.merge[PZ.partner].forEach((s) => (marks[s] = "qdot")); }
+  }
+  const board = buildBoard(cells, {
+    marks, sel: PZ.sel, last, coords: settings.coords, badges: settings.badges,
+    flip: PZ.pz.side === "b", onClick: pzClick,
+  });
+  board.id = "pzBoard";
+  $("pzBoard").replaceWith(board);
 }
 
 </script>
@@ -1872,11 +2844,13 @@ function lineChart(points, { xLabel = "", yLabel = "", color = "#5fd4e8" } = {})
 // ================================================================== routing
 function route() {
   const r = (location.hash || "#play").slice(1);
-  const view = ["play", "manual", "blog"].includes(r) ? r : "play";
-  for (const v of ["play", "manual", "blog"]) $("view-" + v).classList.toggle("hidden", v !== view);
+  const views = ["play", "manual", "puzzles", "blog"];
+  const view = views.includes(r) ? r : "play";
+  for (const v of views) $("view-" + v).classList.toggle("hidden", v !== view);
   document.querySelectorAll(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.route === view));
   if (view === "manual" && !$("manualBody").dataset.built) { buildManual($("manualBody")); $("manualBody").dataset.built = 1; }
   if (view === "blog" && !$("blogBody").dataset.built) { buildBlog($("blogBody")); $("blogBody").dataset.built = 1; }
+  if (view === "puzzles" && !$("view-puzzles").dataset.built) { buildPuzzles($("view-puzzles")); $("view-puzzles").dataset.built = 1; }
   window.scrollTo(0, 0);
 }
 

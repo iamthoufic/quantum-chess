@@ -447,11 +447,13 @@ function lineChart(points, { xLabel = "", yLabel = "", color = "#5fd4e8" } = {})
 // ================================================================== routing
 function route() {
   const r = (location.hash || "#play").slice(1);
-  const view = ["play", "manual", "blog"].includes(r) ? r : "play";
-  for (const v of ["play", "manual", "blog"]) $("view-" + v).classList.toggle("hidden", v !== view);
+  const views = ["play", "manual", "puzzles", "blog"];
+  const view = views.includes(r) ? r : "play";
+  for (const v of views) $("view-" + v).classList.toggle("hidden", v !== view);
   document.querySelectorAll(".nav a").forEach((a) => a.classList.toggle("active", a.dataset.route === view));
   if (view === "manual" && !$("manualBody").dataset.built) { buildManual($("manualBody")); $("manualBody").dataset.built = 1; }
   if (view === "blog" && !$("blogBody").dataset.built) { buildBlog($("blogBody")); $("blogBody").dataset.built = 1; }
+  if (view === "puzzles" && !$("view-puzzles").dataset.built) { buildPuzzles($("view-puzzles")); $("view-puzzles").dataset.built = 1; }
   window.scrollTo(0, 0);
 }
 

@@ -63,9 +63,10 @@ function buildManual(root) {
     <p class="lede">Chess on Martin Gardner's 5×5 board, where pieces can be in two places at once.
     Every square is a qubit, every quantum move is a gate, and every capture is a measurement.</p>
 `;
+  root.appendChild(buildTutorials());
   const toc = $("manualToc");
   toc.innerHTML = `<div class="toc-title">Contents</div><nav class="toc">
-      <a href="#m-goal">Goal and board</a><a href="#m-pieces">The pieces</a><a href="#m-turn">Your turn</a>
+      <a href="#m-videos">Video tutorials</a><a href="#m-goal">Goal and board</a><a href="#m-pieces">The pieces</a><a href="#m-turn">Your turn</a>
       <a href="#m-split">Split</a><a href="#m-merge">Merge</a><a href="#m-entangle">Entanglement</a>
       <a href="#m-capture">Captures</a><a href="#m-pawns">Pawns</a><a href="#m-end">Winning</a>
       <a href="#m-controls">Controls</a><a href="#m-fair">Engines and fair play</a>
