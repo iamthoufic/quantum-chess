@@ -149,7 +149,7 @@ function fitPuzzleBoard() {
   const stacked = innerWidth <= 1180;                  // the puzzle list sits above the board
   const above = stacked ? document.querySelector(".pz-side").getBoundingClientRect().height + 28 : 0;
   const byHeight = (avail - above - bar) / 5;
-  const side = stacked ? 0 : 230 + 28;
+  const side = stacked ? 0 : 224 + 28;
   const byWidth = (innerWidth - side - 400 - 28 - 48) / 5;
   const sq = Math.max(64, Math.min(124, (h - bar) / 5, byHeight, byWidth));
   layout.style.setProperty("--sq", sq + "px");

@@ -119,6 +119,36 @@
     },
   ];
 
+  // ---- puzzles for Black: a white puzzle reflected top-to-bottom with the colours swapped is exactly
+  // the same problem from the other side (pawns move the other way, so the reflection is exact)
+  const flipSq = (s) => s[0] + (6 - +s[1]);
+  const swapColor = (c) => (c === "w" ? "b" : "w");
+  const flipText = (t) => t
+    .replace(/\b([a-e])([1-5])\b/g, (_, f, r) => f + (6 - +r))
+    .replace(/\b(white|black|White|Black)\b/g, (w) => ({ white: "black", black: "white", White: "Black", Black: "White" }[w]));
+  const flipAct = (a) => a.map((x, i) => (i === 0 ? x : flipSq(x)));
+  function mirror(pz, id, title) {
+    const goal = { ...pz.goal };
+    if (goal.pid) goal.pid = swapColor(goal.pid[0]) + goal.pid[1] + goal.pid[2] + (6 - +goal.pid[3]);
+    if (goal.squares) goal.squares = goal.squares.map(flipSq);
+    return {
+      ...pz, id, title, side: swapColor(pz.side),
+      pieces: Object.fromEntries(Object.entries(pz.pieces).map(([s, p]) => [flipSq(s), swapColor(p[0]) + p[1]])),
+      setup: pz.setup ? pz.setup.map(flipAct) : undefined,
+      answer: flipAct(pz.answer), goal,
+      task: flipText(pz.task), hint: flipText(pz.hint), lesson: flipText(pz.lesson),
+    };
+  }
+  const byId = (id) => PUZZLES.find((p) => p.id === id);
+  PUZZLES.push(
+    mirror(byId("b2"), "b5", "Half a king, as Black"),
+    mirror(byId("b4"), "b6", "Ghost on the line, as Black"),
+    mirror(byId("i2"), "i5", "Hedge the king, as Black"),
+    mirror(byId("i4"), "i6", "Build a wall, as Black"),
+    mirror(byId("a1"), "a3", "Hide behind a ghost, as Black"),
+    mirror(byId("a2"), "a4", "Ghost maze, as Black"),
+  );
+
   // ------------------------------------------------------------------ game helpers
   function doAction(g, a) {
     if (a[0] === "move") return g.move(a[1], a[2]);

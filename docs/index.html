@@ -507,7 +507,7 @@ html[data-ui="light"] .mode-pill.c { color: #9a6a12; background: rgba(154, 106, 
 
 /* ---------- puzzles ---------- */
 .puzzles { padding: 20px 24px; }
-.pz-sub { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.5; }
+.pz-sub { margin: 0; color: var(--text-2); font-size: 13.5px; line-height: 1.5; }
 .pz-progress { width: 100%; }
 .pzp-num { font: 400 34px/1 var(--display); }
 .pzp-num b { font-weight: 400; color: var(--go); }
@@ -516,16 +516,17 @@ html[data-ui="light"] .mode-pill.c { color: #9a6a12; background: rgba(154, 106, 
 .pz-strip { display: flex; background: var(--surface); border: 1px solid var(--hair); border-radius: 14px; }
 .pz-group { display: flex; align-items: center; gap: 12px; }
 .pz-level { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); }
-.pz-tiles { display: flex; gap: 6px; }
-.pz-tile { width: 36px; height: 36px; border-radius: 9px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--hair-2); font: 700 14px var(--mono); color: var(--text-2); display: grid; place-items: center; position: relative; }
+.pz-tiles { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; width: 100%; }
+.pz-tiles:has(.endless) { display: flex; }
+.pz-tile { width: auto; min-width: 0; height: 30px; border-radius: 8px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--hair-2); font: 700 13px var(--mono); color: var(--text-2); display: grid; place-items: center; position: relative; }
 .pz-tile:hover { color: var(--text); box-shadow: inset 0 0 0 1px var(--text-3); }
 .pz-tile.solved { background: rgba(129, 182, 76, 0.16); color: #b6dd8f; box-shadow: inset 0 0 0 1px rgba(129, 182, 76, 0.45); }
 .pz-tile.active { box-shadow: inset 0 0 0 2px var(--q-cyan); color: var(--text); }
 .pz-tile.endless .ic { width: 18px; height: 18px; }
-.pz-layout { --sq: min(11.2vh, 92px); display: grid; grid-template-columns: 230px auto 400px; gap: 28px; justify-content: center; align-items: stretch; }
+.pz-layout { --sq: min(11.2vh, 92px); display: grid; grid-template-columns: 224px auto 400px; gap: 28px; justify-content: center; align-items: stretch; }
 .pz-side { display: flex; flex-direction: column; gap: 18px; }
 .pz-strip { flex: 1; justify-content: space-between; }
-.pz-intro h1 { font: 400 40px/1 var(--display); margin: 4px 0 8px; }
+.pz-intro h1 { font: 400 36px/1 var(--display); margin: 4px 0 8px; }
 .pz-strip { flex-direction: column; flex-wrap: nowrap; gap: 14px; padding: 16px; }
 .pz-group { flex-direction: column; align-items: flex-start; gap: 7px; }
 .pz-tile.endless { width: auto; padding: 0 12px; display: inline-flex; gap: 8px; font: 700 13px var(--ui); }
@@ -787,8 +788,11 @@ html[data-ui="light"] .tut-controls { background: var(--surface-2); }
 .play-side #actions { width: auto; flex: 1; align-self: stretch; justify-content: space-between; gap: 10px; }
 .play-side .tile-btn { flex: 1 1 0; min-height: 58px; max-height: 112px; }
 /* on Bots the two tiles sit side by side under the options, compact so the column fits the window */
-.bots-side .side-col { width: auto; align-self: stretch; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.bots-side .tile-btn { height: 48px; padding: 0 10px; gap: 8px; }
+.bots-side .side-col { width: auto; align-self: stretch; display: flex; flex-direction: column; gap: 8px; }
+.bots-side .tile-btn { height: 48px; padding: 0 8px; gap: 8px; min-width: 0; }
+.bots-side .tile-text b { font-size: 13.5px; }
+.bots-side .tile-btn.primary { box-shadow: none; }
+.bots-side .tile-btn.primary:active { transform: translateY(1px); box-shadow: none; }
 .bots-side .tile-text small { display: none; }
 @media (max-height: 820px) { .bots-sub { display: none; } }
 @media (max-width: 1100px) {
@@ -1945,6 +1949,36 @@ if (typeof module !== "undefined" && module.exports) module.exports = QBOT;
       lesson: "Rook c1 → c5 and queen e1 → e5 each need the king there (50%) and the knight not on their file (50%): 25%. The bishop on a3 reaches c5 through b4, which nothing can occupy: 50%, the most any single capture can get when the king is split in two.",
     },
   ];
+
+  // ---- puzzles for Black: a white puzzle reflected top-to-bottom with the colours swapped is exactly
+  // the same problem from the other side (pawns move the other way, so the reflection is exact)
+  const flipSq = (s) => s[0] + (6 - +s[1]);
+  const swapColor = (c) => (c === "w" ? "b" : "w");
+  const flipText = (t) => t
+    .replace(/\b([a-e])([1-5])\b/g, (_, f, r) => f + (6 - +r))
+    .replace(/\b(white|black|White|Black)\b/g, (w) => ({ white: "black", black: "white", White: "Black", Black: "White" }[w]));
+  const flipAct = (a) => a.map((x, i) => (i === 0 ? x : flipSq(x)));
+  function mirror(pz, id, title) {
+    const goal = { ...pz.goal };
+    if (goal.pid) goal.pid = swapColor(goal.pid[0]) + goal.pid[1] + goal.pid[2] + (6 - +goal.pid[3]);
+    if (goal.squares) goal.squares = goal.squares.map(flipSq);
+    return {
+      ...pz, id, title, side: swapColor(pz.side),
+      pieces: Object.fromEntries(Object.entries(pz.pieces).map(([s, p]) => [flipSq(s), swapColor(p[0]) + p[1]])),
+      setup: pz.setup ? pz.setup.map(flipAct) : undefined,
+      answer: flipAct(pz.answer), goal,
+      task: flipText(pz.task), hint: flipText(pz.hint), lesson: flipText(pz.lesson),
+    };
+  }
+  const byId = (id) => PUZZLES.find((p) => p.id === id);
+  PUZZLES.push(
+    mirror(byId("b2"), "b5", "Half a king, as Black"),
+    mirror(byId("b4"), "b6", "Ghost on the line, as Black"),
+    mirror(byId("i2"), "i5", "Hedge the king, as Black"),
+    mirror(byId("i4"), "i6", "Build a wall, as Black"),
+    mirror(byId("a1"), "a3", "Hide behind a ghost, as Black"),
+    mirror(byId("a2"), "a4", "Ghost maze, as Black"),
+  );
 
   // ------------------------------------------------------------------ game helpers
   function doAction(g, a) {
@@ -3154,7 +3188,7 @@ function fitPuzzleBoard() {
   const stacked = innerWidth <= 1180;                  // the puzzle list sits above the board
   const above = stacked ? document.querySelector(".pz-side").getBoundingClientRect().height + 28 : 0;
   const byHeight = (avail - above - bar) / 5;
-  const side = stacked ? 0 : 230 + 28;
+  const side = stacked ? 0 : 224 + 28;
   const byWidth = (innerWidth - side - 400 - 28 - 48) / 5;
   const sq = Math.max(64, Math.min(124, (h - bar) / 5, byHeight, byWidth));
   layout.style.setProperty("--sq", sq + "px");
