@@ -202,6 +202,8 @@ function buildManual(root) {
       <tr><td>Split</td><td>Split mode (<kbd>2</kbd>): click a piece, then two dashed circles</td></tr>
       <tr><td>Merge</td><td>Merge mode (<kbd>3</kbd>): click one half, its outlined partner, then a dashed circle</td></tr>
       <tr><td>Cancel a selection</td><td><kbd>Esc</kbd></td></tr>
+      <tr><td>Review a past position</td><td>Click any move in the list, or step with <kbd>←</kbd> <kbd>→</kbd> (<kbd>Home</kbd> start, <kbd>End</kbd> back to the game). The board is locked while reviewing; the circuit shown is that move's</td></tr>
+      <tr><td>Take back a move</td><td>"Take back" tile (against a bot it also undoes the reply)</td></tr>
       <tr><td>Change theme, hints, coordinates, board flip, engine</td><td>Settings (sliders icon, top right)</td></tr>
       <tr><td>Play without quantum moves</td><td>"Classical" button under the move list</td></tr>
     </table>`);

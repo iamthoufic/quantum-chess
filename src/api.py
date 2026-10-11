@@ -37,6 +37,15 @@ async def no_stale_files(request, call_next):
     response.headers["Cache-Control"] = "no-cache"
     return response
 games: dict[str, Game] = {}
+circuits: dict[str, dict] = {}       # gid -> {ply: QuantumCircuit}, so any past move can be drawn while reviewing
+
+
+def remember_circuit(gid: str, game: Game) -> None:
+    store = circuits.setdefault(gid, {})
+    for ply in [p for p in store if p > game.ply]:      # after a take-back
+        del store[ply]
+    if game.last_circuit is not None:
+        store[game.ply] = game.last_circuit
 
 
 class NewGame(BaseModel):
@@ -138,6 +147,7 @@ def undo(gid: str, req: Undo):
     if not game.log:
         raise HTTPException(400, "nothing to take back")
     games[gid] = game.undo(max(1, min(req.plies, len(game.log))))
+    remember_circuit(gid, games[gid])
     return snapshot(gid, games[gid])
 
 
@@ -158,15 +168,18 @@ def play(gid: str, req: Play):
             raise IllegalMove(f"unknown move kind {req.kind!r}")
     except (IllegalMove, ValueError, TypeError) as exc:
         raise HTTPException(400, str(exc))
+    remember_circuit(gid, game)
     return snapshot(gid, game)
 
 
 @app.get("/api/{gid}/circuit.svg")
-def circuit_svg(gid: str):
+def circuit_svg(gid: str, ply: int | None = None):
+    """The circuit of the last move, or of the move that ended at `ply` (for reviewing)."""
     game = get(gid)
-    if game.last_circuit is None:
-        raise HTTPException(404, "no circuit yet")
-    fig = game.last_circuit.draw("mpl", style="iqp", fold=-1)
+    qc = game.last_circuit if ply is None or ply == game.ply else circuits.get(gid, {}).get(ply)
+    if qc is None:
+        raise HTTPException(404, "no circuit for that move")
+    fig = qc.draw("mpl", style="iqp", fold=-1)
     buf = io.StringIO()
     fig.savefig(buf, format="svg", bbox_inches="tight", transparent=True)
     plt.close(fig)

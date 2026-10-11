@@ -251,7 +251,11 @@ html[data-ui="light"] .mode-pill.c { color: #9a6a12; background: rgba(154, 106, 
 .mrow { display: grid; grid-template-columns: 38px 1fr 1fr; align-items: center; height: 32px; padding-right: 6px; font: 600 13.5px var(--mono); }
 .mrow:nth-child(even) { background: rgba(255, 255, 255, 0.035); }
 .mno { color: var(--text-3); padding-left: 10px; font-weight: 500; }
-.mv { min-width: 0; }
+.mv { min-width: 0; cursor: pointer; }
+.mv[data-ply]:hover .mchip { background: rgba(255, 255, 255, 0.07); }
+.link-btn { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; color: var(--q-cyan); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.panel.reviewing .movelist { box-shadow: inset 0 0 0 1.5px var(--q-cyan); }
+.board.review { box-shadow: 0 0 0 2px var(--q-cyan), 0 18px 40px -18px rgba(0, 0, 0, 0.8); }
 .mchip { display: inline-flex; align-items: center; gap: 3px; max-width: 100%; padding: 3px 7px; border-radius: 5px; color: var(--text); white-space: nowrap; overflow: hidden; }
 .mv.cur .mchip { background: rgba(255, 255, 255, 0.13); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4); }
 .mv .q { color: var(--q-cyan); }
@@ -284,9 +288,9 @@ html[data-ui="light"] .mode-pill.c { color: #9a6a12; background: rgba(154, 106, 
 .doc { display: grid; grid-template-columns: 220px minmax(0, 720px); gap: 56px; justify-content: center; padding: 48px 24px 96px; }
 .doc.single { grid-template-columns: minmax(0, 720px); }
 #manualBody { grid-column: 2; }
-.toc-side { position: fixed; top: 110px; left: max(24px, calc(50% - 498px)); width: 220px; display: flex; flex-direction: column; }
+.toc-side { position: fixed; top: 110px; bottom: 56px; left: max(24px, calc(50% - 498px)); width: 220px; display: flex; flex-direction: column; }
 .toc-side .toc-title { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); margin-bottom: 10px; }
-.toc { position: relative; display: flex; flex-direction: column; border-left: 1px solid var(--hair-2); }
+.toc { position: relative; display: flex; flex-direction: column; justify-content: space-between; flex: 1; max-height: 640px; border-left: 1px solid var(--hair-2); }
 .toc-ind { position: absolute; left: -1px; width: 2px; height: 0; background: var(--q-cyan); border-radius: 1px; transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s; }
 .toc a { color: var(--text-3); text-decoration: none; font-size: 14px; font-weight: 600; padding: 7px 0 7px 14px; transition: color 0.15s; }
 .toc a:hover { color: var(--text); }

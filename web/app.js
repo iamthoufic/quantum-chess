@@ -153,7 +153,30 @@ async function chooseEngine() {
 
 // ================================================================== game state
 const S = { engine: null, state: null, mode: "play", moveMode: "move", sel: null, opts: null, picks: [], partner: null, busy: false,
-  engines: {}, states: { play: null, bots: null } };
+  engines: {}, states: { play: null, bots: null },
+  // every position of the current game, one snapshot per ply (hist[k] = after k plies), for reviewing
+  hist: { play: [], bots: [] }, review: null };
+
+/** The position on screen: the live game, or the past position being reviewed. */
+const viewState = () => (S.review === null ? S.state : S.hist[S.mode][S.review]);
+const reviewing = () => S.review !== null;
+
+function recordState() {
+  const h = S.hist[S.mode];
+  h.length = S.state.log.length;            // a take-back drops the later positions
+  h[S.state.log.length] = S.state;
+}
+
+/** Show the position after `ply` plies; the live position (or null) leaves review mode. */
+function reviewAt(ply) {
+  if (!S.state) return;
+  const n = S.state.log.length;
+  if (ply === null || ply >= n || !S.hist[S.mode][ply]) S.review = null;
+  else S.review = Math.max(0, ply);
+  clearSelection();
+  render();
+  showCircuit();
+}
 
 function toast(msg) {
   const t = $("toast");
@@ -172,6 +195,9 @@ async function newGame(quantum) {
   }
   clearSelection();
   S.reviewing = false;
+  S.review = null;
+  S.hist[S.mode] = [];
+  recordState();
   BOT.thinking = false;
   setMode("move");
   circuitToken++;
@@ -211,6 +237,7 @@ async function play(kind, src, dst, extra = null) {
     S.busy = false;
     return;
   }
+  recordState();
   clearSelection();
   S.busy = false;
   render();
@@ -267,8 +294,10 @@ async function takeBack() {
     S.state = S.states[S.mode] = await S.engine.undo(plies);
   } catch (e) { toast(e.message); S.busy = false; return; }
   S.busy = false;
+  recordState();
   clearSelection();
   S.reviewing = false;
+  S.review = null;
   render();
   showCircuit();
   toast(plies === 1 ? "Took back the last move." : "Took back your move and the bot's reply.");
@@ -276,6 +305,7 @@ async function takeBack() {
 }
 
 async function onSquare(sq) {
+  if (reviewing()) { toast("You are reviewing a past position. Click the last move (or press End) to return to the game."); return; }
   if (S.busy || !S.state || S.state.winner || isBotTurn()) return;
   const o = S.opts;
   if (S.moveMode === "move") {
@@ -338,15 +368,17 @@ function buildBoard(cells, { marks = {}, last = [], sel = null, coords = true, f
 
 function render() {
   if (!S.state) return;
+  const st = viewState();
   const cells = {};
-  for (const s of S.state.squares) if (s.piece) cells[s.sq] = { ...s.piece, prob: s.prob };
-  const last = S.state.log[S.state.log.length - 1];
+  for (const s of st.squares) if (s.piece) cells[s.sq] = { ...s.piece, prob: s.prob };
+  const last = st.log[st.log.length - 1];
   const board = buildBoard(cells, {
-    marks: settings.hints ? hintMap() : {}, sel: S.sel, coords: settings.coords, flip: boardFlipped(),
+    marks: settings.hints && !reviewing() ? hintMap() : {}, sel: S.sel, coords: settings.coords, flip: boardFlipped(),
     badges: settings.badges, last: last ? [last.from, last.to, last.extra].filter(Boolean) : [], onClick: onSquare,
   });
   board.id = "board";
-  if (S.state.check_sq) board.querySelector(`.sq[data-sq="${S.state.check_sq}"]`).classList.add("in-check");
+  board.classList.toggle("review", reviewing());
+  if (st.check_sq) board.querySelector(`.sq[data-sq="${st.check_sq}"]`).classList.add("in-check");
   $("board").replaceWith(board);
   renderPanel();
 }
@@ -373,17 +405,20 @@ function renderPanel() {
   const winnerName = st.winner === "w" || st.winner === "b" ? sideName(st.winner) : "";
   $("status").textContent = st.winner ? (st.winner === "draw" ? "Draw" : `${winnerName} wins`) : (BOT.thinking ? `${botLevel().name} is thinking…` : botLevel() ? (st.turn === botSide() ? `${botLevel().name} to move` : "Your move") : `${st.turn === "w" ? "White" : "Black"} to move`);
   const cap = QC.MAX_QUBITS;
-  $("qubits").querySelector(".qm-val").textContent = `${st.qubits} / ${cap}`;
-  $("qubits").querySelector(".qm-bar i").style.width = `${(100 * st.qubits) / cap}%`;
+  const shown = viewState();
+  $("qubits").querySelector(".qm-val").textContent = `${shown.qubits} / ${cap}`;
+  $("qubits").querySelector(".qm-bar i").style.width = `${(100 * shown.qubits) / cap}%`;
   const whiteBottom = !boardFlipped();
   $("barBottom").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "w" : "b"));
   $("barTop").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "b" : "w"));
+  const moveNo = reviewing() ? `reviewing · move ${Math.floor(shown.ply / 2) + 1}` : `move ${Math.floor(st.ply / 2) + 1}`;
   $("modeTag").innerHTML = st.quantum
-    ? `<span class="mode-pill q"><svg class="ic"><use href="#i-atom"/></svg>Quantum</span><span>move ${Math.floor(st.ply / 2) + 1}</span>`
-    : `<span class="mode-pill c"><svg class="ic"><use href="#i-half"/></svg>Classical</span><span>move ${Math.floor(st.ply / 2) + 1}</span>`;
-  $("hint").textContent = hintText();
+    ? `<span class="mode-pill q"><svg class="ic"><use href="#i-atom"/></svg>Quantum</span><span>${moveNo}</span>`
+    : `<span class="mode-pill c"><svg class="ic"><use href="#i-half"/></svg>Classical</span><span>${moveNo}</span>`;
+  $("hint").innerHTML = hintText();
   renderMoves();
   renderCaptured(whiteBottom);
+  $("gamePanel").classList.toggle("reviewing", reviewing());
   const ov = $("overlay");
   if (st.winner && !S.reviewing) {
     const draw = st.winner === "draw";
@@ -405,6 +440,11 @@ function renderPanel() {
 }
 
 function hintText() {
+  if (reviewing()) {
+    const e = viewState().log[S.review - 1];
+    const label = e ? `${Math.floor((S.review - 1) / 2) + 1}${e.color === "w" ? "." : "…"} ${plainMove(e)}` : "the starting position";
+    return `Reviewing ${label}. Use ← → to step through. <button class="link-btn" id="backLive">Back to the game</button>`;
+  }
   if (S.state.winner) return "Game over.";
   if (BOT.thinking) return "";
   if (S.state.check) return `${sideName(S.state.turn) === "You" ? "Your" : sideName(S.state.turn) + "'s"} king is in check.`;
@@ -414,6 +454,8 @@ function hintText() {
   if (!S.sel) return "Select one half of a split piece.";
   return S.partner ? "Pick the square where both halves should interfere." : "Now click its other half (outlined).";
 }
+
+const plainMove = (e) => moveText(e).replace(/<[^>]+>/g, "");
 
 function moveText(e) {
   if (e.kind === "split") return `${e.from}<span class="q">→</span>${e.to}<span class="q">|</span>${e.extra}`;
@@ -426,7 +468,7 @@ function renderMoves() {
   const log = S.state.log;
   if (!log.length) { box.innerHTML = `<p class="empty">No moves yet. ${S.state.turn === "w" ? "White" : "Black"} starts.</p>`; return; }
   // chess.com style: number, White, Black; piece figurine before each move; latest move in a chip
-  const last = log.length - 1;
+  const last = reviewing() ? S.review - 1 : log.length - 1;     // the move whose position is on screen
   const cell = (e, i) => {
     if (!e) return `<div class="mv"></div>`;
     const tip = e.events.length ? plainEvents(e.events) : "";
@@ -434,7 +476,7 @@ function renderMoves() {
     const quantumEvent = e.events.some((ev) => /measured|entangled|qubit budget/.test(ev));
     // figurines in one colour for both sides, as chess.com does, so they read on the dark list
     const fig = e.piece === "P" ? "" : `<img class="fig-ico" src="${pieceUrl("w", e.piece)}" alt="${e.piece}">`;
-    return `<div class="mv${i === last ? " cur" : ""}${e.ok ? "" : " fail"}"${tip ? ` title="${tip}"` : ""}>`
+    return `<div class="mv${i === last ? " cur" : ""}${e.ok ? "" : " fail"}" data-ply="${i + 1}" role="button" tabindex="0"${tip ? ` title="${tip}"` : ""}>`
       + `<span class="mchip">${fig}<span class="mt">${moveText(e)}</span>${quantumEvent ? `<span class="qmark" aria-label="${tip}"></span>` : ""}</span></div>`;
   };
   let html = "";
@@ -442,11 +484,15 @@ function renderMoves() {
     html += `<div class="mrow"><span class="mno">${i / 2 + 1}.</span>${cell(log[i], i)}${cell(log[i + 1], i + 1)}</div>`;
   }
   box.innerHTML = html;
-  box.scrollTop = box.scrollHeight;
+  // click any move to review the position after it; the latest move returns to the live game
+  box.querySelectorAll(".mv[data-ply]").forEach((el) => el.addEventListener("click", () => reviewAt(+el.dataset.ply)));
+  const cur = box.querySelector(".mv.cur");
+  if (cur && reviewing()) cur.scrollIntoView({ block: "nearest" });
+  else box.scrollTop = box.scrollHeight;
 }
 
 function renderCaptured(whiteBottom) {
-  const alive = new Set(S.state.squares.filter((s) => s.piece).map((s) => s.piece.pid));
+  const alive = new Set(viewState().squares.filter((s) => s.piece).map((s) => s.piece.pid));
   const lost = { w: [], b: [] };
   ["R", "N", "B", "Q", "K"].forEach((k, f) => {
     for (const c of ["w", "b"]) {
@@ -473,8 +519,10 @@ let circuitToken = 0;
 function showCircuit() {
   const box = $("circuit");
   const token = ++circuitToken;            // a slow image from an older move must not overwrite a newer one
-  const node = S.engine.circuit(S.state);
-  const key = node ? circuitKey(S.engine.key(S.state)) : "";
+  const st = viewState();
+  if (!st.log.length) { box.innerHTML = `<span class="empty">Quantum moves draw their circuit here.</span>`; $("circuitKey").innerHTML = ""; return; }
+  const node = S.engine.circuit(st);
+  const key = node ? circuitKey(S.engine.key(st)) : "";
   const wasOpen = $("circuitKey").querySelector("details")?.open;
   // folded on the Play panel so it keeps the board's height; open on request
   $("circuitKey").innerHTML = key ? `<details${wasOpen ? " open" : ""}><summary>What do these boxes mean?</summary>${key}</details>` : "";
@@ -676,6 +724,7 @@ function switchMode(mode) {
   S.mode = mode;
   S.engine = S.engines[mode];
   S.state = S.states[mode];
+  S.review = null;
   clearSelection();
   BOT.thinking = false;
   S.busy = false;
@@ -741,6 +790,7 @@ function wire() {
   document.querySelectorAll("[data-rules]").forEach((b) => b.addEventListener("click", () => { settings.rules = b.dataset.rules; saveSettings(); applySettings(); newMatch(); }));
   // close the result card to look at the final position; the panel still shows the result
   $("overlayReview").addEventListener("click", () => { S.reviewing = true; render(); });
+  $("hint").addEventListener("click", (e) => { if (e.target.id === "backLive") reviewAt(null); });
   $("settingsBtn").addEventListener("click", () => $("settings").showModal());
   document.querySelectorAll("[data-cview]").forEach((b) => b.addEventListener("click", () => {
     settings.cview = b.dataset.cview;
@@ -773,8 +823,19 @@ function wire() {
   $("resetSettings").addEventListener("click", () => { settings = { ...DEFAULTS }; saveSettings(); applySettings(); });
 
   document.addEventListener("keydown", (e) => {
-    if ($("settings").open || (location.hash && location.hash !== "#play")) return;
+    if ($("settings").open || (location.hash && !["#play", "#bots"].includes(location.hash))) return;
     if (e.key === "Escape") { clearSelection(); render(); }
+    if (e.target.closest && e.target.closest("input, textarea, select")) return;
+    // step through the game: ← → one ply, Home the start, End back to the live game
+    if (S.state && S.state.log.length && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
+      e.preventDefault();
+      const n = S.state.log.length, at = reviewing() ? S.review : n;
+      if (e.key === "ArrowLeft") reviewAt(at - 1);
+      else if (e.key === "ArrowRight") reviewAt(at + 1);
+      else if (e.key === "Home") reviewAt(0);
+      else reviewAt(null);
+      return;
+    }
     if (e.key === "1") setMode("move");
     if (e.key === "2") setMode("split");
     if (e.key === "3") setMode("merge");
