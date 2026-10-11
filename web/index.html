@@ -82,8 +82,7 @@
 <main id="view-play" class="view layout">
   <aside class="side-col play-side" id="playSide">
     <div class="bots-intro">
-      <p class="eyebrow">Two players</p>
-      <h1>Play</h1>
+      <h1 class="page-title"><em>Two players</em> Play</h1>
       <p class="bots-sub">Quantum chess on the 5×5 board. Share the keyboard, or play both sides.</p>
     </div>
   <div class="side-col" id="actions" aria-label="Game actions">
@@ -92,6 +91,12 @@
     <button class="tile-btn" id="takeBack" title="Take back the last move"><span class="tile-ic"><svg class="ic"><use href="#i-undo"/></svg></span><span class="tile-text"><b>Take back</b><small>Undo last move</small></span></button>
     <button class="tile-btn play-only" id="flipBoard" title="View the board from the other side"><span class="tile-ic"><svg class="ic"><use href="#i-flip"/></svg></span><span class="tile-text"><b>Flip board</b><small>Other side</small></span></button>
     <button class="tile-btn primary bots-only" id="panelNew" title="Start a new match against the same opponent"><span class="tile-ic"><svg class="ic"><use href="#i-play"/></svg></span><span class="tile-text"><b>New match</b><small>Same opponent</small></span></button>
+  </div>
+  <div class="side-card tips" id="playTips" aria-label="Keyboard shortcuts">
+    <div class="tips-title">Keyboard</div>
+    <div class="tip"><span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd></span>Move · Split · Merge</div>
+    <div class="tip"><span><kbd>←</kbd><kbd>→</kbd></span>Step through the game</div>
+    <div class="tip"><span><kbd>Esc</kbd></span>Cancel a selection</div>
   </div>
   </aside>
   <section class="board-col" id="gameBoardCol">
@@ -179,8 +184,7 @@
   <div class="bots-grid">
     <aside class="bots-side">
       <div class="bots-intro">
-        <p class="eyebrow">Play against the computer</p>
-        <h1>Bots</h1>
+        <h1 class="page-title"><em>Play against the computer</em> Bots</h1>
         <p class="bots-sub">Each one weighs every legal move by the exact odds of its measurement outcomes.</p>
       </div>
       <div class="bot-cards" id="botCards"></div>

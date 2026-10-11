@@ -35,8 +35,7 @@ function buildPuzzles(root) {
     <div class="pz-layout">
       <aside class="pz-side">
         <div class="pz-intro">
-          <p class="eyebrow">Practice</p>
-          <h1>Puzzles</h1>
+          <h1 class="page-title"><em>Practice</em> Puzzles</h1>
           <p class="pz-sub">${QCPuzzles.PUZZLES.length} hand-made positions, graded by an exact solver, plus endless generated ones.</p>
         </div>
         <div class="pz-progress" id="pzProgress"></div>
