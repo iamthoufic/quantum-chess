@@ -60,8 +60,8 @@ const authorPhoto = (name) => `<img class="av" src="${window.AUTHOR_IMG || "img/
 // ------------------------------------------------------------------ manual
 function buildManual(root) {
   root.innerHTML = `
-    <p class="eyebrow">Instruction manual</p>
     <h1>How to play Quantum Chess 5×5</h1>
+    <p class="eyebrow">Instruction manual</p>
     <p class="lede">Chess on Martin Gardner's 5×5 board, where pieces can be in two places at once.
     Every square is a qubit, every quantum move is a gate, and every capture is a measurement.</p>
 `;
@@ -278,8 +278,8 @@ function renderBlog(root, slug) {
   const art = ARTICLES.find((a) => a.slug === slug);
   if (!art) {
     root.innerHTML = `
-      <p class="eyebrow page-eyebrow">Blog</p>
       <h1>Notes from building Quantum Chess</h1>
+      <p class="eyebrow">Blog</p>
       <p class="lede">Articles on the ideas behind the game: what quantum mechanics changes about chess, and what it costs.</p>
 
       <div class="post-list">${ARTICLES.map((a) => `
