@@ -117,7 +117,13 @@
     </section>
 
     <section class="psec">
-      <h4 id="circuitTitle">Circuit of the last move</h4>
+      <div class="psec-head">
+        <h4 id="circuitTitle">Circuit</h4>
+        <div class="viewtoggle" role="tablist" aria-label="Circuit view">
+          <button data-cview="qiskit" title="Drawn the way Qiskit draws circuits">Qiskit</button>
+          <button data-cview="explained" title="The same circuit with every box named in plain words">Explained</button>
+        </div>
+      </div>
       <div id="circuit" class="circuit"><span class="empty">Quantum moves draw their circuit here.</span></div>
       <div id="circuitKey"></div>
     </section>

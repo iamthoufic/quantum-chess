@@ -20,7 +20,7 @@ from .board import (BLACK, KING, KNIGHT, PAWN, QUEEN, WHITE, Piece, file_of,
                     name, on_board, path_between, rank_of, rays, square,
                     starting_pieces)
 from .quantum import (ISWAP, ISWAP_DG, MAX_QUBITS, SQRT_ISWAP, SQRT_ISWAP_DG,
-                      QuantumState, controlled_iswap, trace_to_circuit)
+                      QuantumState, controlled_iswap, trace_to_circuit, trace_to_json)
 
 
 class IllegalMove(ValueError):
@@ -44,6 +44,7 @@ class Game:
         self.ply = 0
         self.log: list[dict] = []   # one entry per turn
         self.last_circuit = None
+        self.last_trace = []
         self._events: list[str] = []
 
     # ------------------------------------------------------------------ queries
@@ -260,7 +261,9 @@ class Game:
         return True
 
     def _finish(self, kind, piece, src, dst, ok, extra=None) -> dict:
-        self.last_circuit = trace_to_circuit(self.q.take_trace())
+        trace = self.q.take_trace()
+        self.last_circuit = trace_to_circuit(trace)
+        self.last_trace = trace_to_json(trace)
         entry = {
             "ply": self.ply, "color": piece.color, "piece": piece.kind, "kind": kind,
             "from": name(src), "to": name(dst), "extra": name(extra) if extra is not None else None,

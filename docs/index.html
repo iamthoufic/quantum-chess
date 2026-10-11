@@ -226,18 +226,30 @@ body.no-anim .flash::after { animation: none; }
 .empty { margin: 0; color: var(--text-3); font-size: 13.5px; }
 .psec.grow { flex: 1 1 0; min-height: 110px; display: flex; flex-direction: column; }
 .psec.grow .movelist { flex: 1 1 0; min-height: 0; }
-/* scrolls with the wheel or a swipe, but never shows a scrollbar; a fade marks older moves above */
-.movelist { overflow-y: auto; border-top: 1px solid var(--hair); scrollbar-width: none; }
-.movelist::-webkit-scrollbar { display: none; }
-.movelist.is-clipped { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 28px); mask-image: linear-gradient(to bottom, transparent 0, #000 28px); }
+/* move list in the chess.com manner, with a slim scrollbar in the page's own colours */
+.movelist { overflow-y: auto; border-radius: 8px; background: var(--bg); scrollbar-width: thin; scrollbar-color: #4a4742 transparent; }
+.movelist::-webkit-scrollbar { width: 8px; }
+.movelist::-webkit-scrollbar-track { background: transparent; }
+.movelist::-webkit-scrollbar-thumb { background: #4a4742; border-radius: 8px; border: 2px solid var(--bg); }
+.movelist::-webkit-scrollbar-thumb:hover { background: #5e5a54; }
 .movelist .empty { padding-top: 10px; }
-.mrow { display: grid; grid-template-columns: 30px 1fr 1fr; align-items: start; padding: 5px 0; border-bottom: 1px solid var(--hair); font: 500 13.5px var(--mono); }
-.mrow:nth-child(odd) { background: rgba(255, 255, 255, 0.015); }
-.mno { color: var(--text-3); padding-left: 4px; }
-.mv { padding-right: 6px; }
+.mrow { display: grid; grid-template-columns: 38px 1fr 1fr; align-items: center; height: 32px; padding-right: 6px; font: 600 13.5px var(--mono); }
+.mrow:nth-child(even) { background: rgba(255, 255, 255, 0.035); }
+.mno { color: var(--text-3); padding-left: 10px; font-weight: 500; }
+.mv { min-width: 0; }
+.mchip { display: inline-flex; align-items: center; gap: 3px; max-width: 100%; padding: 3px 7px; border-radius: 5px; color: var(--text); white-space: nowrap; overflow: hidden; }
+.mv.cur .mchip { background: rgba(255, 255, 255, 0.13); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4); }
 .mv .q { color: var(--q-cyan); }
 .mv.fail .mt { color: #f0a35e; text-decoration: line-through; text-decoration-thickness: 1px; }
-.mv .ev { display: block; font: 500 11.5px/1.35 var(--ui); color: var(--text-3); margin-top: 2px; }
+.fig-ico { width: 17px; height: 17px; flex: none; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.5)); }
+.qmark { width: 7px; height: 7px; border-radius: 50%; background: var(--q-cyan); margin-left: 4px; flex: none; box-shadow: 0 0 0 2px rgba(95, 212, 232, 0.2); }
+.movelist .empty { padding: 10px 12px; }
+.psec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.psec-head h4 { margin: 0; }
+.viewtoggle { display: flex; gap: 2px; padding: 2px; border-radius: 7px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--hair); }
+.viewtoggle button { padding: 3px 9px; border-radius: 5px; font: 600 11.5px var(--ui); color: var(--text-3); }
+.viewtoggle button:hover { color: var(--text); }
+.viewtoggle button.active { background: var(--raised); color: var(--text); }
 .circuit { min-height: 64px; overflow: hidden; background: #f6f5f2; border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: center; }
 .circuit img, .circuit svg { display: block; width: 100%; height: auto; max-height: 220px; object-fit: contain; }
 .circuit .empty { color: #6f6c66; padding: 6px 8px; }
@@ -689,7 +701,13 @@ body.no-anim .flash::after { animation: none; }
     </section>
 
     <section class="psec">
-      <h4 id="circuitTitle">Circuit of the last move</h4>
+      <div class="psec-head">
+        <h4 id="circuitTitle">Circuit</h4>
+        <div class="viewtoggle" role="tablist" aria-label="Circuit view">
+          <button data-cview="qiskit" title="Drawn the way Qiskit draws circuits">Qiskit</button>
+          <button data-cview="explained" title="The same circuit with every box named in plain words">Explained</button>
+        </div>
+      </div>
       <div id="circuit" class="circuit"><span class="empty">Quantum moves draw their circuit here.</span></div>
       <div id="circuitKey"></div>
     </section>
@@ -2683,7 +2701,7 @@ const THEMES = [
   { id: "lavender", label: "Lavender", sub: "Low glare", light: "#f2eefa", dark: "#9886c4" },
   { id: "green", label: "Tournament", sub: "Classic green", light: "#ecedd1", dark: "#779657" },
 ];
-const DEFAULTS = { theme: "blue", coords: true, badges: true, hints: true, anim: true, flip: false, engine: "auto" };
+const DEFAULTS = { theme: "blue", coords: true, badges: true, hints: true, anim: true, flip: false, engine: "auto", cview: "qiskit" };
 let settings = { ...DEFAULTS };
 
 function loadSettings() {
@@ -2723,7 +2741,7 @@ class LocalEngine {
     else this.g.merge(a, QC.parse(extra), b);
     return this.g.snapshot();
   }
-  circuit(state) { return state.trace && state.trace.length ? circuitSVG(state.trace) : null; }
+  circuit(state) { return state.trace && state.trace.length ? circuitSVG(state.trace, settings.cview) : null; }
   key(state) { return state.trace ? traceKey(state.trace) : []; }
 }
 
@@ -2742,12 +2760,14 @@ class ServerEngine {
   async play(kind, src, dst, extra) { return this.call(`api/${this.gid}/play`, { kind, src, dst, extra }); }
   circuit(state) {
     if (!state.has_circuit) return null;
+    // "Explained" is drawn in the page from the move's gate list; "Qiskit" is Qiskit's own drawing
+    if (settings.cview === "explained" && state.trace) return circuitSVG(state.trace, "explained");
     const img = new Image();
     img.alt = "Qiskit circuit of the last move";
     img.src = `api/${this.gid}/circuit.svg?ply=${state.ply}`;
     return img;
   }
-  key(state) { return state.circuit_key || []; }
+  key(state) { return state.trace ? traceKey(state.trace) : []; }
 }
 
 async function probeServer() {
@@ -2778,7 +2798,7 @@ async function chooseEngine() {
   const chip = $("qiskitChip");
   chip.textContent = qiskitVersion ? `Connected · Qiskit ${qiskitVersion}` : "Server not running";
   chip.className = "chip " + (qiskitVersion ? "ok" : "off");
-  $("circuitTitle").textContent = S.engine.kind === "qiskit" ? "Qiskit circuit of the last move" : "Circuit of the last move";
+  $("circuitTitle").textContent = "Circuit";
   $("engineNote").textContent = qiskitVersion
     ? `Qiskit server detected (Qiskit ${qiskitVersion}). Now using: ${S.engine.label}.`
     : "No Qiskit server detected: the in-browser engine is used. It is a line-for-line port of the Qiskit engine, checked against it by tests/test_js_engine.py.";
@@ -2973,25 +2993,33 @@ function hintText() {
 }
 
 function moveText(e) {
-  const p = e.piece === "P" ? "" : e.piece;
-  if (e.kind === "split") return `${p}${e.from}<span class="q">→</span>${e.to}<span class="q">|</span>${e.extra}`;
-  if (e.kind === "merge") return `${p}${e.from}<span class="q">|</span>${e.extra}<span class="q">→</span>${e.to}`;
-  return `${p}${e.from}${e.kind === "capture" ? "×" : "–"}${e.to}`;
+  if (e.kind === "split") return `${e.from}<span class="q">→</span>${e.to}<span class="q">|</span>${e.extra}`;
+  if (e.kind === "merge") return `${e.from}<span class="q">|</span>${e.extra}<span class="q">→</span>${e.to}`;
+  return `${e.from}${e.kind === "capture" ? "×" : "-"}${e.to}`;
 }
 
 function renderMoves() {
   const box = $("moves");
   const log = S.state.log;
   if (!log.length) { box.innerHTML = `<p class="empty">No moves yet. ${S.state.turn === "w" ? "White" : "Black"} starts.</p>`; return; }
-  const cell = (e) => !e ? `<div class="mv"></div>` :
-    `<div class="mv${e.ok ? "" : " fail"}"><span class="mt">${moveText(e)}</span>${e.events.map((ev) => `<span class="ev">${plainEvents([ev])}</span>`).join("")}</div>`;
+  // chess.com style: number, White, Black; piece figurine before each move; latest move in a chip
+  const last = log.length - 1;
+  const cell = (e, i) => {
+    if (!e) return `<div class="mv"></div>`;
+    const tip = e.events.length ? plainEvents(e.events) : "";
+    // the cyan dot marks quantum events only: a measurement, an entanglement or a forced collapse
+    const quantumEvent = e.events.some((ev) => /measured|entangled|qubit budget/.test(ev));
+    // figurines in one colour for both sides, as chess.com does, so they read on the dark list
+    const fig = e.piece === "P" ? "" : `<img class="fig-ico" src="${pieceUrl("w", e.piece)}" alt="${e.piece}">`;
+    return `<div class="mv${i === last ? " cur" : ""}${e.ok ? "" : " fail"}"${tip ? ` title="${tip}"` : ""}>`
+      + `<span class="mchip">${fig}<span class="mt">${moveText(e)}</span>${quantumEvent ? `<span class="qmark" aria-label="${tip}"></span>` : ""}</span></div>`;
+  };
   let html = "";
   for (let i = 0; i < log.length; i += 2) {
-    html += `<div class="mrow"><span class="mno">${i / 2 + 1}.</span>${cell(log[i])}${cell(log[i + 1])}</div>`;
+    html += `<div class="mrow"><span class="mno">${i / 2 + 1}.</span>${cell(log[i], i)}${cell(log[i + 1], i + 1)}</div>`;
   }
   box.innerHTML = html;
   box.scrollTop = box.scrollHeight;
-  box.classList.toggle("is-clipped", box.scrollHeight > box.clientHeight + 1);
 }
 
 function renderCaptured(whiteBottom) {
@@ -3027,6 +3055,7 @@ function showCircuit() {
   const wasOpen = $("circuitKey").querySelector("details")?.open;
   // folded on the Play panel so it keeps the board's height; open on request
   $("circuitKey").innerHTML = key ? `<details${wasOpen ? " open" : ""}><summary>What do these boxes mean?</summary>${key}</details>` : "";
+  document.querySelectorAll("[data-cview]").forEach((b) => b.classList.toggle("active", b.dataset.cview === settings.cview));
   if (!node) { box.innerHTML = `<span class="empty">Classical move: no qubits were needed.</span>`; return; }
   box.innerHTML = "";
   if (typeof node === "string") box.innerHTML = node;
@@ -3081,76 +3110,108 @@ function traceKey(trace) {
   return [...keys];
 }
 
-// gate name inside a circuit box; the radical's bar runs over the whole of "iSWAP"
+// plain-English names for the "Explained" view
+const PLAIN = { "iSWAP": "Full swap", "√iSWAP": "Half swap", "iSWAP†": "Undo swap", "√iSWAP†": "Undo half swap" };
+
+// gate name in Qiskit's notation; the radical's bar runs over the whole of "iSWAP"
 function gateSVG(name, cx, cy) {
   const sqrt = name.startsWith("√"), dagger = name.endsWith("†");
-  const tw = 41;                                  // width of "iSWAP" at 13px
+  const tw = 40;                                  // width of "iSWAP" at 13px
   const lead = sqrt ? 9 : 0, trail = dagger ? 6 : 0;
   const x0 = cx - (lead + tw + trail) / 2, ty = cy + 4.5;
   let s = `<text x="${x0 + lead}" y="${ty}" font-size="13" fill="#fff" textLength="${tw}" lengthAdjust="spacingAndGlyphs">iSWAP</text>`;
-  if (sqrt) {
-    const top = ty - 13;
-    s += `<path d="M${x0} ${ty - 5} l2.5 -1.5 l3 6.5 l3.5 -${ty - top - 0} h${tw + 2}" fill="none" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/>`;
-  }
+  if (sqrt) s += `<path d="M${x0} ${ty - 5} l2.5 -1.5 l3 6.5 l3.5 -13 h${tw + 2}" fill="none" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/>`;
   if (dagger) s += `<text x="${x0 + lead + tw + (sqrt ? 3 : 1)}" y="${ty - 7}" font-size="10" fill="#fff">†</text>`;
   return s;
 }
 
-function circuitSVG(trace) {
+/**
+ * Draw one move's circuit as SVG.
+ * view "qiskit":    the layout and colours of Qiskit's own drawer (style "iqp"): magenta
+ *                   multi-qubit boxes with 0/1 qubit indices, blue X, grey meters with a
+ *                   double line down to the classical register, open control dots.
+ * view "explained": the same circuit with plain-English box names.
+ */
+function circuitSVG(trace, view = "qiskit") {
+  const plain = view === "explained";
+  const MAG = "#9f1853", BLUE = "#002d9c", GREY = "#8d8d8d", INK = "#161616";
   const wires = [];
   const touch = (s) => { if (!wires.includes(s)) wires.push(s); };
   trace.forEach((t) => (t.op === "gate" ? [...t.controls, ...t.squares] : [t.sq]).forEach(touch));
   const inited = new Set(trace.filter((t) => t.op === "init").map((t) => t.sq));
+  const nMeas = trace.filter((t) => t.op === "measure").length;
+
+  // columns: the start-of-move boxes (X / ψ) share the first column, then one op per column
+  const start = [];
+  wires.forEach((w) => { if (!inited.has(w)) start.push({ kind: "psi", wire: w }); });
+  trace.forEach((t) => { if (t.op === "init" && t.occupied) start.push({ kind: "x", wire: t.sq }); });
   const cols = [];
-  wires.filter((w) => !inited.has(w)).forEach((w) => cols.push({ kind: "psi", wire: w }));
+  if (start.length) cols.push({ kind: "start", items: start, w: plain ? 70 : 44 });
+  let m = 0;
   trace.forEach((t) => {
-    if (t.op === "init") { if (t.occupied) cols.push({ kind: "x", wire: t.sq }); }
-    else cols.push(t);
+    if (t.op === "gate") cols.push({ kind: "gate", t, w: plain ? (PLAIN[t.gate].length > 9 ? 112 : 96) : 84 });
+    else if (t.op === "measure") cols.push({ kind: "measure", t, idx: m++, w: 56 });
   });
-  // pack single-qubit boxes on different wires into the same column
-  const layout = [];
-  for (const c of cols) {
-    const rows = c.op === "gate" ? [...c.controls, ...c.squares].map((s) => wires.indexOf(s)) : [wires.indexOf(c.wire ?? c.sq)];
-    const lo = Math.min(...rows), hi = Math.max(...rows);
-    const prev = layout[layout.length - 1];
-    const single = c.kind === "psi" || c.kind === "x";
-    if (prev && single && prev.single && !prev.rows.has(lo)) { prev.items.push({ c, lo, hi }); prev.rows.add(lo); }
-    else layout.push({ single, rows: new Set([lo]), items: [{ c, lo, hi }] });
+
+  const L = 58, ROW = 56, TOP = 30, GAP = 16;
+  const yOf = (w) => TOP + wires.indexOf(w) * ROW;
+  const yC = TOP + wires.length * ROW + (nMeas ? 6 : -ROW + 20);
+  const width = L + cols.reduce((a, c) => a + c.w + GAP, GAP) + 10;
+  const height = nMeas ? yC + 26 : TOP + (wires.length - 1) * ROW + 34;
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" font-family="DejaVu Sans, Segoe UI, Arial, sans-serif">`;
+  svg += `<rect width="${width}" height="${height}" fill="#fff"/>`;
+
+  // wires and their labels (Qiskit sets register names in italic)
+  wires.forEach((w) => {
+    const y = yOf(w);
+    svg += `<text x="${L - 12}" y="${y + 5.5}" font-size="16" font-style="italic" fill="${INK}" text-anchor="end">${w}</text>`;
+    svg += `<line x1="${L - 4}" y1="${y}" x2="${width - 6}" y2="${y}" stroke="${INK}" stroke-width="1.6"/>`;
+  });
+  if (nMeas) {
+    svg += `<text x="${L - 12}" y="${yC + 5.5}" font-size="15" fill="${INK}" text-anchor="end">m</text>`;
+    svg += `<line x1="${L - 4}" y1="${yC - 2}" x2="${width - 6}" y2="${yC - 2}" stroke="#778899" stroke-width="1.4"/>`;
+    svg += `<line x1="${L - 4}" y1="${yC + 2}" x2="${width - 6}" y2="${yC + 2}" stroke="#778899" stroke-width="1.4"/>`;
+    svg += `<line x1="${L + 2}" y1="${yC + 7}" x2="${L + 10}" y2="${yC - 7}" stroke="#778899" stroke-width="1.4"/>`;
+    svg += `<text x="${L + 6}" y="${yC - 9}" font-size="10" fill="#778899" text-anchor="middle">${nMeas}</text>`;
   }
-  const W = 60, X0 = 56, ROW = 44, Y0 = 26, colW = 90;
-  const width = X0 + layout.length * colW + 20, height = Y0 + wires.length * ROW;
-  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" font-family="Segoe UI, Arial, sans-serif">`;
-  wires.forEach((w, i) => {
-    const y = Y0 + i * ROW;
-    svg += `<text x="8" y="${y + 5}" font-size="15" font-style="italic" fill="#161616">${w}</text>`;
-    svg += `<line x1="${X0 - 10}" y1="${y}" x2="${width - 8}" y2="${y}" stroke="#161616" stroke-width="1.2"/>`;
-  });
-  layout.forEach((col, ci) => {
-    const cx = X0 + ci * colW + colW / 2;
-    for (const { c, lo, hi } of col.items) {
-      const ylo = Y0 + lo * ROW, yhi = Y0 + hi * ROW;
-      if (c.kind === "psi" || c.kind === "x") {
-        const fill = c.kind === "x" ? "#002d9c" : "#8d8d8d";
-        svg += `<rect x="${cx - 16}" y="${ylo - 16}" width="32" height="32" fill="${fill}"/>`;
-        svg += `<text x="${cx}" y="${ylo + 5}" font-size="14" fill="#fff" text-anchor="middle">${c.kind === "x" ? "X" : "ψ"}</text>`;
-      } else if (c.op === "measure") {
-        svg += `<rect x="${cx - 18}" y="${ylo - 16}" width="36" height="32" fill="#8d8d8d"/>`;
-        svg += `<path d="M ${cx - 11} ${ylo + 7} A 11 11 0 0 1 ${cx + 11} ${ylo + 7}" stroke="#fff" fill="none" stroke-width="1.6"/>`;
-        svg += `<line x1="${cx}" y1="${ylo + 7}" x2="${cx + 8}" y2="${ylo - 8}" stroke="#fff" stroke-width="1.6"/>`;
-        svg += `<text x="${cx}" y="${ylo + 30}" font-size="12" fill="#6f6f6f" text-anchor="middle">= ${c.result}</text>`;
-      } else {
-        const tg = c.squares.map((s) => Y0 + wires.indexOf(s) * ROW);
-        const top = Math.min(...tg), bot = Math.max(...tg);
-        svg += `<line x1="${cx}" y1="${ylo}" x2="${cx}" y2="${yhi}" stroke="#9f1853" stroke-width="2"/>`;
-        c.controls.forEach((s) => {
-          const y = Y0 + wires.indexOf(s) * ROW;
-          svg += `<circle cx="${cx}" cy="${y}" r="7" fill="#fff" stroke="#9f1853" stroke-width="2"/>`;
-        });
-        svg += `<rect x="${cx - W / 2 - 8}" y="${top - 17}" width="${W + 16}" height="${bot - top + 34}" fill="#9f1853"/>`;
-        svg += gateSVG(c.gate, cx, (top + bot) / 2);
+
+  let x = L + GAP;
+  for (const c of cols) {
+    const cx = x + c.w / 2;
+    if (c.kind === "start") {
+      for (const it of c.items) {
+        const y = yOf(it.wire), isX = it.kind === "x";
+        const label = plain ? (isX ? "Piece" : "Before") : (isX ? "X" : "ψ");
+        svg += `<rect x="${cx - c.w / 2 + 2}" y="${y - 18}" width="${c.w - 4}" height="36" fill="${isX ? BLUE : MAG}"/>`;
+        svg += `<text x="${cx}" y="${y + 5}" font-size="${plain ? 12 : 14}" fill="#fff" text-anchor="middle">${label}</text>`;
       }
+    } else if (c.kind === "measure") {
+      const y = yOf(c.t.sq);
+      svg += `<line x1="${cx - 2}" y1="${y + 18}" x2="${cx - 2}" y2="${yC - 8}" stroke="#778899" stroke-width="1.4"/>`;
+      svg += `<line x1="${cx + 2}" y1="${y + 18}" x2="${cx + 2}" y2="${yC - 8}" stroke="#778899" stroke-width="1.4"/>`;
+      svg += `<path d="M${cx - 6} ${yC - 10} L${cx} ${yC - 1} L${cx + 6} ${yC - 10} Z" fill="#778899"/>`;
+      svg += `<text x="${cx + 9}" y="${yC + 16}" font-size="10" fill="${INK}">${c.idx}</text>`;
+      svg += `<rect x="${cx - 18}" y="${y - 18}" width="36" height="36" fill="#a8a8a8"/>`;
+      svg += `<path d="M${cx - 11} ${y + 6} A 11 11 0 0 1 ${cx + 11} ${y + 6}" stroke="${INK}" fill="none" stroke-width="1.6"/>`;
+      svg += `<line x1="${cx}" y1="${y + 6}" x2="${cx + 8}" y2="${y - 8}" stroke="${INK}" stroke-width="1.6"/>`;
+      if (plain) svg += `<text x="${cx}" y="${y + 32}" font-size="11" fill="${INK}" text-anchor="middle">${c.t.result ? "found" : "empty"}</text>`;
+    } else {
+      const t = c.t, tg = t.squares.map(yOf);
+      const top = Math.min(...tg) - 22, bot = Math.max(...tg) + 22;
+      for (const ctl of t.controls) {
+        const y = yOf(ctl);
+        svg += `<line x1="${cx}" y1="${y}" x2="${cx}" y2="${y < top ? top : bot}" stroke="${MAG}" stroke-width="2"/>`;
+        svg += `<circle cx="${cx}" cy="${y}" r="7" fill="#fff" stroke="${MAG}" stroke-width="2"/>`;
+      }
+      svg += `<rect x="${x + 2}" y="${top}" width="${c.w - 4}" height="${bot - top}" fill="${MAG}"/>`;
+      if (!plain) t.squares.forEach((s, i) => { svg += `<text x="${x + 8}" y="${yOf(s) + 4.5}" font-size="12" fill="#fff">${i}</text>`; });
+      const mid = (top + bot) / 2;
+      svg += plain
+        ? `<text x="${cx}" y="${mid + 4.5}" font-size="12.5" fill="#fff" text-anchor="middle">${PLAIN[t.gate]}</text>`
+        : gateSVG(t.gate, cx + 6, mid);
     }
-  });
+    x += c.w + GAP;
+  }
   return svg + "</svg>";
 }
 
@@ -3201,6 +3262,13 @@ function wire() {
   $("newClassical").addEventListener("click", () => newGame(false));
   $("overlayNew").addEventListener("click", () => newGame(S.state ? S.state.quantum : true));
   $("settingsBtn").addEventListener("click", () => $("settings").showModal());
+  document.querySelectorAll("[data-cview]").forEach((b) => b.addEventListener("click", () => {
+    settings.cview = b.dataset.cview;
+    saveSettings();
+    $("circuitKey").innerHTML = "";
+    if (S.state && S.state.log.length) showCircuit();
+    else document.querySelectorAll("[data-cview]").forEach((x) => x.classList.toggle("active", x.dataset.cview === settings.cview));
+  }));
 
   $("themes").innerHTML = THEMES.map((t) => `
     <button class="theme-card" data-theme="${t.id}" aria-label="${t.label} board theme">

@@ -216,18 +216,30 @@ body.no-anim .flash::after { animation: none; }
 .empty { margin: 0; color: var(--text-3); font-size: 13.5px; }
 .psec.grow { flex: 1 1 0; min-height: 110px; display: flex; flex-direction: column; }
 .psec.grow .movelist { flex: 1 1 0; min-height: 0; }
-/* scrolls with the wheel or a swipe, but never shows a scrollbar; a fade marks older moves above */
-.movelist { overflow-y: auto; border-top: 1px solid var(--hair); scrollbar-width: none; }
-.movelist::-webkit-scrollbar { display: none; }
-.movelist.is-clipped { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 28px); mask-image: linear-gradient(to bottom, transparent 0, #000 28px); }
+/* move list in the chess.com manner, with a slim scrollbar in the page's own colours */
+.movelist { overflow-y: auto; border-radius: 8px; background: var(--bg); scrollbar-width: thin; scrollbar-color: #4a4742 transparent; }
+.movelist::-webkit-scrollbar { width: 8px; }
+.movelist::-webkit-scrollbar-track { background: transparent; }
+.movelist::-webkit-scrollbar-thumb { background: #4a4742; border-radius: 8px; border: 2px solid var(--bg); }
+.movelist::-webkit-scrollbar-thumb:hover { background: #5e5a54; }
 .movelist .empty { padding-top: 10px; }
-.mrow { display: grid; grid-template-columns: 30px 1fr 1fr; align-items: start; padding: 5px 0; border-bottom: 1px solid var(--hair); font: 500 13.5px var(--mono); }
-.mrow:nth-child(odd) { background: rgba(255, 255, 255, 0.015); }
-.mno { color: var(--text-3); padding-left: 4px; }
-.mv { padding-right: 6px; }
+.mrow { display: grid; grid-template-columns: 38px 1fr 1fr; align-items: center; height: 32px; padding-right: 6px; font: 600 13.5px var(--mono); }
+.mrow:nth-child(even) { background: rgba(255, 255, 255, 0.035); }
+.mno { color: var(--text-3); padding-left: 10px; font-weight: 500; }
+.mv { min-width: 0; }
+.mchip { display: inline-flex; align-items: center; gap: 3px; max-width: 100%; padding: 3px 7px; border-radius: 5px; color: var(--text); white-space: nowrap; overflow: hidden; }
+.mv.cur .mchip { background: rgba(255, 255, 255, 0.13); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4); }
 .mv .q { color: var(--q-cyan); }
 .mv.fail .mt { color: #f0a35e; text-decoration: line-through; text-decoration-thickness: 1px; }
-.mv .ev { display: block; font: 500 11.5px/1.35 var(--ui); color: var(--text-3); margin-top: 2px; }
+.fig-ico { width: 17px; height: 17px; flex: none; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.5)); }
+.qmark { width: 7px; height: 7px; border-radius: 50%; background: var(--q-cyan); margin-left: 4px; flex: none; box-shadow: 0 0 0 2px rgba(95, 212, 232, 0.2); }
+.movelist .empty { padding: 10px 12px; }
+.psec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.psec-head h4 { margin: 0; }
+.viewtoggle { display: flex; gap: 2px; padding: 2px; border-radius: 7px; background: var(--bg); box-shadow: inset 0 0 0 1px var(--hair); }
+.viewtoggle button { padding: 3px 9px; border-radius: 5px; font: 600 11.5px var(--ui); color: var(--text-3); }
+.viewtoggle button:hover { color: var(--text); }
+.viewtoggle button.active { background: var(--raised); color: var(--text); }
 .circuit { min-height: 64px; overflow: hidden; background: #f6f5f2; border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: center; }
 .circuit img, .circuit svg { display: block; width: 100%; height: auto; max-height: 220px; object-fit: contain; }
 .circuit .empty { color: #6f6c66; padding: 6px 8px; }

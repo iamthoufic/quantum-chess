@@ -84,6 +84,7 @@ def snapshot(gid: str, game: Game) -> dict:
         "log": game.log, "has_circuit": game.last_circuit is not None,
         "circuit_text": str(game.last_circuit.draw("text", fold=-1)) if game.last_circuit else "",
         "circuit_key": circuit_key(game.last_circuit) if game.last_circuit else [],
+        "trace": game.last_trace,
     }
 
 

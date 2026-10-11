@@ -128,6 +128,25 @@ class QuantumState:
         return trace
 
 
+GATE_NAMES = {id(ISWAP): "iSWAP", id(SQRT_ISWAP): "√iSWAP", id(ISWAP_DG): "iSWAP†", id(SQRT_ISWAP_DG): "√iSWAP†"}
+
+
+def trace_to_json(trace) -> list[dict]:
+    """The same operations as plain data, for the web UI's circuit views."""
+    out = []
+    for op in trace:
+        if op[0] == "init":
+            out.append({"op": "init", "sq": name(op[1]), "occupied": bool(op[2])})
+        elif op[0] == "measure":
+            out.append({"op": "measure", "sq": name(op[1]), "result": int(op[2])})
+        else:
+            gate, sqs = op[1], op[2]
+            n = getattr(gate, "num_ctrl_qubits", 0) or 0
+            out.append({"op": "gate", "gate": "iSWAP" if n else GATE_NAMES[id(gate)],
+                        "controls": [name(s) for s in sqs[:n]], "squares": [name(s) for s in sqs[n:]]})
+    return out
+
+
 def trace_to_circuit(trace) -> QuantumCircuit | None:
     """Turn one turn's operations into a small circuit with one named qubit per square."""
     if not trace:
