@@ -301,7 +301,7 @@ html[data-ui="light"] .mode-pill.c { color: #9a6a12; background: rgba(154, 106, 
 .toc-side { position: fixed; top: 110px; bottom: 56px; left: max(24px, calc(50% - 498px)); width: 220px; display: flex; flex-direction: column; }
 .toc-side .toc-title { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); margin-bottom: 10px; }
 .toc { position: relative; display: flex; flex-direction: column; justify-content: space-between; flex: 1; max-height: 640px; border-left: 1px solid var(--hair-2); }
-.toc-ind { position: absolute; left: -1px; width: 2px; height: 0; background: var(--q-cyan); border-radius: 1px; transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s; }
+.toc-ind { position: absolute; left: -1px; width: 2px; height: 0; background: var(--q-cyan); border-radius: 1px; transition: top 0.08s linear; }
 .toc a { color: var(--text-3); text-decoration: none; font-size: 14px; font-weight: 600; padding: 7px 0 7px 14px; transition: color 0.15s; }
 .toc a:hover { color: var(--text); }
 .toc a.active { color: var(--text); }
@@ -522,8 +522,9 @@ html[data-ui="light"] .mode-pill.c { color: #9a6a12; background: rgba(154, 106, 
 .pz-tile.solved { background: rgba(129, 182, 76, 0.16); color: #b6dd8f; box-shadow: inset 0 0 0 1px rgba(129, 182, 76, 0.45); }
 .pz-tile.active { box-shadow: inset 0 0 0 2px var(--q-cyan); color: var(--text); }
 .pz-tile.endless .ic { width: 18px; height: 18px; }
-.pz-layout { --sq: min(11.2vh, 92px); display: grid; grid-template-columns: 230px auto 400px; gap: 28px; justify-content: center; align-items: start; }
+.pz-layout { --sq: min(11.2vh, 92px); display: grid; grid-template-columns: 230px auto 400px; gap: 28px; justify-content: center; align-items: stretch; }
 .pz-side { display: flex; flex-direction: column; gap: 18px; }
+.pz-strip { flex: 1; justify-content: space-between; }
 .pz-intro h1 { font: 400 40px/1 var(--display); margin: 4px 0 8px; }
 .pz-strip { flex-direction: column; flex-wrap: nowrap; gap: 14px; padding: 16px; }
 .pz-group { flex-direction: column; align-items: flex-start; gap: 7px; }
@@ -782,6 +783,9 @@ html[data-ui="light"] .tut-controls { background: var(--surface-2); }
 
 /* ---------- action tiles (Play / Bots panel) ---------- */
 .side-col { width: 224px; display: flex; flex-direction: column; gap: 8px; align-self: flex-start; }
+.play-side { align-self: stretch; gap: 18px; }
+.play-side #actions { width: auto; flex: 1; align-self: stretch; justify-content: space-between; gap: 10px; }
+.play-side .tile-btn { flex: 1 1 0; min-height: 58px; max-height: 112px; }
 /* on Bots the two tiles sit side by side under the options, compact so the column fits the window */
 .bots-side .side-col { width: auto; align-self: stretch; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .bots-side .tile-btn { height: 48px; padding: 0 10px; gap: 8px; }
@@ -937,12 +941,19 @@ html[data-ui="light"] .pick, html[data-ui="light"] .tile-btn:not(.primary) { bac
 
 <!-- ============================================================ PLAY -->
 <main id="view-play" class="view layout">
-  <aside class="side-col" id="actions" aria-label="Game actions">
+  <aside class="side-col play-side" id="playSide">
+    <div class="bots-intro">
+      <p class="eyebrow">Two players</p>
+      <h1>Play</h1>
+      <p class="bots-sub">Quantum chess on the 5×5 board. Share the keyboard, or play both sides.</p>
+    </div>
+  <div class="side-col" id="actions" aria-label="Game actions">
     <button class="tile-btn primary play-only" id="newQuantum" title="Start a new quantum game"><span class="tile-ic"><svg class="ic"><use href="#i-atom"/></svg></span><span class="tile-text"><b>Quantum</b><small>New game</small></span></button>
     <button class="tile-btn play-only" id="newClassical" title="Same engine with split and merge switched off: the classical baseline"><span class="tile-ic"><svg class="ic"><use href="#i-half"/></svg></span><span class="tile-text"><b>Classical</b><small>Baseline game</small></span></button>
     <button class="tile-btn" id="takeBack" title="Take back the last move"><span class="tile-ic"><svg class="ic"><use href="#i-undo"/></svg></span><span class="tile-text"><b>Take back</b><small>Undo last move</small></span></button>
     <button class="tile-btn play-only" id="flipBoard" title="View the board from the other side"><span class="tile-ic"><svg class="ic"><use href="#i-flip"/></svg></span><span class="tile-text"><b>Flip board</b><small>Other side</small></span></button>
     <button class="tile-btn primary bots-only" id="panelNew" title="Start a new match against the same opponent"><span class="tile-ic"><svg class="ic"><use href="#i-play"/></svg></span><span class="tile-text"><b>New match</b><small>Same opponent</small></span></button>
+  </div>
   </aside>
   <section class="board-col" id="gameBoardCol">
     <div class="player-bar" id="barTop">
@@ -1098,6 +1109,14 @@ html[data-ui="light"] .pick, html[data-ui="light"] .tile-btn:not(.primary) { bac
         <label class="engine-card"><input type="radio" name="engine" value="local"><svg class="ic"><use href="#i-chip"/></svg><span class="row-text"><b>In-browser</b><small>JavaScript port, verified against Qiskit, works offline</small><span class="chip ok">Always available</span></span><span class="radio"></span></label>
       </div>
       <p class="set-note" id="engineNote"></p>
+    </section>
+
+    <section class="set-group">
+      <h3><svg class="ic"><use href="#i-robot"/></svg>Bots</h3>
+      <div class="engines">
+        <label class="engine-card"><input type="radio" name="tempo" value="human"><svg class="ic"><use href="#i-eye"/></svg><span class="row-text"><b>Play like a human</b><small>The bot pauses a moment before each move, as a person would</small></span><span class="radio"></span></label>
+        <label class="engine-card"><input type="radio" name="tempo" value="instant"><svg class="ic"><use href="#i-play"/></svg><span class="row-text"><b>Instant</b><small>The bot replies the moment you move</small></span><span class="radio"></span></label>
+      </div>
     </section>
   </div>
 
@@ -2649,14 +2668,25 @@ function watchManualSections() {
   const update = () => {
     if ($("view-manual").classList.contains("hidden")) return;
     const line = innerHeight * 0.3;
-    let current = heads[0];
-    for (const h of heads) if (h.getBoundingClientRect().top <= line) current = h;
-    // at the very bottom the last sections can never reach the line: light the last one
-    if (scrollY + innerHeight >= document.documentElement.scrollHeight - 2) current = heads[heads.length - 1];
-    links.forEach((a) => a.classList.toggle("active", current && a.getAttribute("href") === "#" + current.id));
-    // only the indicator moves: slide it to the active entry
-    const on = links.find((a) => a.classList.contains("active")), ind = document.querySelector("#manualToc .toc-ind");
-    if (on && ind) { ind.style.top = on.offsetTop + "px"; ind.style.height = on.offsetHeight + "px"; }
+    const tops = heads.map((h) => h.getBoundingClientRect().top);
+    const bottom = scrollY + innerHeight >= document.documentElement.scrollHeight - 2;
+    // position along the contents list, in entries: i + how far the page has scrolled through section i
+    let pos = 0;
+    for (let i = 0; i < heads.length; i++) {
+      if (tops[i] > line) break;
+      const next = i + 1 < heads.length ? tops[i + 1] : Infinity;
+      pos = i + (next === Infinity ? 0 : Math.min(1, Math.max(0, (line - tops[i]) / (next - tops[i]))));
+    }
+    if (bottom) pos = heads.length - 1;
+    const i = Math.min(heads.length - 1, Math.round(pos));
+    links.forEach((a, k) => a.classList.toggle("active", k === i));
+    // only the bar moves: it glides between entries as you scroll through a section
+    const ind = document.querySelector("#manualToc .toc-ind"), lo = links[Math.floor(pos)], hi = links[Math.min(links.length - 1, Math.floor(pos) + 1)];
+    if (ind && lo) {
+      const f = pos - Math.floor(pos);
+      ind.style.top = lo.offsetTop + f * (hi.offsetTop - lo.offsetTop) + "px";
+      ind.style.height = lo.offsetHeight + "px";
+    }
   };
   addEventListener("scroll", update, { passive: true });
   addEventListener("resize", update);
@@ -3304,7 +3334,7 @@ const THEMES = [
   { id: "lavender", label: "Lavender", sub: "Low glare", light: "#f2eefa", dark: "#9886c4" },
   { id: "green", label: "Tournament", sub: "Classic green", light: "#ecedd1", dark: "#779657" },
 ];
-const DEFAULTS = { theme: "blue", ui: "dark", coords: true, badges: true, hints: true, anim: true, flip: false, engine: "auto", cview: "qiskit",
+const DEFAULTS = { theme: "blue", ui: "dark", coords: true, badges: true, hints: true, anim: true, flip: false, engine: "auto", cview: "qiskit", tempo: "human",
   opponent: "heisenberg", side: "w", rules: "quantum" };
 
 // ---- match setup: who plays whom
@@ -3342,6 +3372,7 @@ function applySettings() {
   document.body.classList.toggle("no-anim", !settings.anim);
   document.querySelectorAll("[data-setting]").forEach((el) => (el.checked = !!settings[el.dataset.setting]));
   document.querySelectorAll("input[name=engine]").forEach((el) => (el.checked = el.value === settings.engine));
+  document.querySelectorAll("input[name=tempo]").forEach((el) => (el.checked = el.value === settings.tempo));
   document.querySelectorAll(".theme-card").forEach((el) => el.classList.toggle("active", el.dataset.theme === settings.theme));
   const top = boardFlipped() ? "w" : "b", bottom = boardFlipped() ? "b" : "w";
   const label = (c) => sideName(c) + (botSide() === c ? ` <svg class="ic bot-ic"><use href="#i-robot"/></svg>` : "");
@@ -3549,7 +3580,8 @@ async function maybeBotMove() {
   S.busy = true;
   $("status").textContent = `${lvl.name} is thinking…`;
   $("hint").textContent = "";
-  await new Promise((r) => setTimeout(r, 420));          // let your move land first
+  const human = settings.tempo !== "instant";
+  await new Promise((r) => setTimeout(r, human ? 420 : 30));   // let your move land first
   if (!isBotTurn()) { BOT.thinking = false; S.busy = false; return; }
   let a = null;
   try {
@@ -3557,6 +3589,9 @@ async function maybeBotMove() {
     const g = S.engine.kind === "local" ? S.engine.g : QBOT.mirror(S.state);
     a = QBOT.choose(g, lvl.id);
   } catch (e) { console.error(e); }
+  // a human pause: a short, slightly variable moment before the reply
+  if (a && human) await new Promise((r) => setTimeout(r, 500 + Math.random() * 900));
+  if (!isBotTurn() || S.state.winner) { BOT.thinking = false; S.busy = false; return; }
   BOT.thinking = false;
   S.busy = false;
   if (!a) { render(); return; }
@@ -4011,11 +4046,8 @@ function switchMode(mode) {
     host.appendChild($("gamePanel"));
   }
   // the action tiles: a column left of the board on Play, under the bot cards on Bots
-  const tilesHost = mode === "bots" ? document.querySelector(".bots-side") : $("view-play");
-  if (!tilesHost.contains($("actions"))) {
-    if (mode === "bots") tilesHost.appendChild($("actions"));
-    else tilesHost.insertBefore($("actions"), $("gameBoardCol"));
-  }
+  const tilesHost = mode === "bots" ? document.querySelector(".bots-side") : $("playSide");
+  if (!tilesHost.contains($("actions"))) tilesHost.appendChild($("actions"));
   if (S.mode === mode && S.state) return;
   S.mode = mode;
   S.engine = S.engines[mode];
@@ -4110,6 +4142,7 @@ function wire() {
   document.querySelectorAll("[data-setting]").forEach((el) => el.addEventListener("change", () => {
     settings[el.dataset.setting] = el.checked; saveSettings(); applySettings();
   }));
+  document.querySelectorAll("input[name=tempo]").forEach((el) => el.addEventListener("change", () => { settings.tempo = el.value; saveSettings(); }));
   document.querySelectorAll("input[name=engine]").forEach((el) => el.addEventListener("change", async () => {
     settings.engine = el.value; saveSettings();
     await chooseEngine();

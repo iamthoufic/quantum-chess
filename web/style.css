@@ -291,7 +291,7 @@ html[data-ui="light"] .mode-pill.c { color: #9a6a12; background: rgba(154, 106, 
 .toc-side { position: fixed; top: 110px; bottom: 56px; left: max(24px, calc(50% - 498px)); width: 220px; display: flex; flex-direction: column; }
 .toc-side .toc-title { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); margin-bottom: 10px; }
 .toc { position: relative; display: flex; flex-direction: column; justify-content: space-between; flex: 1; max-height: 640px; border-left: 1px solid var(--hair-2); }
-.toc-ind { position: absolute; left: -1px; width: 2px; height: 0; background: var(--q-cyan); border-radius: 1px; transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s; }
+.toc-ind { position: absolute; left: -1px; width: 2px; height: 0; background: var(--q-cyan); border-radius: 1px; transition: top 0.08s linear; }
 .toc a { color: var(--text-3); text-decoration: none; font-size: 14px; font-weight: 600; padding: 7px 0 7px 14px; transition: color 0.15s; }
 .toc a:hover { color: var(--text); }
 .toc a.active { color: var(--text); }
@@ -512,8 +512,9 @@ html[data-ui="light"] .mode-pill.c { color: #9a6a12; background: rgba(154, 106, 
 .pz-tile.solved { background: rgba(129, 182, 76, 0.16); color: #b6dd8f; box-shadow: inset 0 0 0 1px rgba(129, 182, 76, 0.45); }
 .pz-tile.active { box-shadow: inset 0 0 0 2px var(--q-cyan); color: var(--text); }
 .pz-tile.endless .ic { width: 18px; height: 18px; }
-.pz-layout { --sq: min(11.2vh, 92px); display: grid; grid-template-columns: 230px auto 400px; gap: 28px; justify-content: center; align-items: start; }
+.pz-layout { --sq: min(11.2vh, 92px); display: grid; grid-template-columns: 230px auto 400px; gap: 28px; justify-content: center; align-items: stretch; }
 .pz-side { display: flex; flex-direction: column; gap: 18px; }
+.pz-strip { flex: 1; justify-content: space-between; }
 .pz-intro h1 { font: 400 40px/1 var(--display); margin: 4px 0 8px; }
 .pz-strip { flex-direction: column; flex-wrap: nowrap; gap: 14px; padding: 16px; }
 .pz-group { flex-direction: column; align-items: flex-start; gap: 7px; }
@@ -772,6 +773,9 @@ html[data-ui="light"] .tut-controls { background: var(--surface-2); }
 
 /* ---------- action tiles (Play / Bots panel) ---------- */
 .side-col { width: 224px; display: flex; flex-direction: column; gap: 8px; align-self: flex-start; }
+.play-side { align-self: stretch; gap: 18px; }
+.play-side #actions { width: auto; flex: 1; align-self: stretch; justify-content: space-between; gap: 10px; }
+.play-side .tile-btn { flex: 1 1 0; min-height: 58px; max-height: 112px; }
 /* on Bots the two tiles sit side by side under the options, compact so the column fits the window */
 .bots-side .side-col { width: auto; align-self: stretch; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .bots-side .tile-btn { height: 48px; padding: 0 10px; gap: 8px; }

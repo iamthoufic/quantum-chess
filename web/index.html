@@ -80,12 +80,19 @@
 
 <!-- ============================================================ PLAY -->
 <main id="view-play" class="view layout">
-  <aside class="side-col" id="actions" aria-label="Game actions">
+  <aside class="side-col play-side" id="playSide">
+    <div class="bots-intro">
+      <p class="eyebrow">Two players</p>
+      <h1>Play</h1>
+      <p class="bots-sub">Quantum chess on the 5×5 board. Share the keyboard, or play both sides.</p>
+    </div>
+  <div class="side-col" id="actions" aria-label="Game actions">
     <button class="tile-btn primary play-only" id="newQuantum" title="Start a new quantum game"><span class="tile-ic"><svg class="ic"><use href="#i-atom"/></svg></span><span class="tile-text"><b>Quantum</b><small>New game</small></span></button>
     <button class="tile-btn play-only" id="newClassical" title="Same engine with split and merge switched off: the classical baseline"><span class="tile-ic"><svg class="ic"><use href="#i-half"/></svg></span><span class="tile-text"><b>Classical</b><small>Baseline game</small></span></button>
     <button class="tile-btn" id="takeBack" title="Take back the last move"><span class="tile-ic"><svg class="ic"><use href="#i-undo"/></svg></span><span class="tile-text"><b>Take back</b><small>Undo last move</small></span></button>
     <button class="tile-btn play-only" id="flipBoard" title="View the board from the other side"><span class="tile-ic"><svg class="ic"><use href="#i-flip"/></svg></span><span class="tile-text"><b>Flip board</b><small>Other side</small></span></button>
     <button class="tile-btn primary bots-only" id="panelNew" title="Start a new match against the same opponent"><span class="tile-ic"><svg class="ic"><use href="#i-play"/></svg></span><span class="tile-text"><b>New match</b><small>Same opponent</small></span></button>
+  </div>
   </aside>
   <section class="board-col" id="gameBoardCol">
     <div class="player-bar" id="barTop">
@@ -241,6 +248,14 @@
         <label class="engine-card"><input type="radio" name="engine" value="local"><svg class="ic"><use href="#i-chip"/></svg><span class="row-text"><b>In-browser</b><small>JavaScript port, verified against Qiskit, works offline</small><span class="chip ok">Always available</span></span><span class="radio"></span></label>
       </div>
       <p class="set-note" id="engineNote"></p>
+    </section>
+
+    <section class="set-group">
+      <h3><svg class="ic"><use href="#i-robot"/></svg>Bots</h3>
+      <div class="engines">
+        <label class="engine-card"><input type="radio" name="tempo" value="human"><svg class="ic"><use href="#i-eye"/></svg><span class="row-text"><b>Play like a human</b><small>The bot pauses a moment before each move, as a person would</small></span><span class="radio"></span></label>
+        <label class="engine-card"><input type="radio" name="tempo" value="instant"><svg class="ic"><use href="#i-play"/></svg><span class="row-text"><b>Instant</b><small>The bot replies the moment you move</small></span><span class="radio"></span></label>
+      </div>
     </section>
   </div>
 

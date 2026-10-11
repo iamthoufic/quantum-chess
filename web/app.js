@@ -14,7 +14,7 @@ const THEMES = [
   { id: "lavender", label: "Lavender", sub: "Low glare", light: "#f2eefa", dark: "#9886c4" },
   { id: "green", label: "Tournament", sub: "Classic green", light: "#ecedd1", dark: "#779657" },
 ];
-const DEFAULTS = { theme: "blue", ui: "dark", coords: true, badges: true, hints: true, anim: true, flip: false, engine: "auto", cview: "qiskit",
+const DEFAULTS = { theme: "blue", ui: "dark", coords: true, badges: true, hints: true, anim: true, flip: false, engine: "auto", cview: "qiskit", tempo: "human",
   opponent: "heisenberg", side: "w", rules: "quantum" };
 
 // ---- match setup: who plays whom
@@ -52,6 +52,7 @@ function applySettings() {
   document.body.classList.toggle("no-anim", !settings.anim);
   document.querySelectorAll("[data-setting]").forEach((el) => (el.checked = !!settings[el.dataset.setting]));
   document.querySelectorAll("input[name=engine]").forEach((el) => (el.checked = el.value === settings.engine));
+  document.querySelectorAll("input[name=tempo]").forEach((el) => (el.checked = el.value === settings.tempo));
   document.querySelectorAll(".theme-card").forEach((el) => el.classList.toggle("active", el.dataset.theme === settings.theme));
   const top = boardFlipped() ? "w" : "b", bottom = boardFlipped() ? "b" : "w";
   const label = (c) => sideName(c) + (botSide() === c ? ` <svg class="ic bot-ic"><use href="#i-robot"/></svg>` : "");
@@ -259,7 +260,8 @@ async function maybeBotMove() {
   S.busy = true;
   $("status").textContent = `${lvl.name} is thinking…`;
   $("hint").textContent = "";
-  await new Promise((r) => setTimeout(r, 420));          // let your move land first
+  const human = settings.tempo !== "instant";
+  await new Promise((r) => setTimeout(r, human ? 420 : 30));   // let your move land first
   if (!isBotTurn()) { BOT.thinking = false; S.busy = false; return; }
   let a = null;
   try {
@@ -267,6 +269,9 @@ async function maybeBotMove() {
     const g = S.engine.kind === "local" ? S.engine.g : QBOT.mirror(S.state);
     a = QBOT.choose(g, lvl.id);
   } catch (e) { console.error(e); }
+  // a human pause: a short, slightly variable moment before the reply
+  if (a && human) await new Promise((r) => setTimeout(r, 500 + Math.random() * 900));
+  if (!isBotTurn() || S.state.winner) { BOT.thinking = false; S.busy = false; return; }
   BOT.thinking = false;
   S.busy = false;
   if (!a) { render(); return; }
@@ -721,11 +726,8 @@ function switchMode(mode) {
     host.appendChild($("gamePanel"));
   }
   // the action tiles: a column left of the board on Play, under the bot cards on Bots
-  const tilesHost = mode === "bots" ? document.querySelector(".bots-side") : $("view-play");
-  if (!tilesHost.contains($("actions"))) {
-    if (mode === "bots") tilesHost.appendChild($("actions"));
-    else tilesHost.insertBefore($("actions"), $("gameBoardCol"));
-  }
+  const tilesHost = mode === "bots" ? document.querySelector(".bots-side") : $("playSide");
+  if (!tilesHost.contains($("actions"))) tilesHost.appendChild($("actions"));
   if (S.mode === mode && S.state) return;
   S.mode = mode;
   S.engine = S.engines[mode];
@@ -820,6 +822,7 @@ function wire() {
   document.querySelectorAll("[data-setting]").forEach((el) => el.addEventListener("change", () => {
     settings[el.dataset.setting] = el.checked; saveSettings(); applySettings();
   }));
+  document.querySelectorAll("input[name=tempo]").forEach((el) => el.addEventListener("change", () => { settings.tempo = el.value; saveSettings(); }));
   document.querySelectorAll("input[name=engine]").forEach((el) => el.addEventListener("change", async () => {
     settings.engine = el.value; saveSettings();
     await chooseEngine();

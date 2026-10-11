@@ -227,14 +227,25 @@ function watchManualSections() {
   const update = () => {
     if ($("view-manual").classList.contains("hidden")) return;
     const line = innerHeight * 0.3;
-    let current = heads[0];
-    for (const h of heads) if (h.getBoundingClientRect().top <= line) current = h;
-    // at the very bottom the last sections can never reach the line: light the last one
-    if (scrollY + innerHeight >= document.documentElement.scrollHeight - 2) current = heads[heads.length - 1];
-    links.forEach((a) => a.classList.toggle("active", current && a.getAttribute("href") === "#" + current.id));
-    // only the indicator moves: slide it to the active entry
-    const on = links.find((a) => a.classList.contains("active")), ind = document.querySelector("#manualToc .toc-ind");
-    if (on && ind) { ind.style.top = on.offsetTop + "px"; ind.style.height = on.offsetHeight + "px"; }
+    const tops = heads.map((h) => h.getBoundingClientRect().top);
+    const bottom = scrollY + innerHeight >= document.documentElement.scrollHeight - 2;
+    // position along the contents list, in entries: i + how far the page has scrolled through section i
+    let pos = 0;
+    for (let i = 0; i < heads.length; i++) {
+      if (tops[i] > line) break;
+      const next = i + 1 < heads.length ? tops[i + 1] : Infinity;
+      pos = i + (next === Infinity ? 0 : Math.min(1, Math.max(0, (line - tops[i]) / (next - tops[i]))));
+    }
+    if (bottom) pos = heads.length - 1;
+    const i = Math.min(heads.length - 1, Math.round(pos));
+    links.forEach((a, k) => a.classList.toggle("active", k === i));
+    // only the bar moves: it glides between entries as you scroll through a section
+    const ind = document.querySelector("#manualToc .toc-ind"), lo = links[Math.floor(pos)], hi = links[Math.min(links.length - 1, Math.floor(pos) + 1)];
+    if (ind && lo) {
+      const f = pos - Math.floor(pos);
+      ind.style.top = lo.offsetTop + f * (hi.offsetTop - lo.offsetTop) + "px";
+      ind.style.height = lo.offsetHeight + "px";
+    }
   };
   addEventListener("scroll", update, { passive: true });
   addEventListener("resize", update);
