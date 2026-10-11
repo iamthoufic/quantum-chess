@@ -84,7 +84,7 @@ kbd { font: 600 11px var(--mono); color: var(--text-3); border: 1px solid var(--
 html[data-ui="light"] .mark { background: #fff; box-shadow: inset 0 0 0 1px var(--hair), 0 4px 12px -6px rgba(60, 45, 25, 0.3); }
 html[data-ui="light"] .mark .logo-dark { display: none; }
 html[data-ui="light"] .mark .logo-light { display: block; }
-.wordmark { font: 400 27px/1 var(--display); letter-spacing: -0.005em; display: flex; align-items: baseline; gap: 6px; }
+.wordmark { font: 400 30px/1 var(--display); letter-spacing: -0.01em; display: flex; align-items: baseline; gap: 6px; transform: scaleY(1.18); transform-origin: left center; }
 .wordmark small { font: 700 11px var(--mono); color: var(--q-cyan); background: rgba(95, 212, 232, 0.1); padding: 2px 6px; border-radius: 5px; letter-spacing: 0.02em; }
 
 .nav { display: flex; gap: 2px; padding: 4px; background: var(--surface); border: 1px solid var(--hair); border-radius: 12px; }
