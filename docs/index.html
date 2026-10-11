@@ -106,7 +106,7 @@ kbd { font: 600 11px var(--mono); color: var(--text-3); border: 1px solid var(--
 .engine-status.qiskit .edot { background: var(--q-cyan); box-shadow: 0 0 0 3px rgba(95, 212, 232, 0.18); }
 
 /* ---------- play layout ---------- */
-.layout { display: flex; gap: 28px; justify-content: center; align-items: stretch; padding: 28px 24px 48px; flex-wrap: wrap; }
+.layout { display: flex; gap: 28px; justify-content: center; align-items: stretch; padding: 24px 24px 24px; flex-wrap: wrap; }
 .board-col { display: flex; flex-direction: column; gap: 8px; }
 
 .player-bar { display: flex; align-items: center; gap: 12px; width: calc(var(--sq) * 5); height: 52px; padding: 0 14px 0 7px; border-radius: 10px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--hair); transition: background 0.2s, box-shadow 0.2s; }
@@ -220,7 +220,7 @@ body.no-anim .overlay, body.no-anim .overlay-card, body.no-anim .ov-crown::befor
 
 /* ---------- side panel ---------- */
 .panel {
-  width: 360px; display: flex; flex-direction: column; gap: 16px;
+  width: 360px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; scrollbar-width: thin;
   background: var(--surface); border: 1px solid var(--hair); border-radius: 16px; padding: 20px; box-shadow: var(--shadow);
 }
 .panel-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
@@ -243,7 +243,7 @@ body.no-anim .overlay, body.no-anim .overlay-card, body.no-anim .ov-crown::befor
 
 .psec h4 { margin: 0 0 8px; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); }
 .empty { margin: 0; color: var(--text-3); font-size: 13.5px; }
-.psec.grow { flex: 1 1 0; min-height: 110px; display: flex; flex-direction: column; }
+.psec.grow { flex: 1 1 90px; min-height: 78px; display: flex; flex-direction: column; }
 .psec.grow .movelist { flex: 1 1 0; min-height: 0; }
 /* move list in the chess.com manner, with a slim scrollbar in the page's own colours */
 .movelist { overflow-y: auto; border-radius: 8px; background: var(--bg); scrollbar-width: thin; scrollbar-color: #4a4742 transparent; }
@@ -269,8 +269,10 @@ body.no-anim .overlay, body.no-anim .overlay-card, body.no-anim .ov-crown::befor
 .viewtoggle button { padding: 3px 9px; border-radius: 5px; font: 600 11.5px var(--ui); color: var(--text-3); }
 .viewtoggle button:hover { color: var(--text); }
 .viewtoggle button.active { background: var(--raised); color: var(--text); }
-.circuit { min-height: 64px; overflow: hidden; background: #f6f5f2; border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: center; }
-.circuit img, .circuit svg { display: block; width: 100%; height: auto; max-height: 220px; object-fit: contain; }
+/* the circuit section shares the panel's spare height with the move list; the drawing scales to its box */
+.psec.grow2 { flex: 1 1 170px; min-height: 0; display: flex; flex-direction: column; }
+.circuit { flex: 1 1 100px; min-height: 64px; max-height: 240px; overflow: hidden; background: #f6f5f2; border-radius: 10px; padding: 8px 10px; display: flex; align-items: center; justify-content: center; }
+.circuit img, .circuit svg { display: block; width: 100%; height: 100%; object-fit: contain; }
 .circuit .empty { color: #6f6c66; padding: 6px 8px; }
 .panel-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; }
 
@@ -764,7 +766,7 @@ html[data-ui="light"] .tut-controls { background: var(--surface-2); }
 
 /* ---------- action tiles (Play / Bots panel) ---------- */
 .panel-actions.tiles { grid-template-columns: 1fr 1fr; gap: 8px; }
-.tile-btn { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 12px 0 10px; border-radius: 12px; text-align: left; background: var(--bg); box-shadow: inset 0 0 0 1px var(--hair); color: var(--text-2); transition: box-shadow 0.15s, background 0.15s, transform 0.08s; }
+.tile-btn { display: flex; align-items: center; gap: 10px; height: 50px; padding: 0 12px 0 10px; border-radius: 12px; text-align: left; background: var(--bg); box-shadow: inset 0 0 0 1px var(--hair); color: var(--text-2); transition: box-shadow 0.15s, background 0.15s, transform 0.08s; }
 .tile-btn:hover { box-shadow: inset 0 0 0 1px var(--hair-2); color: var(--text); }
 .tile-btn:active { transform: translateY(1px); }
 .tile-btn:disabled { opacity: 0.45; cursor: default; }
@@ -956,7 +958,7 @@ body[data-mode="bots"] .play-only, body[data-mode="play"] .bots-only { display: 
       <div id="moves" class="movelist"><p class="empty">No moves yet. White starts.</p></div>
     </section>
 
-    <section class="psec">
+    <section class="psec grow2">
       <div class="psec-head">
         <h4 id="circuitTitle">Circuit</h4>
         <div class="viewtoggle" role="tablist" aria-label="Circuit view">
@@ -3871,18 +3873,21 @@ function switchMode(mode) {
   maybeBotMove();
 }
 
-/** Size the Bots board so the bots, the board and the panel all fit the window. */
-function fitBotsBoard() {
-  const arena = $("botsArena");
-  arena.style.removeProperty("--sq");
+/** Size the game board so it (and the panel beside it) fill the window height, in Play and in Bots alike. */
+function fitGameBoard() {
+  const play = $("view-play"), arena = $("botsArena"), panel = $("gamePanel");
+  play.style.removeProperty("--sq"); arena.style.removeProperty("--sq"); panel.style.height = "";
   if (innerWidth <= 1100) return;
   const avail = innerHeight - 60 - 48 - 4;            // below the top bar and the page padding
   const bars = 52 + 8 + 8 + 52;                       // two player bars and their gaps
   const byHeight = (avail - bars) / 5;
-  const byWidth = (innerWidth - 250 - 28 - 360 - 28 - 48) / 5;
+  const sideCol = S.mode === "bots" ? 250 + 28 : 0;   // the bots column, when there is one
+  const byWidth = (innerWidth - sideCol - 360 - 28 - 48) / 5;
   const sq = Math.max(64, Math.min(112, byHeight, byWidth));
-  arena.style.setProperty("--sq", sq + "px");
+  (S.mode === "bots" ? arena : play).style.setProperty("--sq", sq + "px");
+  panel.style.height = 5 * sq + bars + "px";          // the panel never grows past the board
 }
+const fitBotsBoard = fitGameBoard;
 
 function route() {
   // "#blog/<slug>" opens one article; every other route is a single word
@@ -3896,7 +3901,7 @@ function route() {
   if (view === "blog") renderBlog($("blogBody"), sub);
   if (view === "puzzles" && !$("view-puzzles").dataset.built) { buildPuzzles($("view-puzzles")); $("view-puzzles").dataset.built = 1; }
   if (view === "puzzles") fitPuzzleBoard();
-  if (view === "bots") fitBotsBoard();
+  if (view === "play" || view === "bots") fitGameBoard();
   window.scrollTo(0, 0);
 }
 
@@ -3918,7 +3923,7 @@ function wire() {
   document.querySelectorAll(".bot-card").forEach((b) => b.addEventListener("click", () => {
     settings.opponent = b.dataset.opp; saveSettings(); applySettings(); newMatch();
   }));
-  window.addEventListener("resize", () => { if (S.mode === "bots") fitBotsBoard(); });
+  window.addEventListener("resize", () => { if (!$("view-play").classList.contains("hidden") || !$("view-bots").classList.contains("hidden")) fitGameBoard(); });
   document.querySelectorAll("[data-side]").forEach((b) => b.addEventListener("click", () => { settings.side = b.dataset.side; saveSettings(); applySettings(); newMatch(); }));
   document.querySelectorAll("[data-rules]").forEach((b) => b.addEventListener("click", () => { settings.rules = b.dataset.rules; saveSettings(); applySettings(); newMatch(); }));
   // close the result card to look at the final position; the panel still shows the result

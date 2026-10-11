@@ -680,18 +680,21 @@ function switchMode(mode) {
   maybeBotMove();
 }
 
-/** Size the Bots board so the bots, the board and the panel all fit the window. */
-function fitBotsBoard() {
-  const arena = $("botsArena");
-  arena.style.removeProperty("--sq");
+/** Size the game board so it (and the panel beside it) fill the window height, in Play and in Bots alike. */
+function fitGameBoard() {
+  const play = $("view-play"), arena = $("botsArena"), panel = $("gamePanel");
+  play.style.removeProperty("--sq"); arena.style.removeProperty("--sq"); panel.style.height = "";
   if (innerWidth <= 1100) return;
   const avail = innerHeight - 60 - 48 - 4;            // below the top bar and the page padding
   const bars = 52 + 8 + 8 + 52;                       // two player bars and their gaps
   const byHeight = (avail - bars) / 5;
-  const byWidth = (innerWidth - 250 - 28 - 360 - 28 - 48) / 5;
+  const sideCol = S.mode === "bots" ? 250 + 28 : 0;   // the bots column, when there is one
+  const byWidth = (innerWidth - sideCol - 360 - 28 - 48) / 5;
   const sq = Math.max(64, Math.min(112, byHeight, byWidth));
-  arena.style.setProperty("--sq", sq + "px");
+  (S.mode === "bots" ? arena : play).style.setProperty("--sq", sq + "px");
+  panel.style.height = 5 * sq + bars + "px";          // the panel never grows past the board
 }
+const fitBotsBoard = fitGameBoard;
 
 function route() {
   // "#blog/<slug>" opens one article; every other route is a single word
@@ -705,7 +708,7 @@ function route() {
   if (view === "blog") renderBlog($("blogBody"), sub);
   if (view === "puzzles" && !$("view-puzzles").dataset.built) { buildPuzzles($("view-puzzles")); $("view-puzzles").dataset.built = 1; }
   if (view === "puzzles") fitPuzzleBoard();
-  if (view === "bots") fitBotsBoard();
+  if (view === "play" || view === "bots") fitGameBoard();
   window.scrollTo(0, 0);
 }
 
@@ -727,7 +730,7 @@ function wire() {
   document.querySelectorAll(".bot-card").forEach((b) => b.addEventListener("click", () => {
     settings.opponent = b.dataset.opp; saveSettings(); applySettings(); newMatch();
   }));
-  window.addEventListener("resize", () => { if (S.mode === "bots") fitBotsBoard(); });
+  window.addEventListener("resize", () => { if (!$("view-play").classList.contains("hidden") || !$("view-bots").classList.contains("hidden")) fitGameBoard(); });
   document.querySelectorAll("[data-side]").forEach((b) => b.addEventListener("click", () => { settings.side = b.dataset.side; saveSettings(); applySettings(); newMatch(); }));
   document.querySelectorAll("[data-rules]").forEach((b) => b.addEventListener("click", () => { settings.rules = b.dataset.rules; saveSettings(); applySettings(); newMatch(); }));
   // close the result card to look at the final position; the panel still shows the result
