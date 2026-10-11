@@ -780,3 +780,7 @@ body[data-mode="bots"] .play-only, body[data-mode="play"] .bots-only { display: 
 .panel-actions .btn:disabled { opacity: 0.45; cursor: default; }
 @media (max-width: 860px) { .bot-cards { grid-template-columns: 1fr; } }
 @media (max-width: 760px) { .botsview { padding: 24px 20px 40px; } .bots-options .btn { margin-left: 0; flex-basis: 100%; } }
+/* Play: Take back · Classical · New game in one row */
+body[data-mode="play"] .panel-actions { grid-template-columns: 1fr 1fr 1.1fr; gap: 8px; }
+body[data-mode="play"] .panel-actions .btn { padding: 0 8px; font-size: 13.5px; white-space: nowrap; }
+body[data-mode="play"] .panel-actions .btn .ic { display: none; }

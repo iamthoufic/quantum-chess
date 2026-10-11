@@ -269,7 +269,7 @@ async function takeBack() {
   S.reviewing = false;
   render();
   showCircuit();
-  toast(plies === 1 ? "Took back the last move." : "Took back your move and the reply.");
+  toast(plies === 1 ? "Took back the last move." : "Took back your move and the bot's reply.");
   maybeBotMove();
 }
 
