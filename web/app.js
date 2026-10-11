@@ -720,6 +720,12 @@ function switchMode(mode) {
     host.appendChild($("gameBoardCol"));
     host.appendChild($("gamePanel"));
   }
+  // the action tiles: a column left of the board on Play, under the bot cards on Bots
+  const tilesHost = mode === "bots" ? document.querySelector(".bots-side") : $("view-play");
+  if (!tilesHost.contains($("actions"))) {
+    if (mode === "bots") tilesHost.appendChild($("actions"));
+    else tilesHost.insertBefore($("actions"), $("gameBoardCol"));
+  }
   if (S.mode === mode && S.state) return;
   S.mode = mode;
   S.engine = S.engines[mode];
@@ -743,8 +749,8 @@ function fitGameBoard() {
   const avail = innerHeight - 60 - 48 - 4;            // below the top bar and the page padding
   const bars = 52 + 8 + 8 + 52;                       // two player bars and their gaps
   const byHeight = (avail - bars) / 5;
-  const sideCol = S.mode === "bots" ? 250 + 28 : 0;   // the bots column, when there is one
-  const byWidth = (innerWidth - sideCol - 360 - 28 - 48) / 5;
+  const sideCol = S.mode === "bots" ? 250 + 28 : 224 + 28;   // the bots column, or the action tiles
+  const byWidth = (innerWidth - sideCol - 400 - 28 - 48) / 5;
   const sq = Math.max(64, Math.min(112, byHeight, byWidth));
   (S.mode === "bots" ? arena : play).style.setProperty("--sq", sq + "px");
   panel.style.height = 5 * sq + bars + "px";          // the panel never grows past the board

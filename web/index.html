@@ -80,6 +80,13 @@
 
 <!-- ============================================================ PLAY -->
 <main id="view-play" class="view layout">
+  <aside class="side-col" id="actions" aria-label="Game actions">
+    <button class="tile-btn primary play-only" id="newQuantum" title="Start a new quantum game"><span class="tile-ic"><svg class="ic"><use href="#i-atom"/></svg></span><span class="tile-text"><b>Quantum</b><small>New game</small></span></button>
+    <button class="tile-btn play-only" id="newClassical" title="Same engine with split and merge switched off: the classical baseline"><span class="tile-ic"><svg class="ic"><use href="#i-half"/></svg></span><span class="tile-text"><b>Classical</b><small>Baseline game</small></span></button>
+    <button class="tile-btn" id="takeBack" title="Take back the last move"><span class="tile-ic"><svg class="ic"><use href="#i-undo"/></svg></span><span class="tile-text"><b>Take back</b><small>Undo last move</small></span></button>
+    <button class="tile-btn play-only" id="flipBoard" title="View the board from the other side"><span class="tile-ic"><svg class="ic"><use href="#i-flip"/></svg></span><span class="tile-text"><b>Flip board</b><small>Other side</small></span></button>
+    <button class="tile-btn primary bots-only" id="panelNew" title="Start a new match against the same opponent"><span class="tile-ic"><svg class="ic"><use href="#i-play"/></svg></span><span class="tile-text"><b>New match</b><small>Same opponent</small></span></button>
+  </aside>
   <section class="board-col" id="gameBoardCol">
     <div class="player-bar" id="barTop">
       <div class="avatar black"></div>
@@ -147,13 +154,6 @@
       <div id="circuitKey"></div>
     </section>
 
-    <footer class="panel-actions tiles">
-      <button class="tile-btn primary play-only" id="newQuantum" title="Start a new quantum game"><span class="tile-ic"><svg class="ic"><use href="#i-atom"/></svg></span><span class="tile-text"><b>Quantum</b><small>New game</small></span></button>
-      <button class="tile-btn play-only" id="newClassical" title="Same engine with split and merge switched off: the classical baseline"><span class="tile-ic"><svg class="ic"><use href="#i-half"/></svg></span><span class="tile-text"><b>Classical</b><small>Baseline game</small></span></button>
-      <button class="tile-btn" id="takeBack" title="Take back the last move"><span class="tile-ic"><svg class="ic"><use href="#i-undo"/></svg></span><span class="tile-text"><b>Take back</b><small>Undo last move</small></span></button>
-      <button class="tile-btn play-only" id="flipBoard" title="View the board from the other side"><span class="tile-ic"><svg class="ic"><use href="#i-flip"/></svg></span><span class="tile-text"><b>Flip board</b><small>Other side</small></span></button>
-      <button class="tile-btn primary bots-only" id="panelNew" title="Start a new match against the same opponent"><span class="tile-ic"><svg class="ic"><use href="#i-play"/></svg></span><span class="tile-text"><b>New match</b><small>Same opponent</small></span></button>
-    </footer>
   </aside>
 </main>
 

@@ -210,7 +210,7 @@ body.no-anim .overlay, body.no-anim .overlay-card, body.no-anim .ov-crown::befor
 
 /* ---------- side panel ---------- */
 .panel {
-  width: 360px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; scrollbar-width: thin;
+  width: 400px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; scrollbar-width: thin;
   background: var(--surface); border: 1px solid var(--hair); border-radius: 16px; padding: 20px; box-shadow: var(--shadow);
 }
 .panel-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
@@ -239,7 +239,7 @@ html[data-ui="light"] .mode-pill.c { color: #9a6a12; background: rgba(154, 106, 
 
 .psec h4 { margin: 0 0 8px; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); }
 .empty { margin: 0; color: var(--text-3); font-size: 13.5px; }
-.psec.grow { flex: 1 1 90px; min-height: 78px; display: flex; flex-direction: column; }
+.psec.grow { flex: 1 1 110px; min-height: 96px; display: flex; flex-direction: column; }
 .psec.grow .movelist { flex: 1 1 0; min-height: 0; }
 /* move list in the chess.com manner, with a slim scrollbar in the page's own colours */
 .movelist { overflow-y: auto; border-radius: 8px; background: var(--bg); scrollbar-width: thin; scrollbar-color: #4a4742 transparent; }
@@ -270,8 +270,8 @@ html[data-ui="light"] .mode-pill.c { color: #9a6a12; background: rgba(154, 106, 
 .viewtoggle button:hover { color: var(--text); }
 .viewtoggle button.active { background: var(--raised); color: var(--text); }
 /* the circuit section shares the panel's spare height with the move list; the drawing scales to its box */
-.psec.grow2 { flex: 1 1 170px; min-height: 0; display: flex; flex-direction: column; }
-.circuit { flex: 1 1 100px; min-height: 64px; max-height: 240px; overflow: hidden; background: #f6f5f2; border-radius: 10px; padding: 8px 10px; display: flex; align-items: center; justify-content: center; }
+.psec.grow2 { flex: 2 1 220px; min-height: 0; display: flex; flex-direction: column; position: relative; }
+.circuit { flex: 1 1 120px; min-height: 90px; overflow: hidden; background: #f6f5f2; border-radius: 10px; padding: 8px 10px; display: flex; align-items: center; justify-content: center; }
 .circuit img, .circuit svg { display: block; width: 100%; height: 100%; object-fit: contain; }
 .circuit .empty { color: #6f6c66; padding: 6px 8px; }
 .panel-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; }
@@ -598,6 +598,10 @@ html[data-ui="light"] .mode-pill.c { color: #9a6a12; background: rgba(154, 106, 
 #circuitKey summary::-webkit-details-marker { display: none; }
 #circuitKey summary::before { content: "+"; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 4px; background: rgba(95, 212, 232, 0.14); font-size: 13px; line-height: 1; }
 #circuitKey details[open] summary::before { content: "−"; }
+/* the key opens as a card over the circuit, so nothing below it is pushed out of the panel */
+#circuitKey details[open] .circuit-key { position: absolute; left: 0; right: 0; bottom: 34px; z-index: 6; margin: 0; padding: 14px 16px;
+  background: var(--surface-2); border-radius: 12px; box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.75), inset 0 0 0 1px var(--hair-2); }
+html[data-ui="light"] #circuitKey details[open] .circuit-key { background: #fff; box-shadow: 0 18px 40px -16px rgba(60, 45, 25, 0.45), inset 0 0 0 1px var(--hair-2); }
 
 /* √iSWAP in text: the radical's bar spans the whole gate name */
 .rad { display: inline-flex; align-items: flex-end; white-space: nowrap; }
@@ -767,7 +771,16 @@ html[data-ui="light"] .tut-controls { background: var(--surface-2); }
 
 
 /* ---------- action tiles (Play / Bots panel) ---------- */
-.panel-actions.tiles { grid-template-columns: 1fr 1fr; gap: 8px; }
+.side-col { width: 224px; display: flex; flex-direction: column; gap: 8px; align-self: flex-start; }
+/* on Bots the two tiles sit side by side under the options, compact so the column fits the window */
+.bots-side .side-col { width: auto; align-self: stretch; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bots-side .tile-btn { height: 48px; padding: 0 10px; gap: 8px; }
+.bots-side .tile-text small { display: none; }
+@media (max-height: 820px) { .bots-sub { display: none; } }
+@media (max-width: 1100px) {
+  .side-col { width: 100%; flex-direction: row; flex-wrap: wrap; }
+  .side-col .tile-btn { flex: 1 1 180px; }
+}
 .tile-btn { display: flex; align-items: center; gap: 11px; height: 58px; padding: 0 12px 0 10px; border-radius: 12px; text-align: left; background: var(--bg); box-shadow: inset 0 0 0 1px var(--hair); color: var(--text-2); transition: box-shadow 0.15s, background 0.15s, transform 0.08s; }
 .tile-btn:hover { box-shadow: inset 0 0 0 1px var(--hair-2); color: var(--text); }
 .tile-btn:active { transform: translateY(1px); }
