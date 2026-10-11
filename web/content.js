@@ -54,6 +54,8 @@ const START = {
   a2: "wP", b2: "wP", c2: "wP", d2: "wP", e2: "wP", a1: "wR", b1: "wN", c1: "wB", d1: "wQ", e1: "wK",
 };
 const img = (s) => `<img class="inline-piece" src="${pieceUrl(s[0], s[1])}" alt="">`;
+// the author's photo (the one-file build inlines it as window.AUTHOR_IMG)
+const authorPhoto = (name) => `<img class="av" src="${window.AUTHOR_IMG || "img/author.jpg"}" alt="${name}">`;
 
 // ------------------------------------------------------------------ manual
 function buildManual(root) {
@@ -261,7 +263,7 @@ function renderBlog(root, slug) {
           <div class="post-meta"><span class="post-no">Article ${a.no}</span><span>${a.date}</span><span>${a.read}</span></div>
           <h2 class="post-title">${a.titleHtml}</h2>
           <p class="post-dek">${a.dek}</p>
-          <div class="post-foot"><span class="av">MT</span><span>Published by <b>${a.author}</b></span><span class="post-read">Read article <svg class="ic"><use href="#i-arrow"/></svg></span></div>
+          <div class="post-foot">${authorPhoto(a.author)}<span>Published by <b>${a.author}</b></span><span class="post-read">Read article <svg class="ic"><use href="#i-arrow"/></svg></span></div>
         </a>`).join("")}
       </div>`;
     return;
@@ -276,7 +278,7 @@ function buildHistory(root, art) {
     <p class="eyebrow">Article ${art.no} · ${art.tags.join(" · ")}</p>
     <h1>${art.titleHtml}</h1>
     <p class="lede">${art.dek}</p>
-    <div class="byline"><span class="av">MT</span><div><b>Published by ${art.author}</b><span>${art.date} · ${art.read}</span></div></div>
+    <div class="byline">${authorPhoto(art.author)}<div><b>Published by ${art.author}</b><span>${art.date} · ${art.read}</span></div></div>
 
     <h2>A game older than most languages</h2>
     <p>Chess began in India as <b>chaturanga</b>, around the 6th century: a war game with infantry, cavalry,
@@ -360,7 +362,7 @@ function buildClassicalVsQuantum(root, art) {
     <p class="eyebrow">Article ${art.no} · ${art.tags.join(" · ")}</p>
     <h1>${art.titleHtml}</h1>
     <p class="lede">${art.dek}</p>
-    <div class="byline"><span class="av">MT</span><div><b>Published by ${art.author}</b><span>${art.date} · ${art.read} · experiments run in your browser</span></div></div>
+    <div class="byline">${authorPhoto(art.author)}<div><b>Published by ${art.author}</b><span>${art.date} · ${art.read} · experiments run in your browser</span></div></div>
 
     <h2>A small game with a big result</h2>
     <p>Martin Gardner introduced the 5×5 setup in 1969 as a pocket version of chess: one of each major piece

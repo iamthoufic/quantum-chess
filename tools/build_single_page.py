@@ -28,8 +28,11 @@ def main():
         css = css.replace(f"url(pieces/{key}.svg)", f"url({uri})")
 
     html = (WEB / "index.html").read_text(encoding="utf-8")
+    for key, uri in pieces.items():                       # <img src="pieces/..."> in the page itself (the logo)
+        html = html.replace(f'src="pieces/{key}.svg"', f'src="{uri}"')
+    author = "data:image/jpeg;base64," + base64.b64encode((WEB / "img" / "author.jpg").read_bytes()).decode()
     html = html.replace('<link rel="stylesheet" href="style.css">', f"<style>\n{css}\n</style>")
-    scripts = f"<script>window.PIECE_DATA = {json.dumps(pieces)};</script>\n"
+    scripts = f"<script>window.PIECE_DATA = {json.dumps(pieces)}; window.AUTHOR_IMG = {json.dumps(author)};</script>\n"
     for name in ("engine.js", "puzzles-core.js", "learn.js", "content.js", "puzzles.js", "app.js"):
         tag = f'<script src="{name}"></script>'
         assert tag in html, tag
