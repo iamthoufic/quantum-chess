@@ -5,9 +5,9 @@
 * **Project Title:** `Quantum Chess 5×5: Superposition Chess on a Gardner Minichess Board`
 * **Team Name:** `Solo — Mohamed Thoufic`
 * **Chosen Track:** `Track 1: Quantum Games & Interactive Puzzles`
-* **Video Presentation Link:** `[Insert YouTube Unlisted / Google Drive / Loom URL here]`
+* **Video Presentation Link:** https://drive.google.com/drive/folders/1J5KPeHYWlLhH66mwPY9nTUYmWvQVDBBw?usp=sharing
   *(⚠️ Crucial: Ensure link access is set to "Anyone with the link can view" on Google Drive or "Unlisted / Public" on YouTube. Locked/inaccessible links cannot be scored!)*
-* **Live Demo Timestamp in Video:** `[MM:SS]`
+* **Live Demo Timestamp in Video:** `00:00` (the whole video is a live demo of the game)
 
 ### Team Members (Max 4 members)
 | Name | Email | GitHub Username |
