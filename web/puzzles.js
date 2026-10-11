@@ -77,7 +77,7 @@ function buildPuzzles(root) {
   root.querySelectorAll(".pz-tile[data-id]").forEach((b) => b.addEventListener("click", () => openPuzzle(QCPuzzles.PUZZLES.find((p) => p.id === b.dataset.id))));
   $("pzEndless").addEventListener("click", openEndless);
   root.querySelectorAll(".pz-mode").forEach((b) => b.addEventListener("click", () => pzSetMode(b.dataset.mode)));
-  $("pzHint").addEventListener("click", () => showFeedback("hint", `<b>Hint.</b> ${PZ.pz.hint}`));
+  $("pzHint").addEventListener("click", () => showFeedback("hint", card({ badge: "Hint", body: PZ.pz.hint })));
   $("pzReset").addEventListener("click", () => openPuzzle(PZ.pz));
   $("pzShow").addEventListener("click", showSolution);
   $("pzNext").addEventListener("click", nextPuzzle);
@@ -116,11 +116,11 @@ function openPuzzle(pz) {
 }
 
 function openEndless() {
-  showFeedback("hint", "Generating a position…");
+  showFeedback("hint", card({ badge: "Endless", body: "Generating a position…" }));
   setTimeout(() => {
     const seed = 1 + Math.floor(Math.random() * 99999);
     const pz = QCPuzzles.generateChallenge(seed);
-    if (pz) openPuzzle(pz); else showFeedback("bad", "Could not generate a position, try again.");
+    if (pz) openPuzzle(pz); else showFeedback("bad", card({ badge: "Endless", body: "Could not generate a position, try again." }));
   }, 20);
 }
 
@@ -183,16 +183,17 @@ function submit(a) {
   const entry = QCPuzzles.doAction(PZ.game, act);
   PZ.done = true; PZ.sel = null; PZ.opts = null; PZ.picks = []; PZ.partner = null;
   renderPuzzle([entry.from, entry.to, entry.extra].filter(Boolean));
-  const happened = entry.events.length ? `<p class="pz-events">This time: ${entry.events.join("; ")}.</p>` : "";
+  const roll = entry.events.length ? plainEvents(entry.events) : "";
   const gt = PZ.pz.goal.type;
-  const target = gt === "survive" ? `needs ≤ ${pct(res.best)}` : gt === "certain" ? "needs 100%" : gt === "win" ? `needs ≥ ${pct(res.best)}` : `best is ${pct(res.best)}`;
+  const target = gt === "survive" ? `goal ≤ ${pct(res.best)}` : gt === "certain" ? "goal 100%" : gt === "win" ? `goal ≥ ${pct(res.best)}` : `best is ${pct(res.best)}`;
   const lucky = PZ.game.winner === PZ.pz.side;
   if (res.ok) {
     PZ.solved.add(PZ.pz.id); saveSolved(); updateProgress();
     document.querySelector(`.pz-tile[data-id="${PZ.pz.id}"]`)?.classList.add("solved");
-    showFeedback("good", `<b>Solved.</b> ${text}: ${res.label} <b>${pct(res.value)}</b>.<p>${PZ.pz.lesson}</p>${happened}`);
+    showFeedback("good", card({ badge: "Solved", value: pct(res.value), label: res.label, move: text, why: PZ.pz.lesson, roll }));
   } else {
-    showFeedback("bad", `<b>${lucky ? "Lucky this time, but not quite." : "Not quite."}</b> ${text}: ${res.label} <b>${pct(res.value)}</b> (${target}).${happened}`);
+    showFeedback("bad", card({ badge: lucky ? "Lucky, but not quite" : "Not quite", value: pct(res.value), label: `${res.label} · ${target}`, move: text,
+      body: lucky ? "It worked this time, but the same move fails too often. Look for a better one." : "Try another idea, or take a hint.", roll }));
     setRetry(true);
   }
 }
@@ -213,7 +214,7 @@ function showSolution() {
   ans.slice(1).forEach((s, i) => (marks[s] = i === 0 ? "partner" : "qdot"));
   renderPuzzle([], marks);
   const act = [ans[0], ...ans.slice(1).map(QC.parse)];
-  showFeedback("hint", `<b>Solution.</b> ${actionText(act)}.<p>${pz.lesson}</p>`);
+  showFeedback("hint", card({ badge: "Solution", move: actionText(act), why: pz.lesson }));
 }
 
 // after a wrong move the Reset button becomes the obvious next step
@@ -221,6 +222,25 @@ function setRetry(on) {
   const b = $("pzReset");
   b.classList.toggle("retry", on);
   b.innerHTML = `<svg class="ic"><use href="#i-reset"/></svg>${on ? "Try again" : "Reset"}`;
+}
+
+const PIECE_WORD = { K: "king", Q: "queen", R: "rook", B: "bishop", N: "knight", P: "pawn" };
+
+// engine events in plain words: "captured bK on e5" -> "captured the black king on e5"
+function plainEvents(events) {
+  return events.map((e) => e
+    .replace(/\b([wb])([KQRBNP])\b/g, (_, c, k) => `the ${c === "w" ? "white" : "black"} ${PIECE_WORD[k]}`)
+    .replace(/: ([KQRBNP]) (present|absent)/, (_, k, st) => `: ${PIECE_WORD[k]} ${st}`)
+  ).join(" · ");
+}
+
+/** One feedback card: badge + big number, then your move, then why, then what happened. */
+function card({ badge, value = "", label = "", move = "", why = "", body = "", roll = "" }) {
+  return `<div class="fb-head"><span class="fb-badge">${badge}</span>${value ? `<span class="fb-stat"><b>${value}</b><small>${label}</small></span>` : ""}</div>`
+    + (move ? `<div class="fb-row"><span>Your move</span>${move}</div>` : "")
+    + (why ? `<div class="fb-row why"><span>Why</span><p>${why}</p></div>` : "")
+    + (body ? `<p class="fb-body">${body}</p>` : "")
+    + (roll ? `<div class="fb-roll">This time: ${roll}</div>` : "");
 }
 
 function showFeedback(kind, html) {

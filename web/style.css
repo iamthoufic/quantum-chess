@@ -474,8 +474,8 @@ body.no-anim .flash::after { animation: none; }
 .pz-feedback.bad { box-shadow: inset 3px 0 0 #f0a35e; }
 .pz-feedback.hint { box-shadow: inset 3px 0 0 var(--q-cyan); }
 .pz-feedback b { color: var(--text); }
-.pz-feedback p { margin: 8px 0 0; }
-.pz-events { font-size: 12.5px; color: var(--text-3); }
+
+
 .pz-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: auto; }
 .pz-actions #pzNext { grid-column: 1 / -1; }
 .pz-actions #pzReset.retry { color: #f6c08f; box-shadow: inset 0 0 0 1px rgba(240, 163, 94, 0.6); background: rgba(240, 163, 94, 0.08); }
@@ -493,3 +493,20 @@ body.no-anim .flash::after { animation: none; }
   .puzzles { padding: 24px 20px 40px; }
   .pz-layout { --sq: calc((100vw - 40px) / 5); }
 }
+
+/* puzzle feedback card: verdict, number, move, reason, outcome — each on its own line */
+.pz-feedback .fb-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.fb-badge { font: 700 11px var(--mono); text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 9px; border-radius: 6px; background: var(--raised); color: var(--text-2); }
+.pz-feedback.good .fb-badge { background: rgba(129, 182, 76, 0.16); color: #b6dd8f; }
+.pz-feedback.bad .fb-badge { background: rgba(240, 163, 94, 0.14); color: #f6c08f; }
+.pz-feedback.hint .fb-badge { background: rgba(95, 212, 232, 0.12); color: #a9ecf6; }
+.fb-stat { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+.fb-stat b { font: 400 28px/1 var(--display); color: var(--text); }
+.fb-stat small { font-size: 11.5px; color: var(--text-3); margin-top: 3px; text-align: right; }
+.fb-row { display: grid; grid-template-columns: 74px 1fr; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hair); font-size: 14px; color: var(--text); font-weight: 600; }
+.fb-row > span { font: 600 10.5px/20px var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); }
+.fb-row.why { font-weight: 500; }
+.fb-row.why p { margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--text-2); }
+.fb-body { margin: 10px 0 0; font-size: 13.5px; color: var(--text-2); }
+.fb-roll { margin-top: 12px; padding: 8px 10px; border-radius: 8px; background: var(--surface); font-size: 12.5px; color: var(--text-3); }
+.pz-feedback.hint .fb-head + .fb-body { margin-top: 10px; }

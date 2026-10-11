@@ -484,8 +484,8 @@ body.no-anim .flash::after { animation: none; }
 .pz-feedback.bad { box-shadow: inset 3px 0 0 #f0a35e; }
 .pz-feedback.hint { box-shadow: inset 3px 0 0 var(--q-cyan); }
 .pz-feedback b { color: var(--text); }
-.pz-feedback p { margin: 8px 0 0; }
-.pz-events { font-size: 12.5px; color: var(--text-3); }
+
+
 .pz-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: auto; }
 .pz-actions #pzNext { grid-column: 1 / -1; }
 .pz-actions #pzReset.retry { color: #f6c08f; box-shadow: inset 0 0 0 1px rgba(240, 163, 94, 0.6); background: rgba(240, 163, 94, 0.08); }
@@ -503,6 +503,23 @@ body.no-anim .flash::after { animation: none; }
   .puzzles { padding: 24px 20px 40px; }
   .pz-layout { --sq: calc((100vw - 40px) / 5); }
 }
+
+/* puzzle feedback card: verdict, number, move, reason, outcome — each on its own line */
+.pz-feedback .fb-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.fb-badge { font: 700 11px var(--mono); text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 9px; border-radius: 6px; background: var(--raised); color: var(--text-2); }
+.pz-feedback.good .fb-badge { background: rgba(129, 182, 76, 0.16); color: #b6dd8f; }
+.pz-feedback.bad .fb-badge { background: rgba(240, 163, 94, 0.14); color: #f6c08f; }
+.pz-feedback.hint .fb-badge { background: rgba(95, 212, 232, 0.12); color: #a9ecf6; }
+.fb-stat { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+.fb-stat b { font: 400 28px/1 var(--display); color: var(--text); }
+.fb-stat small { font-size: 11.5px; color: var(--text-3); margin-top: 3px; text-align: right; }
+.fb-row { display: grid; grid-template-columns: 74px 1fr; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hair); font-size: 14px; color: var(--text); font-weight: 600; }
+.fb-row > span { font: 600 10.5px/20px var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); }
+.fb-row.why { font-weight: 500; }
+.fb-row.why p { margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--text-2); }
+.fb-body { margin: 10px 0 0; font-size: 13.5px; color: var(--text-2); }
+.fb-roll { margin-top: 12px; padding: 8px 10px; border-radius: 8px; background: var(--surface); font-size: 12.5px; color: var(--text-3); }
+.pz-feedback.hint .fb-head + .fb-body { margin-top: 10px; }
 
 </style>
 </head>
@@ -2230,7 +2247,7 @@ function buildPuzzles(root) {
   root.querySelectorAll(".pz-tile[data-id]").forEach((b) => b.addEventListener("click", () => openPuzzle(QCPuzzles.PUZZLES.find((p) => p.id === b.dataset.id))));
   $("pzEndless").addEventListener("click", openEndless);
   root.querySelectorAll(".pz-mode").forEach((b) => b.addEventListener("click", () => pzSetMode(b.dataset.mode)));
-  $("pzHint").addEventListener("click", () => showFeedback("hint", `<b>Hint.</b> ${PZ.pz.hint}`));
+  $("pzHint").addEventListener("click", () => showFeedback("hint", card({ badge: "Hint", body: PZ.pz.hint })));
   $("pzReset").addEventListener("click", () => openPuzzle(PZ.pz));
   $("pzShow").addEventListener("click", showSolution);
   $("pzNext").addEventListener("click", nextPuzzle);
@@ -2269,11 +2286,11 @@ function openPuzzle(pz) {
 }
 
 function openEndless() {
-  showFeedback("hint", "Generating a position…");
+  showFeedback("hint", card({ badge: "Endless", body: "Generating a position…" }));
   setTimeout(() => {
     const seed = 1 + Math.floor(Math.random() * 99999);
     const pz = QCPuzzles.generateChallenge(seed);
-    if (pz) openPuzzle(pz); else showFeedback("bad", "Could not generate a position, try again.");
+    if (pz) openPuzzle(pz); else showFeedback("bad", card({ badge: "Endless", body: "Could not generate a position, try again." }));
   }, 20);
 }
 
@@ -2336,16 +2353,17 @@ function submit(a) {
   const entry = QCPuzzles.doAction(PZ.game, act);
   PZ.done = true; PZ.sel = null; PZ.opts = null; PZ.picks = []; PZ.partner = null;
   renderPuzzle([entry.from, entry.to, entry.extra].filter(Boolean));
-  const happened = entry.events.length ? `<p class="pz-events">This time: ${entry.events.join("; ")}.</p>` : "";
+  const roll = entry.events.length ? plainEvents(entry.events) : "";
   const gt = PZ.pz.goal.type;
-  const target = gt === "survive" ? `needs ≤ ${pct(res.best)}` : gt === "certain" ? "needs 100%" : gt === "win" ? `needs ≥ ${pct(res.best)}` : `best is ${pct(res.best)}`;
+  const target = gt === "survive" ? `goal ≤ ${pct(res.best)}` : gt === "certain" ? "goal 100%" : gt === "win" ? `goal ≥ ${pct(res.best)}` : `best is ${pct(res.best)}`;
   const lucky = PZ.game.winner === PZ.pz.side;
   if (res.ok) {
     PZ.solved.add(PZ.pz.id); saveSolved(); updateProgress();
     document.querySelector(`.pz-tile[data-id="${PZ.pz.id}"]`)?.classList.add("solved");
-    showFeedback("good", `<b>Solved.</b> ${text}: ${res.label} <b>${pct(res.value)}</b>.<p>${PZ.pz.lesson}</p>${happened}`);
+    showFeedback("good", card({ badge: "Solved", value: pct(res.value), label: res.label, move: text, why: PZ.pz.lesson, roll }));
   } else {
-    showFeedback("bad", `<b>${lucky ? "Lucky this time, but not quite." : "Not quite."}</b> ${text}: ${res.label} <b>${pct(res.value)}</b> (${target}).${happened}`);
+    showFeedback("bad", card({ badge: lucky ? "Lucky, but not quite" : "Not quite", value: pct(res.value), label: `${res.label} · ${target}`, move: text,
+      body: lucky ? "It worked this time, but the same move fails too often. Look for a better one." : "Try another idea, or take a hint.", roll }));
     setRetry(true);
   }
 }
@@ -2366,7 +2384,7 @@ function showSolution() {
   ans.slice(1).forEach((s, i) => (marks[s] = i === 0 ? "partner" : "qdot"));
   renderPuzzle([], marks);
   const act = [ans[0], ...ans.slice(1).map(QC.parse)];
-  showFeedback("hint", `<b>Solution.</b> ${actionText(act)}.<p>${pz.lesson}</p>`);
+  showFeedback("hint", card({ badge: "Solution", move: actionText(act), why: pz.lesson }));
 }
 
 // after a wrong move the Reset button becomes the obvious next step
@@ -2374,6 +2392,25 @@ function setRetry(on) {
   const b = $("pzReset");
   b.classList.toggle("retry", on);
   b.innerHTML = `<svg class="ic"><use href="#i-reset"/></svg>${on ? "Try again" : "Reset"}`;
+}
+
+const PIECE_WORD = { K: "king", Q: "queen", R: "rook", B: "bishop", N: "knight", P: "pawn" };
+
+// engine events in plain words: "captured bK on e5" -> "captured the black king on e5"
+function plainEvents(events) {
+  return events.map((e) => e
+    .replace(/\b([wb])([KQRBNP])\b/g, (_, c, k) => `the ${c === "w" ? "white" : "black"} ${PIECE_WORD[k]}`)
+    .replace(/: ([KQRBNP]) (present|absent)/, (_, k, st) => `: ${PIECE_WORD[k]} ${st}`)
+  ).join(" · ");
+}
+
+/** One feedback card: badge + big number, then your move, then why, then what happened. */
+function card({ badge, value = "", label = "", move = "", why = "", body = "", roll = "" }) {
+  return `<div class="fb-head"><span class="fb-badge">${badge}</span>${value ? `<span class="fb-stat"><b>${value}</b><small>${label}</small></span>` : ""}</div>`
+    + (move ? `<div class="fb-row"><span>Your move</span>${move}</div>` : "")
+    + (why ? `<div class="fb-row why"><span>Why</span><p>${why}</p></div>` : "")
+    + (body ? `<p class="fb-body">${body}</p>` : "")
+    + (roll ? `<div class="fb-roll">This time: ${roll}</div>` : "");
 }
 
 function showFeedback(kind, html) {
