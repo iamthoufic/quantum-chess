@@ -409,6 +409,8 @@
       const entry = {
         ply: this.ply, color: piece.color, piece: piece.kind, kind,
         from: name(src), to: name(dst), extra: extra === null ? null : name(extra), ok, events: this.events,
+        // the measurement results this move produced, in order: enough to replay the game exactly
+        outs: this.lastTrace.filter((t) => t.op === "measure").map((t) => t.result),
       };
       this.events = [];
       this.log.push(entry);
@@ -422,6 +424,36 @@
         this.checkDraw();
       }
       return entry;
+    }
+
+    /** An independent copy of the game (used by the bots to try moves out). */
+    clone() {
+      const g = new Game({ pieces: new Map(this.pieces), quantum: this.quantum, turn: this.turn, seed: 0 });
+      g.winner = this.winner; g.endReason = this.endReason; g.ply = this.ply;
+      g.quietPlies = this.quietPlies; g.countBefore = this.countBefore;
+      g.q.active = [...this.q.active];
+      g.q.re = this.q.re && this.q.re.slice(); g.q.im = this.q.im && this.q.im.slice();
+      g.q.rng = this.q.rng;
+      return g;
+    }
+
+    /** Play one logged move again with the same measurement results. */
+    replayEntry(e) {
+      const sq = (s) => parse(s);
+      let k = 0;
+      this.q.forceOutcome = () => e.outs[k++];
+      try {
+        if (e.kind === "split") this.split(sq(e.from), sq(e.to), sq(e.extra));
+        else if (e.kind === "merge") this.merge(sq(e.from), sq(e.extra), sq(e.to));
+        else this.move(sq(e.from), sq(e.to));
+      } finally { this.q.forceOutcome = null; }
+    }
+
+    /** Rebuild a game from a log (as the API or snapshot() reports it). */
+    static fromLog(log, { quantum = true, seed = null } = {}) {
+      const g = new Game({ quantum, seed });
+      for (const e of log) g.replayEntry(e);
+      return g;
     }
 
     // draw rules: bare kings, the 50-move rule, or no legal action for the side to move

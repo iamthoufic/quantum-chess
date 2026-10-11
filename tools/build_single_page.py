@@ -33,7 +33,7 @@ def main():
     author = "data:image/jpeg;base64," + base64.b64encode((WEB / "img" / "author.jpg").read_bytes()).decode()
     html = html.replace('<link rel="stylesheet" href="style.css">', f"<style>\n{css}\n</style>")
     scripts = f"<script>window.PIECE_DATA = {json.dumps(pieces)}; window.AUTHOR_IMG = {json.dumps(author)};</script>\n"
-    for name in ("engine.js", "puzzles-core.js", "learn.js", "content.js", "puzzles.js", "app.js"):
+    for name in ("engine.js", "bot.js", "puzzles-core.js", "learn.js", "content.js", "puzzles.js", "app.js"):
         tag = f'<script src="{name}"></script>'
         assert tag in html, tag
         code = (WEB / name).read_text(encoding="utf-8").replace("</script", r"<\/script")

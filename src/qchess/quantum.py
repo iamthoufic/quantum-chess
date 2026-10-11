@@ -49,6 +49,7 @@ class QuantumState:
         self.sv: Statevector | None = None
         self.rng = np.random.default_rng(seed)
         self.trace: list[tuple] = []      # operations of the current turn, for drawing
+        self.force_outcomes: list[int] | None = None   # replay: results to use instead of sampling
 
     # ---------- queries ----------
     def is_active(self, sq: int) -> bool:
@@ -84,9 +85,20 @@ class QuantumState:
     def measure(self, sq: int) -> int:
         """Measure one square's qubit with Qiskit; the state collapses. Returns 0 or 1."""
         k = self.active.index(sq)
-        self.sv.seed(int(self.rng.integers(2**32)))
-        outcome, self.sv = self.sv.measure([k])
-        result = int(outcome)
+        if self.force_outcomes:
+            # replay: collapse onto the recorded result (renormalised), no sampling
+            result = int(self.force_outcomes.pop(0))
+            n = self.num_qubits
+            data = self.sv.data.reshape([2] * n).copy()
+            idx = [slice(None)] * n
+            idx[n - 1 - k] = 1 - result
+            data[tuple(idx)] = 0
+            data = data.reshape(-1)
+            self.sv = Statevector(data / np.linalg.norm(data))
+        else:
+            self.sv.seed(int(self.rng.integers(2**32)))
+            outcome, self.sv = self.sv.measure([k])
+            result = int(outcome)
         self.trace.append(("measure", sq, result))
         return result
 

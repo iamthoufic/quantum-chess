@@ -14,7 +14,20 @@ const THEMES = [
   { id: "lavender", label: "Lavender", sub: "Low glare", light: "#f2eefa", dark: "#9886c4" },
   { id: "green", label: "Tournament", sub: "Classic green", light: "#ecedd1", dark: "#779657" },
 ];
-const DEFAULTS = { theme: "blue", ui: "dark", coords: true, badges: true, hints: true, anim: true, flip: false, engine: "auto", cview: "qiskit" };
+const DEFAULTS = { theme: "blue", ui: "dark", coords: true, badges: true, hints: true, anim: true, flip: false, engine: "auto", cview: "qiskit",
+  opponent: "human", side: "w", rules: "quantum" };
+
+// ---- match setup: who plays whom
+const botSide = () => (settings.opponent === "human" ? null : settings.side === "w" ? "b" : "w");
+const botLevel = () => QBOT.LEVELS.find((l) => l.id === settings.opponent) || null;
+const isBotTurn = () => !!(S.state && !S.state.winner && botSide() === S.state.turn);
+// the board is flipped by the Settings toggle, and also when you play Black against a bot
+const boardFlipped = () => settings.flip !== (botSide() !== null && settings.side === "b");
+function sideName(color) {
+  const bot = botLevel();
+  if (bot) return botSide() === color ? bot.name : "You";
+  return color === "w" ? "White" : "Black";
+}
 const prefersLight = matchMedia("(prefers-color-scheme: light)");
 
 // "dark" | "light" | "system" -> the appearance actually shown
@@ -39,10 +52,18 @@ function applySettings() {
   document.querySelectorAll("[data-setting]").forEach((el) => (el.checked = !!settings[el.dataset.setting]));
   document.querySelectorAll("input[name=engine]").forEach((el) => (el.checked = el.value === settings.engine));
   document.querySelectorAll(".theme-card").forEach((el) => el.classList.toggle("active", el.dataset.theme === settings.theme));
-  $("nameTop").textContent = settings.flip ? "White" : "Black";
-  $("nameBottom").textContent = settings.flip ? "Black" : "White";
-  document.querySelector("#barTop .avatar").className = "avatar " + (settings.flip ? "white" : "black");
-  document.querySelector("#barBottom .avatar").className = "avatar " + (settings.flip ? "black" : "white");
+  const top = boardFlipped() ? "w" : "b", bottom = boardFlipped() ? "b" : "w";
+  const label = (c) => sideName(c) + (botSide() === c ? ` <svg class="ic bot-ic"><use href="#i-robot"/></svg>` : "");
+  $("nameTop").innerHTML = label(top);
+  $("nameBottom").innerHTML = label(bottom);
+  document.querySelector("#barTop .avatar").className = "avatar " + (top === "w" ? "white" : "black");
+  document.querySelector("#barBottom .avatar").className = "avatar " + (bottom === "w" ? "white" : "black");
+  document.querySelectorAll(".opp-card").forEach((el) => el.classList.toggle("active", el.dataset.opp === settings.opponent));
+  document.querySelectorAll("[data-side]").forEach((el) => el.classList.toggle("active", el.dataset.side === settings.side));
+  document.querySelectorAll("[data-rules]").forEach((el) => el.classList.toggle("active", el.dataset.rules === settings.rules));
+  $("sideGroup").classList.toggle("hidden", settings.opponent === "human");
+  const lvl = botLevel();
+  $("oppBlurb").textContent = lvl ? `${lvl.name} · ${lvl.tag}: ${lvl.blurb}` : "Two players at one board: White and Black take turns.";
   if (S.state) render();
 }
 
@@ -50,6 +71,7 @@ function applySettings() {
 class LocalEngine {
   constructor() { this.kind = "local"; this.label = "In-browser engine"; }
   async newGame(quantum) { this.g = new QC.Game({ quantum }); return this.g.snapshot(); }
+  async undo(plies) { this.g = QC.Game.fromLog(this.g.log.slice(0, -plies), { quantum: this.g.quantum }); return this.g.snapshot(); }
   async options(sq) {
     const o = this.g.options(QC.parse(sq));
     return {
@@ -81,6 +103,7 @@ class ServerEngine {
   async newGame(quantum) { const s = await this.call("api/new", { quantum }); this.gid = s.id; return s; }
   async options(sq) { return this.call(`api/${this.gid}/options/${sq}`); }
   async play(kind, src, dst, extra) { return this.call(`api/${this.gid}/play`, { kind, src, dst, extra }); }
+  async undo(plies) { return this.call(`api/${this.gid}/undo`, { plies }); }
   circuit(state) {
     if (!state.has_circuit) return null;
     // "Explained" is drawn in the page from the move's gate list; "Qiskit" is Qiskit's own drawing
@@ -147,6 +170,7 @@ async function newGame(quantum) {
   }
   clearSelection();
   S.reviewing = false;
+  BOT.thinking = false;
   setMode("move");
   circuitToken++;
   $("circuit").innerHTML = `<span class="empty">Quantum moves draw their circuit here.</span>`;
@@ -192,10 +216,64 @@ async function play(kind, src, dst, extra = null) {
   flashMeasured(last);
   if (last && last.events.length) toast(last.events[last.events.length - 1]);
   showCircuit();
+  maybeBotMove();
+}
+
+// ---- computer opponent
+const BOT = { thinking: false };
+
+async function maybeBotMove() {
+  if (!isBotTurn() || BOT.thinking) return;
+  const lvl = botLevel();
+  BOT.thinking = true;
+  S.busy = true;
+  $("status").textContent = `${lvl.name} is thinking…`;
+  $("hint").textContent = "";
+  await new Promise((r) => setTimeout(r, 420));          // let your move land first
+  if (!isBotTurn()) { BOT.thinking = false; S.busy = false; return; }
+  let a = null;
+  try {
+    // with the Qiskit server, think on an exact mirror of the game (same moves, same measurement results)
+    const g = S.engine.kind === "local" ? S.engine.g : QBOT.mirror(S.state);
+    a = QBOT.choose(g, lvl.id);
+  } catch (e) { console.error(e); }
+  BOT.thinking = false;
+  S.busy = false;
+  if (!a) { render(); return; }
+  const n = QC.name;
+  if (a[0] === "merge") await play("merge", n(a[1]), n(a[3]), n(a[2]));   // merge: src, dst, partner
+  else await play(a[0], n(a[1]), n(a[2]), a[3] === null ? null : n(a[3]));
+}
+
+function newMatch() {
+  newGame(settings.rules !== "classical").then(() => {
+    const lvl = botLevel();
+    if (lvl) toast(`New match against ${lvl.name} (${lvl.tag}). You play ${settings.side === "w" ? "White" : "Black"}.`);
+    maybeBotMove();
+  });
+}
+
+async function takeBack() {
+  if (BOT.thinking || !S.state || !S.state.log.length) return;
+  // against a bot, go back to your previous turn: your move, plus the bot's reply if it made one
+  const bot = botSide();
+  const last = S.state.log[S.state.log.length - 1];
+  const plies = Math.min(S.state.log.length, bot && last.color === bot ? 2 : 1);
+  S.busy = true;
+  try {
+    S.state = await S.engine.undo(plies);
+  } catch (e) { toast(e.message); S.busy = false; return; }
+  S.busy = false;
+  clearSelection();
+  S.reviewing = false;
+  render();
+  showCircuit();
+  toast(plies === 1 ? "Took back the last move." : "Took back your move and the reply.");
+  maybeBotMove();
 }
 
 async function onSquare(sq) {
-  if (S.busy || !S.state || S.state.winner) return;
+  if (S.busy || !S.state || S.state.winner || isBotTurn()) return;
   const o = S.opts;
   if (S.mode === "move") {
     if (S.sel && o && (o.move.includes(sq) || o.capture.includes(sq))) return play("move", S.sel, sq);
@@ -261,7 +339,7 @@ function render() {
   for (const s of S.state.squares) if (s.piece) cells[s.sq] = { ...s.piece, prob: s.prob };
   const last = S.state.log[S.state.log.length - 1];
   const board = buildBoard(cells, {
-    marks: settings.hints ? hintMap() : {}, sel: S.sel, coords: settings.coords, flip: settings.flip,
+    marks: settings.hints ? hintMap() : {}, sel: S.sel, coords: settings.coords, flip: boardFlipped(),
     badges: settings.badges, last: last ? [last.from, last.to, last.extra].filter(Boolean) : [], onClick: onSquare,
   });
   board.id = "board";
@@ -288,12 +366,12 @@ function hintMap() {
 
 function renderPanel() {
   const st = S.state;
-  const winnerName = st.winner === "w" ? "White" : "Black";
-  $("status").textContent = st.winner ? (st.winner === "draw" ? "Draw" : `${winnerName} wins`) : `${st.turn === "w" ? "White" : "Black"} to move`;
+  const winnerName = st.winner === "w" || st.winner === "b" ? sideName(st.winner) : "";
+  $("status").textContent = st.winner ? (st.winner === "draw" ? "Draw" : `${winnerName} wins`) : (BOT.thinking ? `${botLevel().name} is thinking…` : botLevel() ? (st.turn === botSide() ? `${botLevel().name} to move` : "Your move") : `${st.turn === "w" ? "White" : "Black"} to move`);
   const cap = QC.MAX_QUBITS;
   $("qubits").querySelector(".qm-val").textContent = `${st.qubits} / ${cap}`;
   $("qubits").querySelector(".qm-bar i").style.width = `${(100 * st.qubits) / cap}%`;
-  const whiteBottom = !settings.flip;
+  const whiteBottom = !boardFlipped();
   $("barBottom").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "w" : "b"));
   $("barTop").classList.toggle("turn", !st.winner && st.turn === (whiteBottom ? "b" : "w"));
   $("modeTag").textContent = `${st.quantum ? "Quantum game" : "Classical baseline"} · move ${Math.floor(st.ply / 2) + 1}`;
@@ -307,7 +385,7 @@ function renderPanel() {
     $("ovCrown").className = "ov-crown " + (draw ? "draw" : st.winner === "w" ? "white" : "black");
     $("ovCrown").innerHTML = draw ? king("w") + king("b") : king(st.winner);
     $("ovKicker").textContent = `Game over · ${st.quantum ? "quantum game" : "classical baseline"}`;
-    $("overlayTitle").textContent = draw ? "Draw" : `${winnerName} wins`;
+    $("overlayTitle").textContent = draw ? "Draw" : winnerName === "You" ? "You win" : `${winnerName} wins`;
     $("overlaySub").textContent = st.end_reason || (draw ? "Draw." : "The king was captured.");
     // a short summary of the game
     const ev = st.log.flatMap((e) => e.events);
@@ -322,6 +400,8 @@ function renderPanel() {
 
 function hintText() {
   if (S.state.winner) return "Game over.";
+  if (BOT.thinking) return "";
+  if (isBotTurn()) return `${botLevel().name} to move.`;
   if (S.mode === "move") return S.sel ? "Click a dot to move, a ring to capture (captures measure the board)." : "Select a piece to see where it can go.";
   if (S.mode === "split") return S.sel ? `Pick two empty squares (${S.picks.length}/2). The piece ends up on both, 50% each.` : "Select a non-pawn piece to split it across two squares.";
   if (!S.sel) return "Select one half of a split piece.";
@@ -594,9 +674,16 @@ function route() {
 // ================================================================== wiring
 function wire() {
   document.querySelectorAll(".mode").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
-  $("newQuantum").addEventListener("click", () => newGame(true));
-  $("newClassical").addEventListener("click", () => newGame(false));
-  $("overlayNew").addEventListener("click", () => newGame(S.state ? S.state.quantum : true));
+  $("newMatch").addEventListener("click", newMatch);
+  $("panelNew").addEventListener("click", newMatch);
+  $("overlayNew").addEventListener("click", newMatch);
+  $("takeBack").addEventListener("click", takeBack);
+  $("oppCards").innerHTML = [{ id: "human", name: "Two players", tag: "Local", icon: "users" }]
+    .concat(QBOT.LEVELS.map((l) => ({ id: l.id, name: l.name, tag: l.tag, icon: "robot" })))
+    .map((o) => `<button class="opp-card" data-opp="${o.id}"><svg class="ic"><use href="#i-${o.icon}"/></svg><span><b>${o.name}</b><small>${o.tag}</small></span></button>`).join("");
+  document.querySelectorAll(".opp-card").forEach((b) => b.addEventListener("click", () => { settings.opponent = b.dataset.opp; saveSettings(); applySettings(); newMatch(); }));
+  document.querySelectorAll("[data-side]").forEach((b) => b.addEventListener("click", () => { settings.side = b.dataset.side; saveSettings(); applySettings(); newMatch(); }));
+  document.querySelectorAll("[data-rules]").forEach((b) => b.addEventListener("click", () => { settings.rules = b.dataset.rules; saveSettings(); applySettings(); newMatch(); }));
   // close the result card to look at the final position; the panel still shows the result
   $("overlayReview").addEventListener("click", () => { S.reviewing = true; render(); });
   $("settingsBtn").addEventListener("click", () => $("settings").showModal());
@@ -625,8 +712,8 @@ function wire() {
   document.querySelectorAll("input[name=engine]").forEach((el) => el.addEventListener("change", async () => {
     settings.engine = el.value; saveSettings();
     await chooseEngine();
-    await newGame(true);
-    toast(`Engine: ${S.engine.label}. A new game was started.`);
+    newMatch();
+    toast(`Engine: ${S.engine.label}. A new match was started.`);
   }));
   $("resetSettings").addEventListener("click", () => { settings = { ...DEFAULTS }; saveSettings(); applySettings(); });
 
@@ -646,5 +733,5 @@ function wire() {
   applySettings();
   route();
   await chooseEngine();
-  await newGame(true);
+  newMatch();
 })();

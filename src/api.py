@@ -28,6 +28,14 @@ ROOT = Path(__file__).resolve().parent.parent
 WEB = ROOT / "web"
 
 app = FastAPI(title="Quantum Chess 5x5")
+
+
+@app.middleware("http")
+async def no_stale_files(request, call_next):
+    """Browsers must revalidate the page's files, so an update never shows a stale script."""
+    response = await call_next(request)
+    response.headers["Cache-Control"] = "no-cache"
+    return response
 games: dict[str, Game] = {}
 
 
@@ -116,6 +124,20 @@ def options(gid: str, sq: str):
         "split": [name(s) for s in o["split"]],
         "merge": {name(k): [name(s) for s in v] for k, v in o["merge"].items()},
     }
+
+
+class Undo(BaseModel):
+    plies: int = 1
+
+
+@app.post("/api/{gid}/undo")
+def undo(gid: str, req: Undo):
+    """Take back the last move(s): the game is replayed in Qiskit without them."""
+    game = get(gid)
+    if not game.log:
+        raise HTTPException(400, "nothing to take back")
+    games[gid] = game.undo(max(1, min(req.plies, len(game.log))))
+    return snapshot(gid, games[gid])
 
 
 @app.post("/api/{gid}/play")

@@ -17,7 +17,7 @@ Moves (one per turn):
 """
 
 from .board import (BLACK, KING, KNIGHT, PAWN, QUEEN, WHITE, Piece, file_of,
-                    name, on_board, path_between, rank_of, rays, square,
+                    name, on_board, parse, path_between, rank_of, rays, square,
                     starting_pieces)
 from .quantum import (ISWAP, ISWAP_DG, MAX_QUBITS, SQRT_ISWAP, SQRT_ISWAP_DG,
                       QuantumState, controlled_iswap, trace_to_circuit, trace_to_json)
@@ -268,6 +268,8 @@ class Game:
             "ply": self.ply, "color": piece.color, "piece": piece.kind, "kind": kind,
             "from": name(src), "to": name(dst), "extra": name(extra) if extra is not None else None,
             "ok": ok, "events": self._events,
+            # measurement results in order: enough to replay the game exactly (take-back, bots)
+            "outs": [op[2] for op in trace if op[0] == "measure"],
         }
         self._events = []
         self.log.append(entry)
@@ -292,6 +294,31 @@ class Game:
             self.winner, self.end_reason = "draw", "50 moves each without a capture or a pawn move."
         elif not self.has_any_move():
             self.winner, self.end_reason = "draw", "The side to move has no legal action."
+
+    # ------------------------------------------------------------------ replay
+    def replay_entry(self, e: dict):
+        """Play one logged move again with the same measurement results."""
+        self.q.force_outcomes = list(e.get("outs", []))
+        try:
+            if e["kind"] == "split":
+                self.split(parse(e["from"]), parse(e["to"]), parse(e["extra"]))
+            elif e["kind"] == "merge":
+                self.merge(parse(e["from"]), parse(e["extra"]), parse(e["to"]))
+            else:
+                self.move(parse(e["from"]), parse(e["to"]))
+        finally:
+            self.q.force_outcomes = None
+
+    @classmethod
+    def from_log(cls, log: list[dict], seed=None, quantum=True) -> "Game":
+        g = cls(seed=seed, quantum=quantum)
+        for e in log:
+            g.replay_entry(e)
+        return g
+
+    def undo(self, plies: int = 1) -> "Game":
+        """A new game equal to this one with the last `plies` moves taken back."""
+        return Game.from_log(self.log[:max(0, len(self.log) - plies)], seed=None, quantum=self.quantum)
 
     # ------------------------------------------------------------------ display
     def ascii(self) -> str:
