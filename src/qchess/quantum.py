@@ -14,7 +14,7 @@ Everything that changes the quantum state goes through Qiskit:
 
 import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiskit.circuit.library import UnitaryGate, iSwapGate
+from qiskit.circuit.library import UnitaryGate, XGate, iSwapGate
 from qiskit.quantum_info import Operator, Statevector
 
 from .board import name
@@ -28,18 +28,20 @@ def _labelled(gate, label):
     return UnitaryGate(Operator(gate), label=label)
 
 
-ISWAP = iSwapGate(label="iSWAP")
-# labels use matplotlib mathtext so drawings show a real exponent: iSWAP^(1/2), not "√iSWAP"
-ISWAP_DG = _labelled(iSwapGate().inverse(), r"$\mathrm{iSWAP}^{-1}$")
-SQRT_ISWAP = _labelled(iSwapGate().power(0.5), r"$\mathrm{iSWAP}^{1/2}$")
-SQRT_ISWAP_DG = _labelled(iSwapGate().power(-0.5), r"$\mathrm{iSWAP}^{-1/2}$")
+# Drawings use plain-English names so players can read them:
+#   Full swap = iSWAP, Half swap = iSWAP^(1/2) (square root of iSWAP),
+#   Undo swap = iSWAP^(-1), Undo half swap = iSWAP^(-1/2)
+ISWAP = iSwapGate(label="Full swap")
+ISWAP_DG = _labelled(iSwapGate().inverse(), "Undo swap")
+SQRT_ISWAP = _labelled(iSwapGate().power(0.5), "Half swap")
+SQRT_ISWAP_DG = _labelled(iSwapGate().power(-0.5), "Undo half swap")
 
 
 def controlled_iswap(n_controls: int):
     """iSWAP that fires only when all `n_controls` control squares are EMPTY (|0>)."""
     if n_controls == 0:
         return ISWAP
-    return iSwapGate(label="iSWAP").control(n_controls, ctrl_state="0" * n_controls)
+    return iSwapGate(label="Full swap").control(n_controls, ctrl_state="0" * n_controls)
 
 
 class QuantumState:
@@ -145,16 +147,16 @@ def trace_to_circuit(trace) -> QuantumCircuit | None:
         creg = ClassicalRegister(n_meas, "m")
         qc.add_register(creg)
     # squares that were already uncertain before this turn start from their
-    # existing state, shown as a "ψ" box, rather than from |0>
+    # existing state, shown as a "Before" box, rather than from |0>
     inited = {op[1] for op in trace if op[0] == "init"}
     for s in order:
         if s not in inited:
-            qc.append(UnitaryGate(np.eye(2), label="ψ"), [regs[s][0]])
+            qc.append(UnitaryGate(np.eye(2), label="Before"), [regs[s][0]])
     m = 0
     for op in trace:
         if op[0] == "init":
             if op[2]:
-                qc.x(regs[op[1]][0])
+                qc.append(XGate(label="Piece"), [regs[op[1]][0]])   # the piece starts here
         elif op[0] == "gate":
             qc.append(op[1], [regs[s][0] for s in op[2]])
         else:

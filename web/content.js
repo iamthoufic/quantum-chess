@@ -117,7 +117,7 @@ function buildManual(root) {
     <h2 id="m-split">Split: superposition</h2>
     <p>Choose <b>Split</b>, click a non-pawn piece, then click <b>two empty squares</b> it could reach
     (dashed cyan circles). The piece now stands on both squares with 50% probability each.</p>
-    <p class="qbox"><b>Under the hood:</b> the piece's qubit is |1⟩. An <code>iSWAP<sup>1/2</sup></code> (square root of iSWAP) with the first target
+    <p class="qbox"><b>Under the hood:</b> the piece's square is a qubit in state |1⟩. A <b>half swap</b> with the first target
     sends half the amplitude there; an <code>iSWAP</code> with the second target sends the rest.
     The state is <code>i(|a3⟩ + |c3⟩)/√2</code>.</p>`);
   s.appendChild(figRow(
@@ -133,7 +133,7 @@ function buildManual(root) {
     amplitudes add up on the target and cancel elsewhere. If one half has moved on its own since, the phases
     differ and the merge may leave some probability behind. That is real quantum interference, and you can
     use it.</p>
-    <p class="qbox"><b>Under the hood:</b> the split run backwards, <code>iSWAP<sup>−1</sup></code> then <code>iSWAP<sup>−1/2</sup></code>.</p>`);
+    <p class="qbox"><b>Under the hood:</b> the split run backwards: an <b>undo swap</b>, then an <b>undo half swap</b>.</p>`);
   s.appendChild(figRow(
     figure({ pieces: { ...START, b1: undefined, a3: ["wN", 0.5], c3: ["wN", 0.5] }, marks: { a3: "partner", c3: "partner", b1: "qdot" }, arrows: [["a3", "b1"], ["c3", "b1"]], n: "Figure 4a.", caption: "Merge both halves back onto b1." }),
     figure({ pieces: START, last: ["b1"], n: "Figure 4b.", caption: "Result: the knight is back on b1 with 100% certainty." }),

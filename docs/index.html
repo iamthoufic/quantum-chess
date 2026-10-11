@@ -541,6 +541,23 @@ body.no-anim .flash::after { animation: none; }
 .back-link { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 22px; font-weight: 700; font-size: 14px; color: var(--text-2); text-decoration: none; }
 .back-link:hover { color: var(--text); }
 
+/* ---------- circuit key: plain-English legend under every circuit ---------- */
+.circuit-key { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; font-size: 13px; line-height: 1.4; color: var(--text-2); }
+.ck-intro { color: var(--text-3); font-size: 12.5px; }
+.ck-row { display: grid; grid-template-columns: 104px 1fr; align-items: center; gap: 10px; }
+.ck-sym { justify-self: start; font: 600 11px/1 var(--ui); color: #fff; background: #9f1853; padding: 5px 8px; white-space: nowrap; }
+.ck-sym.ck-blue { background: #002d9c; }
+.ck-sym.ck-grey { background: #8d8d8d; }
+.ck-sym.ck-dot { width: 14px; height: 14px; padding: 0; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 2px #9f1853; margin-left: 4px; }
+.ck-sym.ck-meter { width: 26px; height: 20px; padding: 0; background: #8d8d8d; position: relative; }
+.ck-sym.ck-meter::before { content: ""; position: absolute; left: 6px; top: 7px; width: 14px; height: 7px; border: 1.6px solid #fff; border-bottom: 0; border-radius: 14px 14px 0 0; }
+.ck-sym.ck-meter::after { content: ""; position: absolute; left: 12px; top: 5px; width: 1.6px; height: 9px; background: #fff; transform: rotate(35deg); transform-origin: bottom; }
+.tut-key .circuit-key { margin-top: 0; }
+#circuitKey summary { cursor: pointer; margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--q-cyan); list-style: none; display: flex; align-items: center; gap: 6px; }
+#circuitKey summary::-webkit-details-marker { display: none; }
+#circuitKey summary::before { content: "+"; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 4px; background: rgba(95, 212, 232, 0.14); font-size: 13px; line-height: 1; }
+#circuitKey details[open] summary::before { content: "−"; }
+
 </style>
 </head>
 <body data-theme="blue">
@@ -653,6 +670,7 @@ body.no-anim .flash::after { animation: none; }
     <section class="psec">
       <h4 id="circuitTitle">Circuit of the last move</h4>
       <div id="circuit" class="circuit"><span class="empty">Quantum moves draw their circuit here.</span></div>
+      <div id="circuitKey"></div>
     </section>
 
     <footer class="panel-actions">
@@ -1575,10 +1593,10 @@ function lessonSplit() {
     .frame("Choose two targets", "In Split mode, click the knight, then two empty squares it can reach: a3 and c3.",
       { marks: { a3: "qdot", c3: "qdot" }, arrows: [["b1", "a3"], ["b1", "c3"]] })
     .gate("√iSWAP", "b1", "a3")
-    .frame("iSWAP<sup>1/2</sup>: half the amplitude moves", "The square root of iSWAP, written iSWAP<sup>1/2</sup>, acts on (b1, a3) and sends half of the knight's amplitude to a3. It is now 50% on b1 and 50% on a3.",
+    .frame("Half swap: half the chance moves", "A <b>half swap</b> between b1 and a3 sends half of the knight's chance to a3. It is now 50% on b1 and 50% on a3. (Physicists call this gate the square root of iSWAP.)",
       { arrows: [["b1", "a3"]] })
     .gate("iSWAP", "b1", "c3")
-    .frame("iSWAP: the rest moves", "A full iSWAP on (b1, c3) moves everything left on b1 over to c3. b1 is now certainly empty.",
+    .frame("Full swap: the rest moves", "A <b>full swap</b> between b1 and c3 moves everything left on b1 over to c3. b1 is now certainly empty.",
       { arrows: [["b1", "c3"]] })
     .frame("One knight, two squares", "The knight is on a3 and c3 at once, 50% each. The halves always add up to one knight, until a measurement decides.",
       { marks: { a3: "partner", c3: "partner" } });
@@ -1595,9 +1613,9 @@ function lessonMerge() {
     .frame("Pick a target", "In Merge mode, click one half, then the other, then a square both can reach: b1.",
       { marks: { a3: "partner", c3: "partner", b1: "qdot" }, arrows: [["a3", "b1"], ["c3", "b1"]] })
     .gate("iSWAP†", "b1", "c3")
-    .frame("iSWAP<sup>−1</sup>: pull one half back", "The inverse, iSWAP<sup>−1</sup>, on (b1, c3) moves the c3 half back onto b1.", { arrows: [["c3", "b1"]] })
+    .frame("Undo swap: pull one half back", "An <b>undo swap</b> between b1 and c3 moves the c3 half back onto b1.", { arrows: [["c3", "b1"]] })
     .gate("√iSWAP†", "b1", "a3")
-    .frame("iSWAP<sup>−1/2</sup>: interference", "iSWAP<sup>−1/2</sup> mixes b1 with a3. The two amplitudes add up on b1 and cancel on a3: the knight is back with 100% certainty.",
+    .frame("Undo half swap: interference", "An <b>undo half swap</b> mixes b1 with a3. The two halves add up on b1 and cancel out on a3: the knight is back with 100% certainty.",
       { arrows: [["a3", "b1"]] });
   // the classical comparison: a coin decided a3 or c3, then the same gates
   const C = new LessonBuilder({ a3: "wN", e1: "wK", e5: "bK" });
@@ -1616,7 +1634,7 @@ function lessonEntangle() {
     { arrows: [["a1", "a4"]], marks: { a4: "dot" } })
     .activate("a1", true).activate("a4", false)
     .gate("iSWAP", "a1", "a4", ["a2"]).place("a4", "wR")
-    .frame("A controlled slide", "The rook's iSWAP is controlled on a2 being empty (the open dot in the circuit). It slides only in the branch where the knight is on b5.");
+    .frame("A slide that depends on a2", "The rook's <b>full swap</b> has an open dot on a2: it only happens if a2 is empty. So the rook slides only in the branch where the knight is on b5.");
   const both = L.save();
   L.frame("Entangled", "Rook and knight now share one state: rook on a4 exactly when the knight is on b5. Neither piece has a position of its own.",
     { marks: { a1: "partner", a4: "partner", a2: "partner", b5: "partner" } })
@@ -1661,6 +1679,7 @@ function buildTutorials() {
           <p class="tut-caption"></p>
           <div class="tut-ket"><span>State</span><code></code></div>
           <div class="tut-circuit"></div>
+          <div class="tut-key"></div>
         </div>
       </div>
       <div class="tut-controls">
@@ -1713,6 +1732,7 @@ function buildTutorials() {
     $q(".tut-caption").innerHTML = fr.caption;
     $q(".tut-ket code").textContent = fr.ket || "—";
     $q(".tut-circuit").innerHTML = fr.trace.length ? circuitSVG(fr.trace) : `<span class="empty">No gates yet.</span>`;
+    $q(".tut-key").innerHTML = fr.trace.length ? circuitKey(traceKey(fr.trace)) : "";
     $q(".tut-progress").innerHTML = L.frames.map((_, i) =>
       `<button class="seg" data-i="${i}" aria-label="Step ${i + 1}"><i style="width:${i < idx ? 100 : 0}%"></i></button>`).join("");
     $q(".tut-progress").querySelectorAll(".seg").forEach((b) => b.addEventListener("click", () => go(Number(b.dataset.i), playing)));
@@ -1894,7 +1914,7 @@ function buildManual(root) {
     <h2 id="m-split">Split: superposition</h2>
     <p>Choose <b>Split</b>, click a non-pawn piece, then click <b>two empty squares</b> it could reach
     (dashed cyan circles). The piece now stands on both squares with 50% probability each.</p>
-    <p class="qbox"><b>Under the hood:</b> the piece's qubit is |1⟩. An <code>iSWAP<sup>1/2</sup></code> (square root of iSWAP) with the first target
+    <p class="qbox"><b>Under the hood:</b> the piece's square is a qubit in state |1⟩. A <b>half swap</b> with the first target
     sends half the amplitude there; an <code>iSWAP</code> with the second target sends the rest.
     The state is <code>i(|a3⟩ + |c3⟩)/√2</code>.</p>`);
   s.appendChild(figRow(
@@ -1910,7 +1930,7 @@ function buildManual(root) {
     amplitudes add up on the target and cancel elsewhere. If one half has moved on its own since, the phases
     differ and the merge may leave some probability behind. That is real quantum interference, and you can
     use it.</p>
-    <p class="qbox"><b>Under the hood:</b> the split run backwards, <code>iSWAP<sup>−1</sup></code> then <code>iSWAP<sup>−1/2</sup></code>.</p>`);
+    <p class="qbox"><b>Under the hood:</b> the split run backwards: an <b>undo swap</b>, then an <b>undo half swap</b>.</p>`);
   s.appendChild(figRow(
     figure({ pieces: { ...START, b1: undefined, a3: ["wN", 0.5], c3: ["wN", 0.5] }, marks: { a3: "partner", c3: "partner", b1: "qdot" }, arrows: [["a3", "b1"], ["c3", "b1"]], n: "Figure 4a.", caption: "Merge both halves back onto b1." }),
     figure({ pieces: START, last: ["b1"], n: "Figure 4b.", caption: "Result: the knight is back on b1 with 100% certainty." }),
@@ -2574,6 +2594,7 @@ class LocalEngine {
     return this.g.snapshot();
   }
   circuit(state) { return state.trace && state.trace.length ? circuitSVG(state.trace) : null; }
+  key(state) { return state.trace ? traceKey(state.trace) : []; }
 }
 
 class ServerEngine {
@@ -2596,6 +2617,7 @@ class ServerEngine {
     img.src = `api/${this.gid}/circuit.svg?ply=${state.ply}`;
     return img;
   }
+  key(state) { return state.circuit_key || []; }
 }
 
 async function probeServer() {
@@ -2654,6 +2676,7 @@ async function newGame(quantum) {
   setMode("move");
   circuitToken++;
   $("circuit").innerHTML = `<span class="empty">Quantum moves draw their circuit here.</span>`;
+  $("circuitKey").innerHTML = "";
   render();
 }
 
@@ -2869,6 +2892,10 @@ function showCircuit() {
   const box = $("circuit");
   const token = ++circuitToken;            // a slow image from an older move must not overwrite a newer one
   const node = S.engine.circuit(S.state);
+  const key = node ? circuitKey(S.engine.key(S.state)) : "";
+  const wasOpen = $("circuitKey").querySelector("details")?.open;
+  // folded on the Play panel so it keeps the board's height; open on request
+  $("circuitKey").innerHTML = key ? `<details${wasOpen ? " open" : ""}><summary>What do these boxes mean?</summary>${key}</details>` : "";
   if (!node) { box.innerHTML = `<span class="empty">Classical move: no qubits were needed.</span>`; return; }
   box.innerHTML = "";
   if (typeof node === "string") box.innerHTML = node;
@@ -2880,11 +2907,44 @@ function showCircuit() {
 }
 
 // ================================================================== circuit drawing (in-browser engine)
-// engine gate names -> "iSWAP" with a real superscript exponent
-const GATE_EXP = { "iSWAP": "", "√iSWAP": "1/2", "iSWAP†": "−1", "√iSWAP†": "−1/2" };
-function gateLabel(name) {
-  const exp = GATE_EXP[name];
-  return exp ? `iSWAP<tspan dy="-6" font-size="9.5">${exp}</tspan>` : "iSWAP";
+// engine gate names -> plain-English labels (same as the Qiskit drawings)
+const GATE_NAME = { "iSWAP": "Full swap", "√iSWAP": "Half swap", "iSWAP†": "Undo swap", "√iSWAP†": "Undo half swap" };
+const gateLabel = (name) => GATE_NAME[name] || name;
+
+// one line per box type, shown under every circuit
+const KEY_TEXT = {
+  "Piece": "the piece starts on this square",
+  "Before": "this square's chance from earlier moves",
+  "Half swap": "sends half of the piece's chance to the other square",
+  "Full swap": "sends all of it to the other square",
+  "Undo swap": "a full swap run backwards (used to merge)",
+  "Undo half swap": "a half swap run backwards (used to merge)",
+  "control": "the box only acts if this square is empty",
+  "measure": "look at the square: the piece is there or it isn't",
+};
+const KEY_ORDER = ["Piece", "Before", "Half swap", "Full swap", "Undo swap", "Undo half swap", "control", "measure"];
+
+function circuitKey(keys) {
+  const sym = (k) => k === "control" ? `<span class="ck-sym ck-dot"></span>`
+    : k === "measure" ? `<span class="ck-sym ck-meter"></span>`
+    : `<span class="ck-sym ${k === "Piece" ? "ck-blue" : k === "Before" ? "ck-grey" : ""}">${k}</span>`;
+  const rows = KEY_ORDER.filter((k) => keys.includes(k));
+  if (!rows.length) return "";
+  return `<div class="circuit-key"><div class="ck-intro">Each line is a square. Boxes move the piece's chance between squares, left to right.</div>`
+    + rows.map((k) => `<div class="ck-row">${sym(k)}<span>${KEY_TEXT[k]}</span></div>`).join("") + `</div>`;
+}
+
+function traceKey(trace) {
+  const keys = new Set();
+  const inited = new Set();
+  for (const t of trace) {
+    if (t.op === "init") { inited.add(t.sq); if (t.occupied) keys.add("Piece"); }
+    else if (t.op === "measure") keys.add("measure");
+    else { keys.add(gateLabel(t.gate)); if (t.controls.length) keys.add("control"); }
+  }
+  const wires = new Set(trace.flatMap((t) => (t.op === "gate" ? [...t.controls, ...t.squares] : [t.sq])));
+  if ([...wires].some((w) => !inited.has(w))) keys.add("Before");
+  return [...keys];
 }
 
 function circuitSVG(trace) {
@@ -2908,7 +2968,7 @@ function circuitSVG(trace) {
     if (prev && single && prev.single && !prev.rows.has(lo)) { prev.items.push({ c, lo, hi }); prev.rows.add(lo); }
     else layout.push({ single, rows: new Set([lo]), items: [{ c, lo, hi }] });
   }
-  const W = 46, X0 = 56, ROW = 44, Y0 = 26, colW = 76;
+  const W = 74, X0 = 56, ROW = 44, Y0 = 26, colW = 104;
   const width = X0 + layout.length * colW + 20, height = Y0 + wires.length * ROW;
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" font-family="Segoe UI, Arial, sans-serif">`;
   wires.forEach((w, i) => {
@@ -2922,8 +2982,8 @@ function circuitSVG(trace) {
       const ylo = Y0 + lo * ROW, yhi = Y0 + hi * ROW;
       if (c.kind === "psi" || c.kind === "x") {
         const fill = c.kind === "x" ? "#002d9c" : "#8d8d8d";
-        svg += `<rect x="${cx - 16}" y="${ylo - 16}" width="32" height="32" fill="${fill}"/>`;
-        svg += `<text x="${cx}" y="${ylo + 5}" font-size="14" fill="#fff" text-anchor="middle">${c.kind === "x" ? "X" : "ψ"}</text>`;
+        svg += `<rect x="${cx - 27}" y="${ylo - 15}" width="54" height="30" fill="${fill}"/>`;
+        svg += `<text x="${cx}" y="${ylo + 4.5}" font-size="12" fill="#fff" text-anchor="middle">${c.kind === "x" ? "Piece" : "Before"}</text>`;
       } else if (c.op === "measure") {
         svg += `<rect x="${cx - 18}" y="${ylo - 16}" width="36" height="32" fill="#8d8d8d"/>`;
         svg += `<path d="M ${cx - 11} ${ylo + 7} A 11 11 0 0 1 ${cx + 11} ${ylo + 7}" stroke="#fff" fill="none" stroke-width="1.6"/>`;
@@ -2938,7 +2998,11 @@ function circuitSVG(trace) {
           svg += `<circle cx="${cx}" cy="${y}" r="7" fill="#fff" stroke="#9f1853" stroke-width="2"/>`;
         });
         svg += `<rect x="${cx - W / 2 - 8}" y="${top - 17}" width="${W + 16}" height="${bot - top + 34}" fill="#9f1853"/>`;
-        svg += `<text x="${cx}" y="${(top + bot) / 2 + 5}" font-size="13" fill="#fff" text-anchor="middle">${gateLabel(c.gate)}</text>`;
+        const words = gateLabel(c.gate).split(" ");
+        const lines = words.length > 2 ? [words.slice(0, 2).join(" "), words.slice(2).join(" ")] : [words.join(" ")];
+        lines.forEach((ln, i) => {
+          svg += `<text x="${cx}" y="${(top + bot) / 2 + 5 + (i - (lines.length - 1) / 2) * 15}" font-size="12.5" fill="#fff" text-anchor="middle">${ln}</text>`;
+        });
       }
     }
   });

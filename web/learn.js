@@ -94,10 +94,10 @@ function lessonSplit() {
     .frame("Choose two targets", "In Split mode, click the knight, then two empty squares it can reach: a3 and c3.",
       { marks: { a3: "qdot", c3: "qdot" }, arrows: [["b1", "a3"], ["b1", "c3"]] })
     .gate("√iSWAP", "b1", "a3")
-    .frame("iSWAP<sup>1/2</sup>: half the amplitude moves", "The square root of iSWAP, written iSWAP<sup>1/2</sup>, acts on (b1, a3) and sends half of the knight's amplitude to a3. It is now 50% on b1 and 50% on a3.",
+    .frame("Half swap: half the chance moves", "A <b>half swap</b> between b1 and a3 sends half of the knight's chance to a3. It is now 50% on b1 and 50% on a3. (Physicists call this gate the square root of iSWAP.)",
       { arrows: [["b1", "a3"]] })
     .gate("iSWAP", "b1", "c3")
-    .frame("iSWAP: the rest moves", "A full iSWAP on (b1, c3) moves everything left on b1 over to c3. b1 is now certainly empty.",
+    .frame("Full swap: the rest moves", "A <b>full swap</b> between b1 and c3 moves everything left on b1 over to c3. b1 is now certainly empty.",
       { arrows: [["b1", "c3"]] })
     .frame("One knight, two squares", "The knight is on a3 and c3 at once, 50% each. The halves always add up to one knight, until a measurement decides.",
       { marks: { a3: "partner", c3: "partner" } });
@@ -114,9 +114,9 @@ function lessonMerge() {
     .frame("Pick a target", "In Merge mode, click one half, then the other, then a square both can reach: b1.",
       { marks: { a3: "partner", c3: "partner", b1: "qdot" }, arrows: [["a3", "b1"], ["c3", "b1"]] })
     .gate("iSWAP†", "b1", "c3")
-    .frame("iSWAP<sup>−1</sup>: pull one half back", "The inverse, iSWAP<sup>−1</sup>, on (b1, c3) moves the c3 half back onto b1.", { arrows: [["c3", "b1"]] })
+    .frame("Undo swap: pull one half back", "An <b>undo swap</b> between b1 and c3 moves the c3 half back onto b1.", { arrows: [["c3", "b1"]] })
     .gate("√iSWAP†", "b1", "a3")
-    .frame("iSWAP<sup>−1/2</sup>: interference", "iSWAP<sup>−1/2</sup> mixes b1 with a3. The two amplitudes add up on b1 and cancel on a3: the knight is back with 100% certainty.",
+    .frame("Undo half swap: interference", "An <b>undo half swap</b> mixes b1 with a3. The two halves add up on b1 and cancel out on a3: the knight is back with 100% certainty.",
       { arrows: [["a3", "b1"]] });
   // the classical comparison: a coin decided a3 or c3, then the same gates
   const C = new LessonBuilder({ a3: "wN", e1: "wK", e5: "bK" });
@@ -135,7 +135,7 @@ function lessonEntangle() {
     { arrows: [["a1", "a4"]], marks: { a4: "dot" } })
     .activate("a1", true).activate("a4", false)
     .gate("iSWAP", "a1", "a4", ["a2"]).place("a4", "wR")
-    .frame("A controlled slide", "The rook's iSWAP is controlled on a2 being empty (the open dot in the circuit). It slides only in the branch where the knight is on b5.");
+    .frame("A slide that depends on a2", "The rook's <b>full swap</b> has an open dot on a2: it only happens if a2 is empty. So the rook slides only in the branch where the knight is on b5.");
   const both = L.save();
   L.frame("Entangled", "Rook and knight now share one state: rook on a4 exactly when the knight is on b5. Neither piece has a position of its own.",
     { marks: { a1: "partner", a4: "partner", a2: "partner", b5: "partner" } })
@@ -180,6 +180,7 @@ function buildTutorials() {
           <p class="tut-caption"></p>
           <div class="tut-ket"><span>State</span><code></code></div>
           <div class="tut-circuit"></div>
+          <div class="tut-key"></div>
         </div>
       </div>
       <div class="tut-controls">
@@ -232,6 +233,7 @@ function buildTutorials() {
     $q(".tut-caption").innerHTML = fr.caption;
     $q(".tut-ket code").textContent = fr.ket || "—";
     $q(".tut-circuit").innerHTML = fr.trace.length ? circuitSVG(fr.trace) : `<span class="empty">No gates yet.</span>`;
+    $q(".tut-key").innerHTML = fr.trace.length ? circuitKey(traceKey(fr.trace)) : "";
     $q(".tut-progress").innerHTML = L.frames.map((_, i) =>
       `<button class="seg" data-i="${i}" aria-label="Step ${i + 1}"><i style="width:${i < idx ? 100 : 0}%"></i></button>`).join("");
     $q(".tut-progress").querySelectorAll(".seg").forEach((b) => b.addEventListener("click", () => go(Number(b.dataset.i), playing)));

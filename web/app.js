@@ -55,6 +55,7 @@ class LocalEngine {
     return this.g.snapshot();
   }
   circuit(state) { return state.trace && state.trace.length ? circuitSVG(state.trace) : null; }
+  key(state) { return state.trace ? traceKey(state.trace) : []; }
 }
 
 class ServerEngine {
@@ -77,6 +78,7 @@ class ServerEngine {
     img.src = `api/${this.gid}/circuit.svg?ply=${state.ply}`;
     return img;
   }
+  key(state) { return state.circuit_key || []; }
 }
 
 async function probeServer() {
@@ -135,6 +137,7 @@ async function newGame(quantum) {
   setMode("move");
   circuitToken++;
   $("circuit").innerHTML = `<span class="empty">Quantum moves draw their circuit here.</span>`;
+  $("circuitKey").innerHTML = "";
   render();
 }
 
@@ -350,6 +353,10 @@ function showCircuit() {
   const box = $("circuit");
   const token = ++circuitToken;            // a slow image from an older move must not overwrite a newer one
   const node = S.engine.circuit(S.state);
+  const key = node ? circuitKey(S.engine.key(S.state)) : "";
+  const wasOpen = $("circuitKey").querySelector("details")?.open;
+  // folded on the Play panel so it keeps the board's height; open on request
+  $("circuitKey").innerHTML = key ? `<details${wasOpen ? " open" : ""}><summary>What do these boxes mean?</summary>${key}</details>` : "";
   if (!node) { box.innerHTML = `<span class="empty">Classical move: no qubits were needed.</span>`; return; }
   box.innerHTML = "";
   if (typeof node === "string") box.innerHTML = node;
@@ -361,11 +368,44 @@ function showCircuit() {
 }
 
 // ================================================================== circuit drawing (in-browser engine)
-// engine gate names -> "iSWAP" with a real superscript exponent
-const GATE_EXP = { "iSWAP": "", "√iSWAP": "1/2", "iSWAP†": "−1", "√iSWAP†": "−1/2" };
-function gateLabel(name) {
-  const exp = GATE_EXP[name];
-  return exp ? `iSWAP<tspan dy="-6" font-size="9.5">${exp}</tspan>` : "iSWAP";
+// engine gate names -> plain-English labels (same as the Qiskit drawings)
+const GATE_NAME = { "iSWAP": "Full swap", "√iSWAP": "Half swap", "iSWAP†": "Undo swap", "√iSWAP†": "Undo half swap" };
+const gateLabel = (name) => GATE_NAME[name] || name;
+
+// one line per box type, shown under every circuit
+const KEY_TEXT = {
+  "Piece": "the piece starts on this square",
+  "Before": "this square's chance from earlier moves",
+  "Half swap": "sends half of the piece's chance to the other square",
+  "Full swap": "sends all of it to the other square",
+  "Undo swap": "a full swap run backwards (used to merge)",
+  "Undo half swap": "a half swap run backwards (used to merge)",
+  "control": "the box only acts if this square is empty",
+  "measure": "look at the square: the piece is there or it isn't",
+};
+const KEY_ORDER = ["Piece", "Before", "Half swap", "Full swap", "Undo swap", "Undo half swap", "control", "measure"];
+
+function circuitKey(keys) {
+  const sym = (k) => k === "control" ? `<span class="ck-sym ck-dot"></span>`
+    : k === "measure" ? `<span class="ck-sym ck-meter"></span>`
+    : `<span class="ck-sym ${k === "Piece" ? "ck-blue" : k === "Before" ? "ck-grey" : ""}">${k}</span>`;
+  const rows = KEY_ORDER.filter((k) => keys.includes(k));
+  if (!rows.length) return "";
+  return `<div class="circuit-key"><div class="ck-intro">Each line is a square. Boxes move the piece's chance between squares, left to right.</div>`
+    + rows.map((k) => `<div class="ck-row">${sym(k)}<span>${KEY_TEXT[k]}</span></div>`).join("") + `</div>`;
+}
+
+function traceKey(trace) {
+  const keys = new Set();
+  const inited = new Set();
+  for (const t of trace) {
+    if (t.op === "init") { inited.add(t.sq); if (t.occupied) keys.add("Piece"); }
+    else if (t.op === "measure") keys.add("measure");
+    else { keys.add(gateLabel(t.gate)); if (t.controls.length) keys.add("control"); }
+  }
+  const wires = new Set(trace.flatMap((t) => (t.op === "gate" ? [...t.controls, ...t.squares] : [t.sq])));
+  if ([...wires].some((w) => !inited.has(w))) keys.add("Before");
+  return [...keys];
 }
 
 function circuitSVG(trace) {
@@ -389,7 +429,7 @@ function circuitSVG(trace) {
     if (prev && single && prev.single && !prev.rows.has(lo)) { prev.items.push({ c, lo, hi }); prev.rows.add(lo); }
     else layout.push({ single, rows: new Set([lo]), items: [{ c, lo, hi }] });
   }
-  const W = 46, X0 = 56, ROW = 44, Y0 = 26, colW = 76;
+  const W = 74, X0 = 56, ROW = 44, Y0 = 26, colW = 104;
   const width = X0 + layout.length * colW + 20, height = Y0 + wires.length * ROW;
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" font-family="Segoe UI, Arial, sans-serif">`;
   wires.forEach((w, i) => {
@@ -403,8 +443,8 @@ function circuitSVG(trace) {
       const ylo = Y0 + lo * ROW, yhi = Y0 + hi * ROW;
       if (c.kind === "psi" || c.kind === "x") {
         const fill = c.kind === "x" ? "#002d9c" : "#8d8d8d";
-        svg += `<rect x="${cx - 16}" y="${ylo - 16}" width="32" height="32" fill="${fill}"/>`;
-        svg += `<text x="${cx}" y="${ylo + 5}" font-size="14" fill="#fff" text-anchor="middle">${c.kind === "x" ? "X" : "ψ"}</text>`;
+        svg += `<rect x="${cx - 27}" y="${ylo - 15}" width="54" height="30" fill="${fill}"/>`;
+        svg += `<text x="${cx}" y="${ylo + 4.5}" font-size="12" fill="#fff" text-anchor="middle">${c.kind === "x" ? "Piece" : "Before"}</text>`;
       } else if (c.op === "measure") {
         svg += `<rect x="${cx - 18}" y="${ylo - 16}" width="36" height="32" fill="#8d8d8d"/>`;
         svg += `<path d="M ${cx - 11} ${ylo + 7} A 11 11 0 0 1 ${cx + 11} ${ylo + 7}" stroke="#fff" fill="none" stroke-width="1.6"/>`;
@@ -419,7 +459,11 @@ function circuitSVG(trace) {
           svg += `<circle cx="${cx}" cy="${y}" r="7" fill="#fff" stroke="#9f1853" stroke-width="2"/>`;
         });
         svg += `<rect x="${cx - W / 2 - 8}" y="${top - 17}" width="${W + 16}" height="${bot - top + 34}" fill="#9f1853"/>`;
-        svg += `<text x="${cx}" y="${(top + bot) / 2 + 5}" font-size="13" fill="#fff" text-anchor="middle">${gateLabel(c.gate)}</text>`;
+        const words = gateLabel(c.gate).split(" ");
+        const lines = words.length > 2 ? [words.slice(0, 2).join(" "), words.slice(2).join(" ")] : [words.join(" ")];
+        lines.forEach((ln, i) => {
+          svg += `<text x="${cx}" y="${(top + bot) / 2 + 5 + (i - (lines.length - 1) / 2) * 15}" font-size="12.5" fill="#fff" text-anchor="middle">${ln}</text>`;
+        });
       }
     }
   });

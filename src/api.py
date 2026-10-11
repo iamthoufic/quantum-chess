@@ -49,6 +49,20 @@ def get(gid: str) -> Game:
     return games[gid]
 
 
+def circuit_key(qc) -> list[str]:
+    """Names of the boxes used in a circuit drawing, for the key under it."""
+    keys = set()
+    for ins in qc.data:
+        op = ins.operation
+        if op.name == "measure":
+            keys.add("measure")
+        elif getattr(op, "num_ctrl_qubits", 0):
+            keys.update(["control", op.base_gate.label or "Full swap"])
+        else:
+            keys.add(op.label or op.name)
+    return sorted(keys)
+
+
 def snapshot(gid: str, game: Game) -> dict:
     squares = []
     for sq in range(25):
@@ -65,6 +79,7 @@ def snapshot(gid: str, game: Game) -> dict:
         "ply": game.ply, "qubits": game.q.num_qubits, "squares": squares,
         "log": game.log, "has_circuit": game.last_circuit is not None,
         "circuit_text": str(game.last_circuit.draw("text", fold=-1)) if game.last_circuit else "",
+        "circuit_key": circuit_key(game.last_circuit) if game.last_circuit else [],
     }
 
 
