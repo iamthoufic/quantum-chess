@@ -143,8 +143,17 @@ print(Statevector(qc).probabilities_dict())  # expected: {'010': 0.5, '100': 0.5
 
   **Engines:** when served by `uvicorn src.api:app`, every gate and measurement runs in Qiskit and the page shows "⚛ Qiskit". When opened as a plain file (`docs/index.html`), it falls back to `web/engine.js`, a JavaScript port of the same engine, shown as "◐ In-browser engine". `tests/test_js_engine.py` replays 25 random games (850+ moves, including splits, merges, entangling slides and measured captures) through both engines and requires every square's probability to match Qiskit to within 1e-9. The demo in the video uses the Qiskit engine.
 
-* **Key Screenshots / Terminal Output:**  
-  `[To be added once the game is running]`
+* **Key Screenshots / Terminal Output:**
+
+  | Play (Qiskit engine): a knight split over a3/c3 and its circuit | Bots: Heisenberg, with colour and rules pickers |
+  |---|---|
+  | ![Play](docs/screenshots/play.png) | ![Bots](docs/screenshots/bots.png) |
+  | **Puzzles**: graded by the exact solver | **How to play**: the illustrated manual with animated lessons |
+  | ![Puzzles](docs/screenshots/puzzles.png) | ![Manual](docs/screenshots/manual.png) |
+
+  Terminal output of the test suite (`pytest -q`): `27 passed` — rules audit against an independent move generator (10,000+ positions), 10,000+ random quantum moves with every invariant checked, the JavaScript engine replayed against Qiskit to 1e-9, every puzzle solvable by its intended answer and by no accident, bots legal and ranked.
+
+* **Hosted version:** the `web/` folder is a static site (see `vercel.json`): deployed to Vercel it runs entirely in the visitor's browser on the JavaScript port of the engine (the top-right label reads "In-browser engine"). Running `uvicorn src.api:app` locally switches the same page to Qiskit.
 
 ---
 
