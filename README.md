@@ -19,7 +19,7 @@
 ## 1. Project Overview & Motivation
 
 * **Summary (3–4 sentences):**  
-  Quantum Chess 5×5 is a two-player chess game on Martin Gardner's 5×5 minichess board in which pieces can be in two places at once. Every square is a qubit, every move is a quantum gate, and every capture is a measurement, all simulated with Qiskit. Players can split a piece across two squares, merge it back through interference, entangle pieces by sliding past a "maybe" piece, and force the board to collapse by capturing. The game runs as an interactive web app backed by the same Qiskit engine that the project notebook demonstrates.
+  Quantum Chess 5×5 is a two-player chess game on Martin Gardner's 5×5 minichess board in which pieces can be in two places at once. Every square is a qubit, every move is a quantum gate, and every capture is a measurement, all simulated with Qiskit. Players can split a piece across two squares, merge it back through interference, entangle pieces by sliding past a "maybe" piece, and force the board to collapse by capturing. The game runs as an interactive web app backed by the same Qiskit engine that the project notebook demonstrates. Play it live at **https://quantum-chess-5x5.vercel.app**.
 
 * **Why this problem / game?**  
   Chess is a game everyone understands, which makes it an ideal stage for counter-intuitive quantum behaviour: a knight that is "50% here and 50% there" is instantly understandable, and watching a merge return it to one square with certainty shows interference in a way a coin flip never could. The 5×5 board keeps every piece type while staying small enough (25 squares) to simulate exactly, so each quantum effect in the game is a real Qiskit statevector operation, not a random number.
@@ -153,7 +153,7 @@ print(Statevector(qc).probabilities_dict())  # expected: {'010': 0.5, '100': 0.5
 
   Terminal output of the test suite (`pytest -q`): `27 passed` — rules audit against an independent move generator (10,000+ positions), 10,000+ random quantum moves with every invariant checked, the JavaScript engine replayed against Qiskit to 1e-9, every puzzle solvable by its intended answer and by no accident, bots legal and ranked.
 
-* **Hosted version:** the `web/` folder is a static site (see `vercel.json`): deployed to Vercel it runs entirely in the visitor's browser on the JavaScript port of the engine (the top-right label reads "In-browser engine"). Running `uvicorn src.api:app` locally switches the same page to Qiskit.
+* **Hosted version:** **https://quantum-chess-5x5.vercel.app** — the `web/` folder is a static site (see `vercel.json`): deployed to Vercel it runs entirely in the visitor's browser on the JavaScript port of the engine (the top-right label reads "In-browser engine"). Running `uvicorn src.api:app` locally switches the same page to Qiskit.
 
 ---
 
