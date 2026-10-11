@@ -108,17 +108,18 @@ kbd { font: 600 11px var(--mono); color: var(--text-3); border: 1px solid var(--
 .engine-status.qiskit .edot { background: var(--q-cyan); box-shadow: 0 0 0 3px rgba(95, 212, 232, 0.18); }
 
 /* ---------- play layout ---------- */
-.layout { display: flex; gap: 32px; justify-content: center; align-items: flex-start; padding: 28px 24px 48px; flex-wrap: wrap; }
-.board-col { display: flex; flex-direction: column; gap: 10px; }
+.layout { display: flex; gap: 28px; justify-content: center; align-items: stretch; padding: 28px 24px 48px; flex-wrap: wrap; }
+.board-col { display: flex; flex-direction: column; gap: 8px; }
 
-.player-bar { display: flex; align-items: center; gap: 12px; width: calc(var(--sq) * 5); padding: 6px 8px 6px 6px; border-radius: 10px; transition: background 0.2s; }
-.player-bar.turn { background: var(--surface); box-shadow: inset 0 0 0 1px var(--hair); }
+.player-bar { display: flex; align-items: center; gap: 12px; width: calc(var(--sq) * 5); height: 52px; padding: 0 14px 0 7px; border-radius: 10px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--hair); transition: background 0.2s, box-shadow 0.2s; }
+.player-bar.turn { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--hair-2), inset 3px 0 0 var(--go); }
 .avatar { width: 38px; height: 38px; border-radius: 8px; background-size: 78%; background-position: center 60%; background-repeat: no-repeat; flex: none; }
 .avatar.white { background-color: #dedbd3; background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgdmlld0JveD0iMCAwIDQ1IDQ1Ij48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMTEuNjNWNk0yMCA4aDUiLz48cGF0aCBmaWxsPSIjZmZmIiBzdHJva2UtbGluZWNhcD0iYnV0dCIgc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMjVzNC41LTcuNSAzLTEwLjVjMCAwLTEtMi41LTMtMi41cy0zIDIuNS0zIDIuNWMtMS41IDMgMyAxMC41IDMgMTAuNSIvPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xMS41IDM3YzUuNSAzLjUgMTUuNSAzLjUgMjEgMHYtN3M5LTQuNSA2LTEwLjVjLTQtNi41LTEzLjUtMy41LTE2IDRWMjd2LTMuNWMtMy41LTcuNS0xMy0xMC41LTE2LTQtMyA2IDUgMTAgNSAxMHoiLz48cGF0aCBkPSJNMTEuNSAzMGM1LjUtMyAxNS41LTMgMjEgMG0tMjEgMy41YzUuNS0zIDE1LjUtMyAyMSAwbS0yMSAzLjVjNS41LTMgMTUuNS0zIDIxIDAiLz48L2c+PC9zdmc+); }
 .avatar.black { background-color: #45423d; background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHN0eWxlPSJjb2xvci1zY2hlbWU6bGlnaHQgb25seSIgdmlld0JveD0iMCAwIDQ1IDQ1Ij48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjEuNSI+PHBhdGggc3Ryb2tlLWxpbmVqb2luPSJtaXRlciIgZD0iTTIyLjUgMTEuNlY2Ii8+PHBhdGggZmlsbD0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9ImJ1dHQiIHN0cm9rZS1saW5lam9pbj0ibWl0ZXIiIGQ9Ik0yMi41IDI1czQuNS03LjUgMy0xMC41YzAgMC0xLTIuNS0zLTIuNXMtMyAyLjUtMyAyLjVjLTEuNSAzIDMgMTAuNSAzIDEwLjUiLz48cGF0aCBmaWxsPSIjMDAwIiBkPSJNMTEuNSAzN2EyMi4zIDIyLjMgMCAwIDAgMjEgMHYtN3M5LTQuNSA2LTEwLjVjLTQtNi41LTEzLjUtMy41LTE2IDRWMjd2LTMuNWMtMy41LTcuNS0xMy0xMC41LTE2LTQtMyA2IDUgMTAgNSAxMHoiLz48cGF0aCBzdHJva2UtbGluZWpvaW49Im1pdGVyIiBkPSJNMjAgOGg1Ii8+PHBhdGggc3Ryb2tlPSIjZWNlY2VjIiBkPSJNMzIgMjkuNXM4LjUtNCA2LTkuN0MzNC4xIDE0IDI1IDE4IDIyLjUgMjQuNnYyLjEtMi4xQzIwIDE4IDkuOSAxNCA3IDE5LjljLTIuNSA1LjYgNC44IDkgNC44IDkiLz48cGF0aCBzdHJva2U9IiNlY2VjZWMiIGQ9Ik0xMS41IDMwYzUuNS0zIDE1LjUtMyAyMSAwbS0yMSAzLjVjNS41LTMgMTUuNS0zIDIxIDBtLTIxIDMuNWM1LjUtMyAxNS41LTMgMjEgMCIvPjwvZz48L3N2Zz4=); }
-.pinfo { flex: 1; min-width: 0; }
-.pname { font-weight: 800; font-size: 15px; }
-.captured { display: flex; height: 18px; margin-top: 1px; }
+.pinfo { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.pname { font-weight: 800; font-size: 15px; line-height: 1.2; }
+.captured { display: flex; height: 18px; margin-top: 2px; }
+.captured:empty { display: none; }
 .captured span { width: 18px; height: 18px; background-size: contain; margin-right: -5px; opacity: 0.9; }
 .turn-flag { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--go); opacity: 0; transition: opacity 0.2s; }
 .player-bar.turn .turn-flag { opacity: 1; }
@@ -198,7 +199,7 @@ body.no-anim .flash::after { animation: none; }
 
 /* ---------- side panel ---------- */
 .panel {
-  width: 360px; display: flex; flex-direction: column; gap: 18px;
+  width: 360px; display: flex; flex-direction: column; gap: 16px;
   background: var(--surface); border: 1px solid var(--hair); border-radius: 16px; padding: 20px; box-shadow: var(--shadow);
 }
 .panel-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
@@ -217,11 +218,14 @@ body.no-anim .flash::after { animation: none; }
 .mode[data-mode="split"].active .ic, .mode[data-mode="merge"].active .ic { color: var(--q-cyan); }
 .mode kbd { margin-left: 2px; }
 .mode.active kbd { color: var(--text-2); }
-.hint { margin: -6px 2px 0; font-size: 13.5px; color: var(--text-2); min-height: 20px; }
+.hint { margin: -4px 0 0; font-size: 13.5px; color: var(--text-2); min-height: 20px; }
 
 .psec h4 { margin: 0 0 8px; font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); }
 .empty { margin: 0; color: var(--text-3); font-size: 13.5px; }
-.movelist { max-height: 200px; overflow-y: auto; border-top: 1px solid var(--hair); scrollbar-width: thin; }
+.psec.grow { flex: 1 1 0; min-height: 110px; display: flex; flex-direction: column; }
+.psec.grow .movelist { flex: 1 1 0; min-height: 0; }
+.movelist { overflow-y: auto; border-top: 1px solid var(--hair); scrollbar-width: thin; }
+.movelist .empty { padding-top: 10px; }
 .mrow { display: grid; grid-template-columns: 30px 1fr 1fr; align-items: start; padding: 5px 0; border-bottom: 1px solid var(--hair); font: 500 13.5px var(--mono); }
 .mrow:nth-child(odd) { background: rgba(255, 255, 255, 0.015); }
 .mno { color: var(--text-3); padding-left: 4px; }
@@ -232,7 +236,7 @@ body.no-anim .flash::after { animation: none; }
 .circuit { min-height: 64px; overflow: hidden; background: #f6f5f2; border-radius: 10px; padding: 10px; display: flex; align-items: center; justify-content: center; }
 .circuit img, .circuit svg { display: block; width: 100%; height: auto; max-height: 220px; object-fit: contain; }
 .circuit .empty { color: #6f6c66; padding: 6px 8px; }
-.panel-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.panel-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; }
 
 .toast {
   position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 50;
@@ -383,6 +387,8 @@ body.no-anim .flash::after { animation: none; }
   :root { --sq: calc((100vw - 40px) / 5); }
   body { overflow-x: hidden; }
   .layout { padding: 16px 20px 40px; }
+  .psec.grow { flex: none; }
+  .psec.grow .movelist { flex: none; max-height: 220px; }
   .panel { width: 100%; }
   .status { font-size: 26px; }
   .doc { padding: 28px 20px 72px; }
@@ -490,7 +496,7 @@ body.no-anim .flash::after { animation: none; }
     </div>
     <p class="hint" id="hint">Select a piece to see where it can go.</p>
 
-    <section class="psec">
+    <section class="psec grow">
       <h4>Moves</h4>
       <div id="moves" class="movelist"><p class="empty">No moves yet. White starts.</p></div>
     </section>
@@ -1552,6 +1558,7 @@ async function newGame(quantum) {
   }
   clearSelection();
   setMode("move");
+  circuitToken++;
   $("circuit").innerHTML = `<span class="empty">Quantum moves draw their circuit here.</span>`;
   render();
 }
@@ -1763,16 +1770,18 @@ function flashMeasured(entry) {
   }
 }
 
+let circuitToken = 0;
 function showCircuit() {
   const box = $("circuit");
+  const token = ++circuitToken;            // a slow image from an older move must not overwrite a newer one
   const node = S.engine.circuit(S.state);
   if (!node) { box.innerHTML = `<span class="empty">Classical move: no qubits were needed.</span>`; return; }
   box.innerHTML = "";
   if (typeof node === "string") box.innerHTML = node;
   else {
     box.innerHTML = `<span class="empty">Drawing circuit…</span>`;
-    node.onload = () => { box.innerHTML = ""; box.appendChild(node); };
-    node.onerror = () => { box.innerHTML = `<span class="empty">Circuit drawing unavailable.</span>`; };
+    node.onload = () => { if (token === circuitToken) { box.innerHTML = ""; box.appendChild(node); } };
+    node.onerror = () => { if (token === circuitToken) box.innerHTML = `<span class="empty">Circuit drawing unavailable.</span>`; };
   }
 }
 

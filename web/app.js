@@ -133,6 +133,7 @@ async function newGame(quantum) {
   }
   clearSelection();
   setMode("move");
+  circuitToken++;
   $("circuit").innerHTML = `<span class="empty">Quantum moves draw their circuit here.</span>`;
   render();
 }
@@ -344,16 +345,18 @@ function flashMeasured(entry) {
   }
 }
 
+let circuitToken = 0;
 function showCircuit() {
   const box = $("circuit");
+  const token = ++circuitToken;            // a slow image from an older move must not overwrite a newer one
   const node = S.engine.circuit(S.state);
   if (!node) { box.innerHTML = `<span class="empty">Classical move: no qubits were needed.</span>`; return; }
   box.innerHTML = "";
   if (typeof node === "string") box.innerHTML = node;
   else {
     box.innerHTML = `<span class="empty">Drawing circuit…</span>`;
-    node.onload = () => { box.innerHTML = ""; box.appendChild(node); };
-    node.onerror = () => { box.innerHTML = `<span class="empty">Circuit drawing unavailable.</span>`; };
+    node.onload = () => { if (token === circuitToken) { box.innerHTML = ""; box.appendChild(node); } };
+    node.onerror = () => { if (token === circuitToken) box.innerHTML = `<span class="empty">Circuit drawing unavailable.</span>`; };
   }
 }
 
