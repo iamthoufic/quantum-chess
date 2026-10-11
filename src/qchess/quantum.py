@@ -28,20 +28,19 @@ def _labelled(gate, label):
     return UnitaryGate(Operator(gate), label=label)
 
 
-# Drawings use plain-English names so players can read them:
-#   Full swap = iSWAP, Half swap = iSWAP^(1/2) (square root of iSWAP),
-#   Undo swap = iSWAP^(-1), Undo half swap = iSWAP^(-1/2)
-ISWAP = iSwapGate(label="Full swap")
-ISWAP_DG = _labelled(iSwapGate().inverse(), "Undo swap")
-SQRT_ISWAP = _labelled(iSwapGate().power(0.5), "Half swap")
-SQRT_ISWAP_DG = _labelled(iSwapGate().power(-0.5), "Undo half swap")
+# Labels are matplotlib mathtext, so the drawing shows a real radical whose bar
+# covers the whole name: the square root OF iSWAP, not "√i" followed by "SWAP".
+ISWAP = iSwapGate(label="iSWAP")
+ISWAP_DG = _labelled(iSwapGate().inverse(), r"$\mathrm{iSWAP}^{\dagger}$")
+SQRT_ISWAP = _labelled(iSwapGate().power(0.5), r"$\sqrt{\mathrm{iSWAP}}$")
+SQRT_ISWAP_DG = _labelled(iSwapGate().power(-0.5), r"$\sqrt{\mathrm{iSWAP}}^{\,\dagger}$")
 
 
 def controlled_iswap(n_controls: int):
     """iSWAP that fires only when all `n_controls` control squares are EMPTY (|0>)."""
     if n_controls == 0:
         return ISWAP
-    return iSwapGate(label="Full swap").control(n_controls, ctrl_state="0" * n_controls)
+    return iSwapGate(label="iSWAP").control(n_controls, ctrl_state="0" * n_controls)
 
 
 class QuantumState:
@@ -147,16 +146,16 @@ def trace_to_circuit(trace) -> QuantumCircuit | None:
         creg = ClassicalRegister(n_meas, "m")
         qc.add_register(creg)
     # squares that were already uncertain before this turn start from their
-    # existing state, shown as a "Before" box, rather than from |0>
+    # existing state, shown as a "ψ" box, rather than from |0>
     inited = {op[1] for op in trace if op[0] == "init"}
     for s in order:
         if s not in inited:
-            qc.append(UnitaryGate(np.eye(2), label="Before"), [regs[s][0]])
+            qc.append(UnitaryGate(np.eye(2), label="ψ"), [regs[s][0]])
     m = 0
     for op in trace:
         if op[0] == "init":
             if op[2]:
-                qc.append(XGate(label="Piece"), [regs[op[1]][0]])   # the piece starts here
+                qc.append(XGate(), [regs[op[1]][0]])   # the piece starts here
         elif op[0] == "gate":
             qc.append(op[1], [regs[s][0] for s in op[2]])
         else:

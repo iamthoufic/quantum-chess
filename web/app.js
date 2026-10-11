@@ -315,13 +315,14 @@ function renderMoves() {
   const log = S.state.log;
   if (!log.length) { box.innerHTML = `<p class="empty">No moves yet. ${S.state.turn === "w" ? "White" : "Black"} starts.</p>`; return; }
   const cell = (e) => !e ? `<div class="mv"></div>` :
-    `<div class="mv${e.ok ? "" : " fail"}"><span class="mt">${moveText(e)}</span>${e.events.map((ev) => `<span class="ev">${ev}</span>`).join("")}</div>`;
+    `<div class="mv${e.ok ? "" : " fail"}"><span class="mt">${moveText(e)}</span>${e.events.map((ev) => `<span class="ev">${plainEvents([ev])}</span>`).join("")}</div>`;
   let html = "";
   for (let i = 0; i < log.length; i += 2) {
     html += `<div class="mrow"><span class="mno">${i / 2 + 1}.</span>${cell(log[i])}${cell(log[i + 1])}</div>`;
   }
   box.innerHTML = html;
   box.scrollTop = box.scrollHeight;
+  box.classList.toggle("is-clipped", box.scrollHeight > box.clientHeight + 1);
 }
 
 function renderCaptured(whiteBottom) {
@@ -368,27 +369,30 @@ function showCircuit() {
 }
 
 // ================================================================== circuit drawing (in-browser engine)
-// engine gate names -> plain-English labels (same as the Qiskit drawings)
-const GATE_NAME = { "iSWAP": "Full swap", "√iSWAP": "Half swap", "iSWAP†": "Undo swap", "√iSWAP†": "Undo half swap" };
-const gateLabel = (name) => GATE_NAME[name] || name;
+// engine gate names -> key ids
+const GATE_ID = { "iSWAP": "iswap", "√iSWAP": "sqrt", "iSWAP†": "iswapdg", "√iSWAP†": "sqrtdg" };
+
+// the gate name as HTML: a radical whose bar covers the whole word, so √iSWAP reads as √(iSWAP)
+const RAD = `<span class="rad"><span class="rad-sign">√</span><span class="rad-body">iSWAP</span></span>`;
+const GATE_HTML = { iswap: "iSWAP", sqrt: RAD, iswapdg: "iSWAP<sup>†</sup>", sqrtdg: `${RAD}<sup>†</sup>`, x: "X", psi: "ψ" };
 
 // one line per box type, shown under every circuit
 const KEY_TEXT = {
-  "Piece": "the piece starts on this square",
-  "Before": "this square's chance from earlier moves",
-  "Half swap": "sends half of the piece's chance to the other square",
-  "Full swap": "sends all of it to the other square",
-  "Undo swap": "a full swap run backwards (used to merge)",
-  "Undo half swap": "a half swap run backwards (used to merge)",
-  "control": "the box only acts if this square is empty",
-  "measure": "look at the square: the piece is there or it isn't",
+  x: "the piece starts on this square",
+  psi: "this square's state from earlier moves",
+  sqrt: "square root of iSWAP: sends half of the piece's chance to the other square",
+  iswap: "sends all of the piece's chance to the other square",
+  iswapdg: "iSWAP run backwards (used to merge)",
+  sqrtdg: "√iSWAP run backwards (used to merge)",
+  control: "the box only acts if this square is empty",
+  measure: "look at the square: the piece is there or it isn't",
 };
-const KEY_ORDER = ["Piece", "Before", "Half swap", "Full swap", "Undo swap", "Undo half swap", "control", "measure"];
+const KEY_ORDER = ["x", "psi", "sqrt", "iswap", "iswapdg", "sqrtdg", "control", "measure"];
 
 function circuitKey(keys) {
   const sym = (k) => k === "control" ? `<span class="ck-sym ck-dot"></span>`
     : k === "measure" ? `<span class="ck-sym ck-meter"></span>`
-    : `<span class="ck-sym ${k === "Piece" ? "ck-blue" : k === "Before" ? "ck-grey" : ""}">${k}</span>`;
+    : `<span class="ck-sym ${k === "x" ? "ck-blue" : k === "psi" ? "ck-grey" : ""}">${GATE_HTML[k]}</span>`;
   const rows = KEY_ORDER.filter((k) => keys.includes(k));
   if (!rows.length) return "";
   return `<div class="circuit-key"><div class="ck-intro">Each line is a square. Boxes move the piece's chance between squares, left to right.</div>`
@@ -399,13 +403,28 @@ function traceKey(trace) {
   const keys = new Set();
   const inited = new Set();
   for (const t of trace) {
-    if (t.op === "init") { inited.add(t.sq); if (t.occupied) keys.add("Piece"); }
+    if (t.op === "init") { inited.add(t.sq); if (t.occupied) keys.add("x"); }
     else if (t.op === "measure") keys.add("measure");
-    else { keys.add(gateLabel(t.gate)); if (t.controls.length) keys.add("control"); }
+    else { keys.add(GATE_ID[t.gate]); if (t.controls.length) keys.add("control"); }
   }
   const wires = new Set(trace.flatMap((t) => (t.op === "gate" ? [...t.controls, ...t.squares] : [t.sq])));
-  if ([...wires].some((w) => !inited.has(w))) keys.add("Before");
+  if ([...wires].some((w) => !inited.has(w))) keys.add("psi");
   return [...keys];
+}
+
+// gate name inside a circuit box; the radical's bar runs over the whole of "iSWAP"
+function gateSVG(name, cx, cy) {
+  const sqrt = name.startsWith("√"), dagger = name.endsWith("†");
+  const tw = 41;                                  // width of "iSWAP" at 13px
+  const lead = sqrt ? 9 : 0, trail = dagger ? 6 : 0;
+  const x0 = cx - (lead + tw + trail) / 2, ty = cy + 4.5;
+  let s = `<text x="${x0 + lead}" y="${ty}" font-size="13" fill="#fff" textLength="${tw}" lengthAdjust="spacingAndGlyphs">iSWAP</text>`;
+  if (sqrt) {
+    const top = ty - 13;
+    s += `<path d="M${x0} ${ty - 5} l2.5 -1.5 l3 6.5 l3.5 -${ty - top - 0} h${tw + 2}" fill="none" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/>`;
+  }
+  if (dagger) s += `<text x="${x0 + lead + tw + (sqrt ? 3 : 1)}" y="${ty - 7}" font-size="10" fill="#fff">†</text>`;
+  return s;
 }
 
 function circuitSVG(trace) {
@@ -429,7 +448,7 @@ function circuitSVG(trace) {
     if (prev && single && prev.single && !prev.rows.has(lo)) { prev.items.push({ c, lo, hi }); prev.rows.add(lo); }
     else layout.push({ single, rows: new Set([lo]), items: [{ c, lo, hi }] });
   }
-  const W = 74, X0 = 56, ROW = 44, Y0 = 26, colW = 104;
+  const W = 60, X0 = 56, ROW = 44, Y0 = 26, colW = 90;
   const width = X0 + layout.length * colW + 20, height = Y0 + wires.length * ROW;
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" font-family="Segoe UI, Arial, sans-serif">`;
   wires.forEach((w, i) => {
@@ -443,8 +462,8 @@ function circuitSVG(trace) {
       const ylo = Y0 + lo * ROW, yhi = Y0 + hi * ROW;
       if (c.kind === "psi" || c.kind === "x") {
         const fill = c.kind === "x" ? "#002d9c" : "#8d8d8d";
-        svg += `<rect x="${cx - 27}" y="${ylo - 15}" width="54" height="30" fill="${fill}"/>`;
-        svg += `<text x="${cx}" y="${ylo + 4.5}" font-size="12" fill="#fff" text-anchor="middle">${c.kind === "x" ? "Piece" : "Before"}</text>`;
+        svg += `<rect x="${cx - 16}" y="${ylo - 16}" width="32" height="32" fill="${fill}"/>`;
+        svg += `<text x="${cx}" y="${ylo + 5}" font-size="14" fill="#fff" text-anchor="middle">${c.kind === "x" ? "X" : "ψ"}</text>`;
       } else if (c.op === "measure") {
         svg += `<rect x="${cx - 18}" y="${ylo - 16}" width="36" height="32" fill="#8d8d8d"/>`;
         svg += `<path d="M ${cx - 11} ${ylo + 7} A 11 11 0 0 1 ${cx + 11} ${ylo + 7}" stroke="#fff" fill="none" stroke-width="1.6"/>`;
@@ -459,11 +478,7 @@ function circuitSVG(trace) {
           svg += `<circle cx="${cx}" cy="${y}" r="7" fill="#fff" stroke="#9f1853" stroke-width="2"/>`;
         });
         svg += `<rect x="${cx - W / 2 - 8}" y="${top - 17}" width="${W + 16}" height="${bot - top + 34}" fill="#9f1853"/>`;
-        const words = gateLabel(c.gate).split(" ");
-        const lines = words.length > 2 ? [words.slice(0, 2).join(" "), words.slice(2).join(" ")] : [words.join(" ")];
-        lines.forEach((ln, i) => {
-          svg += `<text x="${cx}" y="${(top + bot) / 2 + 5 + (i - (lines.length - 1) / 2) * 15}" font-size="12.5" fill="#fff" text-anchor="middle">${ln}</text>`;
-        });
+        svg += gateSVG(c.gate, cx, (top + bot) / 2);
       }
     }
   });

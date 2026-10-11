@@ -94,10 +94,10 @@ function lessonSplit() {
     .frame("Choose two targets", "In Split mode, click the knight, then two empty squares it can reach: a3 and c3.",
       { marks: { a3: "qdot", c3: "qdot" }, arrows: [["b1", "a3"], ["b1", "c3"]] })
     .gate("√iSWAP", "b1", "a3")
-    .frame("Half swap: half the chance moves", "A <b>half swap</b> between b1 and a3 sends half of the knight's chance to a3. It is now 50% on b1 and 50% on a3. (Physicists call this gate the square root of iSWAP.)",
+    .frame(`${RAD}: half the chance moves`, `${RAD}, the square root of the iSWAP gate, acts on b1 and a3 and sends half of the knight's chance to a3. It is now 50% on b1 and 50% on a3.`,
       { arrows: [["b1", "a3"]] })
     .gate("iSWAP", "b1", "c3")
-    .frame("Full swap: the rest moves", "A <b>full swap</b> between b1 and c3 moves everything left on b1 over to c3. b1 is now certainly empty.",
+    .frame("iSWAP: the rest moves", "A full iSWAP on b1 and c3 moves everything left on b1 over to c3. b1 is now certainly empty.",
       { arrows: [["b1", "c3"]] })
     .frame("One knight, two squares", "The knight is on a3 and c3 at once, 50% each. The halves always add up to one knight, until a measurement decides.",
       { marks: { a3: "partner", c3: "partner" } });
@@ -114,9 +114,9 @@ function lessonMerge() {
     .frame("Pick a target", "In Merge mode, click one half, then the other, then a square both can reach: b1.",
       { marks: { a3: "partner", c3: "partner", b1: "qdot" }, arrows: [["a3", "b1"], ["c3", "b1"]] })
     .gate("iSWAP†", "b1", "c3")
-    .frame("Undo swap: pull one half back", "An <b>undo swap</b> between b1 and c3 moves the c3 half back onto b1.", { arrows: [["c3", "b1"]] })
+    .frame("iSWAP<sup>†</sup>: pull one half back", "iSWAP<sup>†</sup>, the iSWAP run backwards, on b1 and c3 moves the c3 half back onto b1.", { arrows: [["c3", "b1"]] })
     .gate("√iSWAP†", "b1", "a3")
-    .frame("Undo half swap: interference", "An <b>undo half swap</b> mixes b1 with a3. The two halves add up on b1 and cancel out on a3: the knight is back with 100% certainty.",
+    .frame(`${RAD}<sup>†</sup>: interference`, `${RAD}<sup>†</sup> mixes b1 with a3. The two halves add up on b1 and cancel out on a3: the knight is back with 100% certainty.`,
       { arrows: [["a3", "b1"]] });
   // the classical comparison: a coin decided a3 or c3, then the same gates
   const C = new LessonBuilder({ a3: "wN", e1: "wK", e5: "bK" });
@@ -135,7 +135,7 @@ function lessonEntangle() {
     { arrows: [["a1", "a4"]], marks: { a4: "dot" } })
     .activate("a1", true).activate("a4", false)
     .gate("iSWAP", "a1", "a4", ["a2"]).place("a4", "wR")
-    .frame("A slide that depends on a2", "The rook's <b>full swap</b> has an open dot on a2: it only happens if a2 is empty. So the rook slides only in the branch where the knight is on b5.");
+    .frame("A slide that depends on a2", "The rook's iSWAP has an open dot on a2: it only happens if a2 is empty. So the rook slides only in the branch where the knight is on b5.");
   const both = L.save();
   L.frame("Entangled", "Rook and knight now share one state: rook on a4 exactly when the knight is on b5. Neither piece has a position of its own.",
     { marks: { a1: "partner", a4: "partner", a2: "partner", b5: "partner" } })

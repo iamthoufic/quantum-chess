@@ -117,8 +117,8 @@ function buildManual(root) {
     <h2 id="m-split">Split: superposition</h2>
     <p>Choose <b>Split</b>, click a non-pawn piece, then click <b>two empty squares</b> it could reach
     (dashed cyan circles). The piece now stands on both squares with 50% probability each.</p>
-    <p class="qbox"><b>Under the hood:</b> the piece's square is a qubit in state |1⟩. A <b>half swap</b> with the first target
-    sends half the amplitude there; an <code>iSWAP</code> with the second target sends the rest.
+    <p class="qbox"><b>Under the hood:</b> the piece's square is a qubit in state |1⟩. A ${RAD} gate (the square root of iSWAP) with the first target
+    sends half of the amplitude there; a full <code>iSWAP</code> with the second target sends the rest.
     The state is <code>i(|a3⟩ + |c3⟩)/√2</code>.</p>`);
   s.appendChild(figRow(
     figure({ pieces: START, marks: { a3: "qdot", c3: "qdot" }, arrows: [["b1", "a3"], ["b1", "c3"]], n: "Figure 3a.", caption: "Split the b1 knight towards a3 and c3." }),
@@ -133,7 +133,7 @@ function buildManual(root) {
     amplitudes add up on the target and cancel elsewhere. If one half has moved on its own since, the phases
     differ and the merge may leave some probability behind. That is real quantum interference, and you can
     use it.</p>
-    <p class="qbox"><b>Under the hood:</b> the split run backwards: an <b>undo swap</b>, then an <b>undo half swap</b>.</p>`);
+    <p class="qbox"><b>Under the hood:</b> the split run backwards: iSWAP<sup>†</sup>, then ${RAD}<sup>†</sup>.</p>`);
   s.appendChild(figRow(
     figure({ pieces: { ...START, b1: undefined, a3: ["wN", 0.5], c3: ["wN", 0.5] }, marks: { a3: "partner", c3: "partner", b1: "qdot" }, arrows: [["a3", "b1"], ["c3", "b1"]], n: "Figure 4a.", caption: "Merge both halves back onto b1." }),
     figure({ pieces: START, last: ["b1"], n: "Figure 4b.", caption: "Result: the knight is back on b1 with 100% certainty." }),
@@ -231,6 +231,14 @@ const NOISE = [[0, 1.0], [0.005, 0.847], [0.01, 0.724], [0.02, 0.531], [0.05, 0.
 
 const ARTICLES = [
   {
+    slug: "history", no: "02", author: "Mohamed Thoufic", date: "11 October 2026", read: "7 min read",
+    title: "From chaturanga to qubits: the story of 5×5 quantum chess",
+    titleHtml: "From chaturanga to <em>qubits</em>: the story of 5×5 quantum chess",
+    dek: "Fifteen centuries of chess, a pocket-sized board from Martin Gardner, a game designer who taught pieces to be in two places at once, and the machines that kept changing what the game could be.",
+    tags: ["History", "Quantum games"],
+    build: buildHistory,
+  },
+  {
     slug: "classical-vs-quantum", no: "01", author: "Mohamed Thoufic", date: "11 October 2026", read: "8 min read",
     title: "Same board, different universe: classical vs quantum 5×5 chess",
     titleHtml: "Same board, <em>different universe</em>: classical vs quantum 5×5 chess",
@@ -258,6 +266,91 @@ function renderBlog(root, slug) {
     return;
   }
   art.build(root, art);
+}
+
+function buildHistory(root, art) {
+  const ev = (year, title, text) => `<li><span class="tl-year">${year}</span><div><b>${title}</b><p>${text}</p></div></li>`;
+  root.innerHTML = `
+    <a class="back-link" href="#blog"><svg class="ic"><use href="#i-prev"/></svg>All articles</a>
+    <p class="eyebrow">Article ${art.no} · ${art.tags.join(" · ")}</p>
+    <h1>${art.titleHtml}</h1>
+    <p class="lede">${art.dek}</p>
+    <div class="byline"><span class="av">MT</span><div><b>Published by ${art.author}</b><span>${art.date} · ${art.read}</span></div></div>
+
+    <h2>A game older than most languages</h2>
+    <p>Chess began in India as <b>chaturanga</b>, around the 6th century: a war game with infantry, cavalry,
+    elephants and chariots. It travelled to Persia as <b>shatranj</b>, spread across the Islamic world, and reached
+    Europe a few centuries later. The game we know today took shape in late 15th-century Europe, when the queen and
+    the bishop gained their long, sweeping moves and play became fast enough to be decided in an evening.</p>
+    <p>For most of that history, chess was a test of calculation and memory: every piece is always somewhere,
+    both players see the whole board, and nothing is left to chance.</p>
+
+    <h2>Shrinking the board</h2>
+    <p>Players have always experimented with smaller boards, partly for fun and partly because a smaller game is easier
+    to study. The most famous of these <b>minichess</b> variants comes from <b>Martin Gardner</b>, who presented a 5×5
+    setup in his <i>Mathematical Games</i> column in <i>Scientific American</i> in 1969: one king, queen, rook, bishop
+    and knight per side, five pawns, no castling and no double pawn step.</p>
+    <p>It looks like a toy, but it is a real game. It is also small enough for computers to explore completely: in 2013
+    Mehdi Mhalla and Frédéric Prost showed that with perfect play, Gardner's minichess is a <b>draw</b>.</p>
+
+    <h2>A note on the machine</h2>
+    <p>Chess and computers grew up together. Around 1948 <b>Alan Turing</b> wrote a chess-playing program on paper,
+    before any computer existed that could run it, and later played a game by working through its rules by hand.
+    In 1950 <b>Claude Shannon</b> published <i>Programming a Computer for Playing Chess</i>, the paper that laid out how a
+    machine could search ahead through possible moves. Almost half a century later, in 1997, IBM's <b>Deep Blue</b>
+    beat world champion Garry Kasparov in a six-game match.</p>
+    <p>Those were classical machines: they play the same chess as people, only faster. A quantum computer is a
+    different kind of machine. It is not a faster chess engine; it stores a state that can be a combination of many
+    possibilities at once, and it only gives a definite answer when it is measured. That is exactly the behaviour
+    quantum chess puts on the board.</p>
+    <blockquote class="pull">Classical computers learned to play chess. Quantum computers suggest a different chess to play.</blockquote>
+
+    <h2>Enter quantum chess</h2>
+    <p>The idea of a chess game with quantum rules appeared in research around 2010; computer scientist
+    <b>Selim Akl</b> of Queen's University in Canada was among the first to propose one, as a way to show that a game can
+    be hard for any player, human or machine, who cannot see the quantum state.</p>
+    <p>The version most people know was created by <b>Chris Cantwell</b>, who developed <i>Quantum Chess</i> while studying
+    at the University of Southern California. In his design every square behaves like a qubit, pieces can split onto
+    two squares, and moves are built from the <b>iSWAP</b> family of quantum gates, the same model this project
+    follows. He later described the full mathematical framework in a 2019 paper.</p>
+    <p>The game reached a wide audience in 2016 through <i>Anyone Can Quantum</i>, a short film from Caltech's Institute
+    for Quantum Information and Matter in which actor Paul Rudd plays quantum chess against Stephen Hawking.</p>
+
+    <h2>Why 5×5, and why now</h2>
+    <p>Quantum chess on a full 8×8 board needs a lot of quantum state to track. Gardner's 5×5 board keeps every piece
+    type and the feel of real chess, but with 25 squares it is small enough to simulate exactly. That makes it a good
+    fit for a 24-hour build at <b>Qiskit Fall Fest 2026</b>: every split, merge and measured capture in this game is a
+    real operation on a Qiskit statevector, and only the squares that are actually uncertain cost a qubit.</p>
+    <p>It also turns a solved game back into an open one. Classical 5×5 chess is a draw with perfect play; quantum
+    5×5 chess adds hidden information, interference and genuine chance, and nobody has solved that yet.</p>
+
+    <h2>Timeline</h2>
+    <ol class="timeline">
+      ${ev("c. 600", "Chaturanga", "The ancestor of chess is played in India.")}
+      ${ev("c. 1000", "Shatranj", "The game has spread through Persia and the Islamic world.")}
+      ${ev("c. 1475", "Modern chess", "In Europe the queen and bishop gain their long moves.")}
+      ${ev("1948", "Turing's paper machine", "Alan Turing writes a chess program before a computer can run it.")}
+      ${ev("1950", "Shannon's paper", "Claude Shannon describes how a computer could play chess.")}
+      ${ev("1969", "Gardner's 5×5 board", "Martin Gardner presents the 5×5 minichess setup.")}
+      ${ev("1997", "Deep Blue", "IBM's machine beats world champion Garry Kasparov.")}
+      ${ev("c. 2010", "Quantum chess proposed", "Selim Akl and others describe chess with quantum rules.")}
+      ${ev("2013", "5×5 solved", "Mhalla and Prost show Gardner's minichess is a draw.")}
+      ${ev("2016", "Anyone Can Quantum", "Paul Rudd plays Chris Cantwell's Quantum Chess against Stephen Hawking.")}
+      ${ev("2019", "The framework", "Cantwell publishes the mathematics behind Quantum Chess.")}
+      ${ev("2026", "5×5 Quantum Chess", "This project: Gardner's board with quantum rules, built on Qiskit in 24 hours.")}
+    </ol>
+    <p class="note">Dates before the modern era are approximate; historians place chaturanga between the 6th and 7th centuries.</p>
+
+    <h3>Further reading</h3>
+    <ol class="refs">
+      <li>M. Gardner, Mathematical Games column, <i>Scientific American</i>, 1969.</li>
+      <li>C. E. Shannon, "Programming a Computer for Playing Chess", <i>Philosophical Magazine</i>, 1950.</li>
+      <li>M. Mhalla, F. Prost, "Gardner's Minichess Variant is Solved", <i>ICGA Journal</i> 36(4), 2013.</li>
+      <li>S. G. Akl, "On the importance of being quantum", <i>Parallel Processing Letters</i>, 2010.</li>
+      <li>C. Cantwell, "Quantum Chess: Developing a Mathematical Framework and Design Methodology for Creating Quantum Games", arXiv:1906.05836, 2019.</li>
+      <li><i>Anyone Can Quantum</i>, Institute for Quantum Information and Matter, Caltech, 2016.</li>
+    </ol>
+    <p class="next-art">Next: <a href="#blog/classical-vs-quantum">Article 01 · Same board, different universe: classical vs quantum 5×5 chess</a></p>`;
 }
 
 function buildClassicalVsQuantum(root, art) {

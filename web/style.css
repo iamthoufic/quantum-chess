@@ -216,7 +216,10 @@ body.no-anim .flash::after { animation: none; }
 .empty { margin: 0; color: var(--text-3); font-size: 13.5px; }
 .psec.grow { flex: 1 1 0; min-height: 110px; display: flex; flex-direction: column; }
 .psec.grow .movelist { flex: 1 1 0; min-height: 0; }
-.movelist { overflow-y: auto; border-top: 1px solid var(--hair); scrollbar-width: thin; }
+/* scrolls with the wheel or a swipe, but never shows a scrollbar; a fade marks older moves above */
+.movelist { overflow-y: auto; border-top: 1px solid var(--hair); scrollbar-width: none; }
+.movelist::-webkit-scrollbar { display: none; }
+.movelist.is-clipped { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 28px); mask-image: linear-gradient(to bottom, transparent 0, #000 28px); }
 .movelist .empty { padding-top: 10px; }
 .mrow { display: grid; grid-template-columns: 30px 1fr 1fr; align-items: start; padding: 5px 0; border-bottom: 1px solid var(--hair); font: 500 13.5px var(--mono); }
 .mrow:nth-child(odd) { background: rgba(255, 255, 255, 0.015); }
@@ -534,7 +537,7 @@ body.no-anim .flash::after { animation: none; }
 /* ---------- circuit key: plain-English legend under every circuit ---------- */
 .circuit-key { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; font-size: 13px; line-height: 1.4; color: var(--text-2); }
 .ck-intro { color: var(--text-3); font-size: 12.5px; }
-.ck-row { display: grid; grid-template-columns: 104px 1fr; align-items: center; gap: 10px; }
+.ck-row { display: grid; grid-template-columns: 84px 1fr; align-items: center; gap: 10px; }
 .ck-sym { justify-self: start; font: 600 11px/1 var(--ui); color: #fff; background: #9f1853; padding: 5px 8px; white-space: nowrap; }
 .ck-sym.ck-blue { background: #002d9c; }
 .ck-sym.ck-grey { background: #8d8d8d; }
@@ -547,3 +550,21 @@ body.no-anim .flash::after { animation: none; }
 #circuitKey summary::-webkit-details-marker { display: none; }
 #circuitKey summary::before { content: "+"; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 4px; background: rgba(95, 212, 232, 0.14); font-size: 13px; line-height: 1; }
 #circuitKey details[open] summary::before { content: "−"; }
+
+/* √iSWAP in text: the radical's bar spans the whole gate name */
+.rad { display: inline-flex; align-items: flex-end; white-space: nowrap; }
+.rad-sign { font-size: 1.15em; line-height: 1; margin-right: -0.04em; }
+.rad-body { border-top: 1.4px solid currentColor; padding: 0.06em 0.12em 0 0.08em; line-height: 1.1; }
+.ck-sym .rad-body { border-top-width: 1.2px; }
+.ck-sym sup, .tut-title sup, .qbox sup { font-size: 0.7em; }
+
+/* ---------- history timeline ---------- */
+.timeline { list-style: none; padding: 0; margin: 20px 0 8px; border-left: 2px solid var(--hair-2); }
+.timeline li { position: relative; display: grid; grid-template-columns: 92px 1fr; gap: 14px; padding: 0 0 18px 20px; }
+.timeline li::before { content: ""; position: absolute; left: -6px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--bg); box-shadow: inset 0 0 0 2px var(--q-cyan); }
+.timeline li:last-child::before { background: var(--q-cyan); }
+.tl-year { font: 600 13px/1.6 var(--mono); color: var(--q-cyan); }
+.timeline b { color: var(--text); }
+.timeline p { margin: 2px 0 0; font-size: 15px; line-height: 1.55; }
+.next-art { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--hair); font-size: 15px; }
+@media (max-width: 760px) { .timeline li { grid-template-columns: 1fr; gap: 2px; } }

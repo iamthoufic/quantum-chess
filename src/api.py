@@ -49,17 +49,21 @@ def get(gid: str) -> Game:
     return games[gid]
 
 
+KEY_IDS = {"x": "x", "ψ": "psi", "iSWAP": "iswap", r"$\sqrt{\mathrm{iSWAP}}$": "sqrt",
+           r"$\mathrm{iSWAP}^{\dagger}$": "iswapdg", r"$\sqrt{\mathrm{iSWAP}}^{\,\dagger}$": "sqrtdg"}
+
+
 def circuit_key(qc) -> list[str]:
-    """Names of the boxes used in a circuit drawing, for the key under it."""
+    """Ids of the box types used in a circuit drawing, for the key under it."""
     keys = set()
     for ins in qc.data:
         op = ins.operation
         if op.name == "measure":
             keys.add("measure")
         elif getattr(op, "num_ctrl_qubits", 0):
-            keys.update(["control", op.base_gate.label or "Full swap"])
+            keys.update(["control", "iswap"])
         else:
-            keys.add(op.label or op.name)
+            keys.add(KEY_IDS.get(op.label or op.name, op.name))
     return sorted(keys)
 
 

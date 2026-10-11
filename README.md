@@ -40,7 +40,7 @@
 
 * **Circuit Details:**  
   * **Number of Qubits:** `One per square (25), but only uncertain squares are simulated; capped at 16 live qubits (the engine forces a measurement beyond that)`
-  * **Key Gates Used:** `X, iSWAP, iSWAP^(1/2), iSWAP^(-1), iSWAP^(-1/2), iSWAP controlled on |0⟩ (open control), Measurement`. For players, the circuit drawings use plain names: X = "Piece", iSWAP = "Full swap", iSWAP^(1/2) = "Half swap", iSWAP^(-1) = "Undo swap", iSWAP^(-1/2) = "Undo half swap", and a key under each circuit explains them.
+  * **Key Gates Used:** `X, iSWAP, iSWAP^(1/2), iSWAP^(-1), iSWAP^(-1/2), iSWAP controlled on |0⟩ (open control), Measurement`. Circuit drawings write √iSWAP with a radical whose bar covers the whole name (the square root of the iSWAP gate) and iSWAP† for its inverse, and a key under each circuit explains every box in plain words.
   * **Primitives Used:** `qiskit.quantum_info.Statevector (evolve + measure) in the engine; StatevectorSampler and Qiskit Aer (noise model) in the notebook`
   * **Other Technologies Used:** `FastAPI + Uvicorn (backend API), HTML/CSS/JavaScript (frontend, no build step), Matplotlib (circuit drawings), pytest (tests)`
 
