@@ -30,23 +30,24 @@ function actionText(a) {
 function buildPuzzles(root) {
   loadSolved();
   const levels = ["Beginner", "Intermediate", "Advanced"];
+  // three columns that fit one screen: puzzle list | board | puzzle panel
   root.innerHTML = `
-    <header class="pz-head">
-      <div>
-        <p class="eyebrow">Practice</p>
-        <h1>Puzzles</h1>
-        <p class="pz-sub">${QCPuzzles.PUZZLES.length} hand-made positions, each checked by an exact solver that weighs every measurement outcome, plus endless generated challenges.</p>
-      </div>
-      <div class="pz-progress" id="pzProgress"></div>
-    </header>
-    <div class="pz-strip">
-      ${levels.map((lv) => `<div class="pz-group"><span class="pz-level">${lv}</span><div class="pz-tiles">
-        ${QCPuzzles.PUZZLES.filter((p) => p.level === lv).map((p) => `<button class="pz-tile" data-id="${p.id}" title="${p.title}">${p.id.slice(1)}</button>`).join("")}
-      </div></div>`).join("")}
-      <div class="pz-group"><span class="pz-level">Endless</span><div class="pz-tiles">
-        <button class="pz-tile endless" id="pzEndless" title="Generate a new position"><svg class="ic"><use href="#i-dice"/></svg></button></div></div>
-    </div>
-    <div class="layout pz-layout">
+    <div class="pz-layout">
+      <aside class="pz-side">
+        <div class="pz-intro">
+          <p class="eyebrow">Practice</p>
+          <h1>Puzzles</h1>
+          <p class="pz-sub">${QCPuzzles.PUZZLES.length} hand-made positions, graded by an exact solver, plus endless generated ones.</p>
+        </div>
+        <div class="pz-progress" id="pzProgress"></div>
+        <div class="pz-strip">
+          ${levels.map((lv) => `<div class="pz-group"><span class="pz-level">${lv}</span><div class="pz-tiles">
+            ${QCPuzzles.PUZZLES.filter((p) => p.level === lv).map((p) => `<button class="pz-tile" data-id="${p.id}" title="${p.title}">${p.id.slice(1)}</button>`).join("")}
+          </div></div>`).join("")}
+          <div class="pz-group"><span class="pz-level">Endless</span><div class="pz-tiles">
+            <button class="pz-tile endless" id="pzEndless" title="Generate a new position"><svg class="ic"><use href="#i-dice"/></svg><span>New position</span></button></div></div>
+        </div>
+      </aside>
       <section class="board-col">
         <div class="player-bar turn" id="pzBar"><div class="avatar white" id="pzAvatar"></div>
           <div class="pinfo"><div class="pname" id="pzSide">White to move</div></div><div class="turn-flag">your move</div></div>
@@ -135,7 +136,13 @@ function fitPuzzleBoard() {
   fb.className = saved[0];
   fb.innerHTML = saved[1];
   const bar = 52 + 8;                                   // player bar + gap above the board
-  const sq = Math.max(70, Math.min(124, (h - bar) / 5));
+  // the board also has to fit the window: below the top bar, and beside the list and the panel
+  const stacked = innerWidth <= 1180;                  // the puzzle list sits above the board
+  const above = stacked ? document.querySelector(".pz-side").getBoundingClientRect().height + 28 : 0;
+  const byHeight = (innerHeight - 60 - 48 - above - bar) / 5;
+  const side = stacked ? 0 : 230 + 28;
+  const byWidth = (innerWidth - side - 400 - 28 - 48) / 5;
+  const sq = Math.max(64, Math.min(124, (h - bar) / 5, byHeight, byWidth));
   layout.style.setProperty("--sq", sq + "px");
   panel.style.minHeight = sq * 5 + bar + "px";
 }
@@ -264,7 +271,8 @@ function plainEvents(events) {
 function card({ badge, value = "", label = "", move = "", why = "", body = "", roll = "" }) {
   return `<div class="fb-head"><span class="fb-badge">${badge}</span>${value ? `<span class="fb-stat"><b>${value}</b><small>${label}</small></span>` : ""}</div>`
     + (move ? `<div class="fb-row"><span>Your move</span>${move}</div>` : "")
-    + (why ? `<div class="fb-row why"><span>Why</span><p>${why}</p></div>` : "")
+    // the explanation folds away so the whole puzzle page fits on one screen
+    + (why ? `<details class="fb-why"><summary>Why this works</summary><p>${why}</p></details>` : "")
     + (body ? `<p class="fb-body">${body}</p>` : "")
     + (roll ? `<div class="fb-roll">This time: ${roll}</div>` : "");
 }

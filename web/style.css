@@ -462,16 +462,14 @@ body.no-anim .flash::after { animation: none; }
 .tut-meta small em { font: 600 11.5px var(--mono); font-style: normal; color: var(--text-3); }
 
 /* ---------- puzzles ---------- */
-.puzzles { padding: 36px 24px 56px; }
-.pz-head { max-width: 1060px; margin: 0 auto 18px; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; }
-.pz-head h1 { font: 400 48px/1 var(--display); margin: 6px 0 8px; }
-.pz-sub { margin: 0; color: var(--text-2); max-width: 620px; }
-.pz-progress { width: 150px; flex: none; }
+.puzzles { padding: 24px 24px 32px; }
+.pz-sub { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.5; }
+.pz-progress { width: 100%; }
 .pzp-num { font: 400 34px/1 var(--display); }
 .pzp-num b { font-weight: 400; color: var(--go); }
 .pzp-label { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); margin: 2px 0 8px; }
 .pz-progress .qm-bar i { background: var(--go); }
-.pz-strip { max-width: 1060px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 10px 28px; padding: 14px 18px; background: var(--surface); border: 1px solid var(--hair); border-radius: 14px; }
+.pz-strip { display: flex; background: var(--surface); border: 1px solid var(--hair); border-radius: 14px; }
 .pz-group { display: flex; align-items: center; gap: 12px; }
 .pz-level { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-3); }
 .pz-tiles { display: flex; gap: 6px; }
@@ -480,7 +478,12 @@ body.no-anim .flash::after { animation: none; }
 .pz-tile.solved { background: rgba(129, 182, 76, 0.16); color: #b6dd8f; box-shadow: inset 0 0 0 1px rgba(129, 182, 76, 0.45); }
 .pz-tile.active { box-shadow: inset 0 0 0 2px var(--q-cyan); color: var(--text); }
 .pz-tile.endless .ic { width: 18px; height: 18px; }
-.pz-layout { padding: 22px 0 0; --sq: min(11.2vh, 92px); align-items: flex-start; }
+.pz-layout { --sq: min(11.2vh, 92px); display: grid; grid-template-columns: 230px auto 400px; gap: 28px; justify-content: center; align-items: start; }
+.pz-side { display: flex; flex-direction: column; gap: 18px; }
+.pz-intro h1 { font: 400 40px/1 var(--display); margin: 4px 0 8px; }
+.pz-strip { flex-direction: column; flex-wrap: nowrap; gap: 14px; padding: 16px; }
+.pz-group { flex-direction: column; align-items: flex-start; gap: 7px; }
+.pz-tile.endless { width: auto; padding: 0 12px; display: inline-flex; gap: 8px; font: 700 13px var(--ui); }
 .pz-panel { width: 400px; }
 .pz-panel header { padding-bottom: 2px; }
 .pz-task { margin: 0; color: var(--text); font-size: 15px; line-height: 1.6; }
@@ -504,7 +507,6 @@ body.no-anim .flash::after { animation: none; }
   .tut-stage { grid-template-columns: 1fr; justify-items: center; }
   .tut-side { width: 100%; }
   .tut-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pz-head { flex-direction: column; align-items: flex-start; }
 }
 @media (max-width: 760px) {
   .board.tut-b { --sq: calc((100vw - 84px) / 5); }
@@ -580,3 +582,24 @@ body.no-anim .flash::after { animation: none; }
 .timeline p { margin: 2px 0 0; font-size: 15px; line-height: 1.55; }
 .next-art { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--hair); font-size: 15px; }
 @media (max-width: 760px) { .timeline li { grid-template-columns: 1fr; gap: 2px; } }
+
+/* puzzles: narrower windows put the list on top, phones stack everything */
+@media (max-width: 1180px) {
+  .pz-layout { grid-template-columns: auto 400px; }
+  .pz-side { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr; gap: 12px 24px; align-items: center; }
+  .pz-intro h1 { font-size: 34px; }
+  .pz-progress { width: 160px; }
+  .pz-strip { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; gap: 10px 24px; }
+}
+@media (max-width: 760px) {
+  .pz-layout { grid-template-columns: 1fr; }
+  .pz-side { grid-template-columns: 1fr; }
+  .pz-panel { width: 100%; }
+}
+
+.fb-why { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--hair); }
+.fb-why summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--q-cyan); }
+.fb-why summary::-webkit-details-marker { display: none; }
+.fb-why summary::before { content: "+"; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 4px; background: rgba(95, 212, 232, 0.14); font-size: 13px; line-height: 1; }
+.fb-why[open] summary::before { content: "−"; }
+.fb-why p { margin: 8px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--text-2); }
