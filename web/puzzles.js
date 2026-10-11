@@ -177,7 +177,7 @@ function nextPuzzle() {
 
 function updateProgress() {
   const n = QCPuzzles.PUZZLES.filter((p) => PZ.solved.has(p.id)).length, total = QCPuzzles.PUZZLES.length;
-  $("pzProgress").innerHTML = `<div class="pzp-num"><b>${n}</b> / ${total}</div><div class="pzp-label">solved</div>
+  $("pzProgress").innerHTML = `<div class="pzp-row"><span class="pzp-num"><b>${n}</b> / ${total}</span><span class="pzp-label">solved</span></div>
     <div class="qm-bar"><i style="width:${(100 * n) / total}%"></i></div>`;
 }
 
