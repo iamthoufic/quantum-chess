@@ -76,11 +76,16 @@
     <div class="board-wrap">
       <div id="board" class="board" aria-label="Chess board"></div>
       <div id="overlay" class="overlay hidden">
-        <div class="overlay-card">
-          <div class="overlay-kicker">Game over</div>
+        <div class="overlay-card" role="dialog" aria-labelledby="overlayTitle">
+          <div class="ov-crown" id="ovCrown"></div>
+          <div class="overlay-kicker" id="ovKicker">Game over</div>
           <div id="overlayTitle" class="overlay-title"></div>
           <div id="overlaySub" class="overlay-sub"></div>
-          <button class="btn primary" id="overlayNew"><svg class="ic"><use href="#i-play"/></svg>Play again</button>
+          <div class="ov-stats" id="ovStats"></div>
+          <div class="ov-actions">
+            <button class="btn primary" id="overlayNew"><svg class="ic"><use href="#i-play"/></svg>Play again</button>
+            <button class="btn ghost" id="overlayReview"><svg class="ic"><use href="#i-eye"/></svg>Review</button>
+          </div>
         </div>
       </div>
     </div>

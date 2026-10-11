@@ -171,11 +171,32 @@ body.no-anim .piece.maybe { animation: none; }
 body.no-anim .piece, body.no-anim .sq:hover .piece { transition: none; transform: none; }
 body.no-anim .flash::after { animation: none; }
 
-.overlay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(15, 14, 13, 0.55); backdrop-filter: blur(2px); border-radius: 6px; }
-.overlay-card { background: var(--surface); padding: 28px 36px 26px; border-radius: 14px; text-align: center; box-shadow: var(--shadow); border: 1px solid var(--hair); }
-.overlay-kicker { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-3); }
-.overlay-title { font: 400 44px/1.1 var(--display); margin: 6px 0 4px; }
-.overlay-sub { color: var(--text-2); margin-bottom: 20px; }
+/* game-over card */
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, rgba(15, 14, 13, 0.45), rgba(15, 14, 13, 0.78)); backdrop-filter: blur(3px); border-radius: 6px; z-index: 5; animation: ov-fade 0.3s ease-out both; }
+.overlay-card { width: min(380px, 88%); padding: 30px 30px 24px; border-radius: 20px; text-align: center; background: linear-gradient(180deg, #2c2a27, #232220); border: 1px solid var(--hair-2); box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.06); animation: ov-pop 0.45s cubic-bezier(0.2, 0.9, 0.25, 1.15) both; }
+.ov-crown { width: 92px; height: 92px; margin: -2px auto 14px; border-radius: 50%; display: grid; place-items: center; position: relative; }
+.ov-crown img { width: 62px; height: 62px; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45)); position: relative; }
+.ov-crown::before { content: ""; position: absolute; inset: -10px; border-radius: 50%; animation: ov-glow 2.4s ease-in-out infinite; }
+.ov-crown.white { background: radial-gradient(circle, #f4f1ea, #cfc9bc); }
+.ov-crown.white::before { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25), 0 0 40px 6px rgba(255, 236, 180, 0.35); }
+.ov-crown.black { background: radial-gradient(circle, #4a4742, #2a2825); box-shadow: inset 0 0 0 2px rgba(95, 212, 232, 0.5); }
+.ov-crown.black::before { box-shadow: 0 0 0 1px rgba(95, 212, 232, 0.25), 0 0 40px 6px rgba(95, 212, 232, 0.28); }
+.ov-crown.draw { width: 120px; border-radius: 46px; background: linear-gradient(90deg, #ddd8cd 50%, #3a3834 50%); }
+.ov-crown.draw img { width: 46px; height: 46px; }
+.overlay-kicker { font: 600 11px var(--mono); text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-3); }
+.overlay-title { font: 400 54px/1.02 var(--display); margin: 6px 0 6px; color: var(--text); }
+.overlay-sub { color: var(--text-2); font-size: 15px; margin-bottom: 20px; }
+.ov-stats { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0 -6px 22px; padding: 14px 0; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
+.ov-stats div { display: flex; flex-direction: column; gap: 3px; }
+.ov-stats div + div { border-left: 1px solid var(--hair); }
+.ov-stats b { font: 400 28px/1 var(--display); color: var(--text); }
+.ov-stats span { font: 600 10px var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); }
+.ov-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ov-actions .btn { height: 46px; }
+@keyframes ov-fade { from { opacity: 0; } }
+@keyframes ov-pop { from { opacity: 0; transform: translateY(12px) scale(0.94); } }
+@keyframes ov-glow { 50% { opacity: 0.55; transform: scale(1.06); } }
+body.no-anim .overlay, body.no-anim .overlay-card, body.no-anim .ov-crown::before { animation: none; }
 
 /* mini boards (manual figures) */
 .board.mini { --msq: min(15vw, 58px); grid-template-columns: repeat(5, var(--msq)); grid-template-rows: repeat(5, var(--msq)); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 12px 30px -14px rgba(0, 0, 0, 0.8); }

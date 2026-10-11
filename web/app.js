@@ -136,6 +136,7 @@ async function newGame(quantum) {
     return;
   }
   clearSelection();
+  S.reviewing = false;
   setMode("move");
   circuitToken++;
   $("circuit").innerHTML = `<span class="empty">Quantum moves draw their circuit here.</span>`;
@@ -290,9 +291,21 @@ function renderPanel() {
   renderMoves();
   renderCaptured(whiteBottom);
   const ov = $("overlay");
-  if (st.winner) {
-    $("overlayTitle").textContent = st.winner === "draw" ? "Draw" : `${winnerName} wins`;
-    $("overlaySub").textContent = st.end_reason || (st.winner === "draw" ? "Draw." : "The king was captured.");
+  if (st.winner && !S.reviewing) {
+    const draw = st.winner === "draw";
+    const king = (c) => `<img src="${pieceUrl(c, "K")}" alt="">`;
+    $("ovCrown").className = "ov-crown " + (draw ? "draw" : st.winner === "w" ? "white" : "black");
+    $("ovCrown").innerHTML = draw ? king("w") + king("b") : king(st.winner);
+    $("ovKicker").textContent = `Game over · ${st.quantum ? "quantum game" : "classical baseline"}`;
+    $("overlayTitle").textContent = draw ? "Draw" : `${winnerName} wins`;
+    $("overlaySub").textContent = st.end_reason || (draw ? "Draw." : "The king was captured.");
+    // a short summary of the game
+    const ev = st.log.flatMap((e) => e.events);
+    const stat = (n, label) => `<div><b>${n}</b><span>${label}</span></div>`;
+    $("ovStats").innerHTML = stat(Math.ceil(st.log.length / 2), "moves")
+      + stat(ev.filter((e) => e.startsWith("captured")).length, "captures")
+      + stat(st.log.filter((e) => e.kind === "split" || e.kind === "merge").length, "quantum moves")
+      + stat(ev.filter((e) => e.startsWith("measured")).length, "measurements");
     ov.classList.remove("hidden");
   } else ov.classList.add("hidden");
 }
@@ -574,6 +587,8 @@ function wire() {
   $("newQuantum").addEventListener("click", () => newGame(true));
   $("newClassical").addEventListener("click", () => newGame(false));
   $("overlayNew").addEventListener("click", () => newGame(S.state ? S.state.quantum : true));
+  // close the result card to look at the final position; the panel still shows the result
+  $("overlayReview").addEventListener("click", () => { S.reviewing = true; render(); });
   $("settingsBtn").addEventListener("click", () => $("settings").showModal());
   document.querySelectorAll("[data-cview]").forEach((b) => b.addEventListener("click", () => {
     settings.cview = b.dataset.cview;
