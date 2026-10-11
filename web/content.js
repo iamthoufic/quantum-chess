@@ -299,7 +299,7 @@ function buildHistory(root, art) {
   const ev = (year, title, text) => `<li><span class="tl-year">${year}</span><div><b>${title}</b><p>${text}</p></div></li>`;
   root.innerHTML = `
     <a class="back-link" href="#blog"><svg class="ic"><use href="#i-prev"/></svg>All articles</a>
-    <p class="eyebrow">Article ${art.no} · ${art.tags.join(" · ")}</p>
+    <p class="eyebrow small">Article ${art.no} · ${art.tags.join(" · ")}</p>
     <h1>${art.titleHtml}</h1>
     <p class="lede">${art.dek}</p>
     <div class="byline">${authorPhoto(art.author)}<div><span class="author-kicker">Published by</span><b>${art.author}</b><span>${art.date} · ${art.read}</span></div></div>
@@ -383,7 +383,7 @@ function buildHistory(root, art) {
 function buildClassicalVsQuantum(root, art) {
   root.innerHTML = `
     <a class="back-link" href="#blog"><svg class="ic"><use href="#i-prev"/></svg>All articles</a>
-    <p class="eyebrow">Article ${art.no} · ${art.tags.join(" · ")}</p>
+    <p class="eyebrow small">Article ${art.no} · ${art.tags.join(" · ")}</p>
     <h1>${art.titleHtml}</h1>
     <p class="lede">${art.dek}</p>
     <div class="byline">${authorPhoto(art.author)}<div><span class="author-kicker">Published by</span><b>${art.author}</b><span>${art.date} · ${art.read} · experiments run in your browser</span></div></div>

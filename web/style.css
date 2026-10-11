@@ -84,7 +84,7 @@ kbd { font: 600 11px var(--mono); color: var(--text-3); border: 1px solid var(--
 html[data-ui="light"] .mark { background: #fff; box-shadow: inset 0 0 0 1px var(--hair), 0 4px 12px -6px rgba(60, 45, 25, 0.3); }
 html[data-ui="light"] .mark .logo-dark { display: none; }
 html[data-ui="light"] .mark .logo-light { display: block; }
-.wordmark { font: 700 19px/1 "Unbounded", var(--ui); letter-spacing: 0.01em; display: flex; align-items: baseline; gap: 6px; }
+.wordmark { font: 400 27px/1 var(--display); letter-spacing: -0.005em; display: flex; align-items: baseline; gap: 6px; }
 .wordmark small { font: 700 11px var(--mono); color: var(--q-cyan); background: rgba(95, 212, 232, 0.1); padding: 2px 6px; border-radius: 5px; letter-spacing: 0.02em; }
 
 .nav { display: flex; gap: 2px; padding: 4px; background: var(--surface); border: 1px solid var(--hair); border-radius: 12px; }
@@ -306,14 +306,15 @@ html[data-ui="light"] .mode-pill.c { color: #9a6a12; background: rgba(154, 106, 
 .article b, .article strong { color: var(--text); font-weight: 700; }
 .article h1 { font: 400 clamp(38px, 5vw, 56px)/1.04 var(--display); color: var(--text); margin: 10px 0 18px; letter-spacing: -0.01em; }
 .article h1 em { color: var(--q-cyan); }
-.article .eyebrow { font-size: 26px; color: var(--q-cyan); }
+.article .eyebrow { font-size: 34px; color: var(--q-cyan); margin-bottom: 0; }
+.article .eyebrow.small { font-size: 18px; margin-bottom: 6px; }
 .article h2 { font: 400 34px/1.15 var(--display); color: var(--text); margin: 64px 0 14px; scroll-margin-top: 90px; }
 .article h3 { font: 700 17px var(--ui); color: var(--text); margin: 28px 0 6px; }
 .eyebrow { font: italic 400 22px/1.1 var(--display); letter-spacing: 0.01em; color: var(--q-cyan); margin: 0 0 2px; }
 /* page titles: one serif headline at one size on every page; the descriptive words in cyan italic, the name in white */
 .page-title { font: 400 34px/1.12 var(--display); color: var(--text); margin: 0 0 8px; letter-spacing: -0.005em; }
 .page-title em { font-style: italic; color: var(--q-cyan); }
-.article .page-eyebrow { font-size: 34px; margin-bottom: 0; }
+
 .lede { font-size: 20px; line-height: 1.6; color: var(--text); margin: 0 0 8px; }
 .secno { display: none; font: 600 12px var(--mono); letter-spacing: 0.1em; color: var(--text-3); margin-bottom: 6px; }
 .byline { display: flex; align-items: center; gap: 16px; margin: 22px 0 6px; padding: 16px 0; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); font-size: 14px; }
@@ -684,8 +685,7 @@ html[data-ui="light"] #circuitKey details[open] .circuit-key { background: #fff;
   .pzp-num { font-size: 28px; }
   .pz-strip { gap: 8px; }
   .pz-group { padding: 10px 12px; }
-  .pz-tile { width: 32px; height: 32px; font-size: 13px; }
-  .pz-tile.endless { height: 32px; }
+  .pz-tile { height: 30px; font-size: 13px; }
 }
 
 /* author photo: cropped to the face, round, with a thin ring that lifts it off the dark page */
